@@ -1,0 +1,10 @@
+numpy
+Pillow
+nifpga
+PySide2
+qimage2ndarray
+tifffile
+imageio
+pytest
+pytest-qt
+pyyaml
