@@ -1,0 +1,9 @@
+fpga:
+  resource: "RIO0"
+  bitfile: "bitfiles/doptical_7855R.lvbitx"
+  dma_max_length: 1023
+  waveform_max_length: 1023
+  AO_min: -10
+  AO_max: 10
+  IO_datatype: "FXP"
+
