@@ -11,17 +11,6 @@ On Windows:
 - Python: https://www.python.org/downloads/
 - Git: https://www.python.org/downloads/
 
-On Mac:
-- Python: https://www.python.org/downloads/ or alternatively using Homebrew https://brew.sh/
-- Git: already installed
-
-On Linux (Debian):
-- sudo apt install git
-- sudo apt install python3
-
-The source-code for the application is hosted on the following Git repository:
-https://dop-git.eng.ox.ac.uk
-
 There are many text editors/IDEs available. A recommended free editor if you're unsure is Microsoft Visual Studio Code:
 https://code.visualstudio.com/
 
@@ -29,28 +18,20 @@ Getting started
 ---------------
 Once you have installed the tools above, clone the source-code from the Git repository::
 
-    git clone https://username@dop-git.eng.ox.acu.k/diffusion/3/doptical-python.git
-
-or::
-
-    git clone ssh://git@dop-git.eng.ox.ac.uk:2222/diffusion/3/doptical-python.git
+    git clone https://github.com/jiahecui/SensorbasedAO.git
 
 Create a virtual environment for development (Optional but recommended)::
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Use the venv module to create an isolated virtual environment. The required packages are installed using pip. Finally, the main source is installed using pip in an editable format. Changes to the source affect the application the next time it is run.
 Run the following from the folder the top folder (that includes setup.py)::
 
-	python -m venv env
+	python -m venv venv
 
 Activate virtual environment before next steps:
     
-Windows::
+Windows:
 
-	env\Scripts\activate
-
-Using Mac/Linux::
-
-	source env/bin/activate
+	venv\Scripts\activate
 
 Install required modules in the virtual environment:
 
@@ -69,14 +50,9 @@ Windows::
 
     python doptical\app.py
 
-Mac/Linux::
-
-    python doptical/app.py
-
 To run the app in debug mode (without dummy hardware), add the flag -d to the above command::
     
     python doptical/app.py -d
-
 
 Developing the GUI (Graphical User Interface)
 ----------------------------------------------
@@ -94,5 +70,42 @@ To compile Qt resource files (which contain icon images, for example), use the p
 
     env\Lib\site-packages\Pyside2\pyside2-rcc.exe doptical\ui\app.qrc -o doptical\ui\app_rc.py
 
-Source-code structure
+How to start a new git repository
 ---------------------
+A new repo from scratch:
+
+    Create a directory to contain the project.
+    Go into the new directory.
+    Type git init.
+    Write some code.
+    Type git add <file> to add the files.
+    Type git commit -m <message>.
+
+Connect it to github:
+
+    Go to github.
+    Log in to your account.
+    Click the new repository button in the top-right. You’ll have an option there to initialize the repository with a README file, but I don’t.
+    Click the “Create repository” button.
+
+Now, follow the second set of instructions, “Push an existing repository…”
+
+    git remote add origin https://github.com/username/new_repo
+    git push -u origin master
+
+How to create your own branch in remote repository
+--------------------------------------------------
+Create a new branch called <branch>. This does not check out the new branch.
+
+    git branch <branch>
+
+Checkout the new branch.
+
+    git checkout <branch_name>
+
+Push the new branch onto the remote repository.
+
+    git push -u origin <branch_name>
+
+You can verify on the Github web browser that your branch is present.
+
