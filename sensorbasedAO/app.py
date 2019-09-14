@@ -1,35 +1,23 @@
-from PySide2.QtWidgets import QApplication, QStyleFactory, QMainWindow, QFileDialog, QDialog, QVBoxLayout, QWidget
-from PySide2.QtCore import QThread, QObject, Slot, Signal, QSize, QTimer
-
-import os
-os.environ['QT_API'] = 'pyside2'
-
-import qtawesome as qta
-
-import numpy as np
-from qimage2ndarray import array2qimage, gray2qimage
-import imageio
-
-import threading
-from queue import Queue
-import argparse
-from functools import partial
-import time
-from datetime import datetime
-from pathlib import Path
 import logging
 import sys
+import os
+import imageio
+import argparse
+import numpy as np
 
-import sensorbasedAO
-import sensorbasedAO.log
-from sensorbasedAO.fpga import FPGA
+from datetime import datetime
 
 from ximea import xiapi
 from alpao import asdk
 
-logger = doptical.log.get_logger()
+import log
+from config import config
+
+logger = log.get_logger()
 
 
+
+"""
 def debug():
     logger.setLevel(logging.DEBUG)
     handler_stream = logging.StreamHandler()
@@ -70,3 +58,4 @@ if __name__ == '__main__':
         debug()
     else:
         main()
+"""
