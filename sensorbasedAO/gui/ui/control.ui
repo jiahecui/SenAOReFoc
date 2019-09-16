@@ -6,8 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
+<<<<<<< HEAD
     <width>996</width>
     <height>601</height>
+=======
+    <width>711</width>
+    <height>407</height>
+>>>>>>> b48bf25029df4de7d18b5e4e504a5287a99d7863
    </rect>
   </property>
   <property name="contextMenuPolicy">
