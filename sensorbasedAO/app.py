@@ -32,7 +32,7 @@ class Setup_SB():
 
         # Get search block parameters
         self.outline_int = config['search_block']['outline_int']
-        self.spots_across_diam = config['search_block']['spots_across_diam']
+        self.spots_across_diam = config['search_block']['spots_across_diam'] 
 
         # Initialise search block information parameter
         self.SB_info = {}
@@ -90,6 +90,7 @@ class Setup_SB():
 
         # Get 1D coords of reference centroids 
         self.ref_cent_coord = np.zeros(SB_across_width * SB_across_height, dtype=int)
+        
         for i in np.arange(0, SB_across_height, 1):
             for j in np.arange(0, SB_across_width, 1):
                 self.ref_cent_coord[i * SB_across_width + j] = self.ref_cent_y[i] * \
@@ -134,11 +135,11 @@ class Setup_SB():
         self.SB_layer_2D = np.zeros([self.sensor_width, self.sensor_height],dtype='uint8')
         self.SB_layer_1D = np.ravel(self.SB_layer_2D)
 
-        # Get pupil diameter for given number of spots
-        spots_along_diag = self.SB_info['SB_across_width']
-
         # Initialise list of 1D coords of reference centroids within pupil diameter
         self.act_ref_cent_coord = []
+
+        # Get pupil diameter for given number of spots
+        spots_along_diag = self.SB_info['SB_across_width']
 
         try:
             self.spots_across_diam > 2 and self.spots_across_diam < spots_along_diag
@@ -150,31 +151,57 @@ class Setup_SB():
         if (self.spots_across_diam < 2 or self.spots_across_diam > spots_along_diag):
             print('Number of spots across diameter is out of bounds.')
 
-        for i in range(spots_along_diag // 2 - 2):
-            pupil_diam_temp_max = int(np.sqrt(2) * (self.sensor_width // 2 - \
-                self.ref_cent_x[i] + self.SB_rad) * self.pixel_size)
-            pupil_diam_temp_min = int(np.sqrt(2) * (self.sensor_width // 2 - \
-                self.ref_cent_x[i+1] + self.SB_rad) * self.pixel_size)
+        for i in range(spots_along_diag // 2):
+            
+            if (self.spots_across_diam % 2 == 0 and self.sensor_width % 2 == 0) or \
+                (self.spots_across_diam % 2 == 1 and self.sensor_width % 2 == 1):
+
+                pupil_diam_temp_max = np.sqrt(((self.sensor_width // 2 - \
+                    (self.ref_cent_x[i] + 1) + self.SB_rad) * self.pixel_size) ** 2 + ((self.sensor_height // 2 - \
+                    self.ref_cent_y[i] + self.SB_rad) * self.pixel_size) ** 2)
+                pupil_diam_temp_min = np.sqrt(((self.sensor_width // 2 - \
+                    (self.ref_cent_x[i + 1] + 1) + self.SB_rad) * self.pixel_size) ** 2 + ((self.sensor_height // 2 - \
+                    self.ref_cent_y[i + 1] + self.SB_rad) * self.pixel_size) ** 2)
+
+            else:
+
+                pupil_diam_temp_max = np.sqrt(((self.sensor_width // 2 - \
+                    (self.ref_cent_x[i] + 1)) * self.pixel_size) ** 2 + ((self.sensor_height // 2 - \
+                    self.ref_cent_y[i]) * self.pixel_size) ** 2)
+                pupil_diam_temp_min = np.sqrt(((self.sensor_width // 2 - \
+                    (self.ref_cent_x[i + 1] + 1)) * self.pixel_size) ** 2 + ((self.sensor_height // 2 - \
+                    self.ref_cent_y[i + 1]) * self.pixel_size) ** 2)
 
             if self.spots_across_diam % 2 == 1:
-                pixel_edge = int((self.SB_diam * (self.spots_across_diam // 2) + self.SB_rad) * self.pixel_size)
+                pixel_edge = (self.SB_diam * (self.spots_across_diam // 2) + self.SB_rad) * self.pixel_size
             else:
-                pixel_edge = int(self.SB_diam * (self.spots_across_diam // 2) * self.pixel_size)
+                pixel_edge = self.SB_diam * (self.spots_across_diam // 2) * self.pixel_size
             
             if pupil_diam_temp_max > pixel_edge and pupil_diam_temp_min < pixel_edge:
                 self.pupil_diam = pupil_diam_temp_max
                 break
 
         # Get reference centroids within pupil diameter
-        for j in self.ref_cent_y:
-            for i in self.ref_cent_x:
-                if ((np.sqrt(((abs((i - self.sensor_width // 2)) + self.SB_rad) * self.pixel_size) ** 2 + \
-                    ((abs((j - self.sensor_height // 2)) +self.SB_rad) * self.pixel_size) ** 2)) < self.pupil_diam):
-                    self.act_ref_cent_coord.append(j * self.sensor_width + i)
+        if (self.spots_across_diam % 2 == 0 and self.sensor_width % 2 == 0) or \
+            (self.spots_across_diam % 2 == 1 and self.sensor_width % 2 == 1):
+
+            for j in self.ref_cent_y:
+                for i in self.ref_cent_x:
+                    if ((np.sqrt(((abs((i + 1 - self.sensor_width // 2)) + self.SB_rad) * self.pixel_size) ** 2 + \
+                        ((abs((j + 1 - self.sensor_height // 2)) + self.SB_rad) * self.pixel_size) ** 2)) < self.pupil_diam):
+                        self.act_ref_cent_coord.append(j * self.sensor_width + i)
+
+        else:
+
+            for j in self.ref_cent_y:
+                for i in self.ref_cent_x:
+                    if ((np.sqrt(((abs((i + 1 - (self.sensor_width // 2 - self.SB_rad))) + self.SB_rad) * self.pixel_size) ** 2 + \
+                        ((abs((j + 1 - (self.sensor_height // 2 - self.SB_rad))) + self.SB_rad) * self.pixel_size) ** 2)) < self.pupil_diam):
+                        self.act_ref_cent_coord.append(j * self.sensor_width + i)
 
         # Set actual search block reference centroids
         self.act_ref_cent_coord = np.array(self.act_ref_cent_coord)
-        self.SB_layer_1D[self.ref_cent_coord] = self.outline_int
+        self.SB_layer_1D[self.act_ref_cent_coord] = self.outline_int
         self.SB_layer_2D = np.reshape(self.SB_layer_1D,(self.sensor_height, self.sensor_width))
 
         # Get 1D coord offset of each actual search block
@@ -184,56 +211,61 @@ class Setup_SB():
 
         # Get 2D coord offset of each actual search block
         act_ref_cent_offset_top_y = act_ref_cent_offset_top_coord // self.sensor_width
-        act_ref_cent_offset_top_x = act_ref_cent_offset_top_coord - act_ref_cent_offset_top_y * self.sensor_width
+        act_ref_cent_offset_top_x = act_ref_cent_offset_top_coord % self.sensor_width
         act_ref_cent_offset_bottom_y = act_ref_cent_offset_bottom_coord // self.sensor_width
-        act_ref_cent_offset_bottom_x = act_ref_cent_offset_bottom_coord - act_ref_cent_offset_bottom_y * self.sensor_width
+        act_ref_cent_offset_bottom_x = act_ref_cent_offset_bottom_coord % self.sensor_width
         act_ref_cent_offset_right_y = act_ref_cent_offset_right_coord // self.sensor_width
-        act_ref_cent_offset_right_x = act_ref_cent_offset_right_coord - act_ref_cent_offset_right_y * self.sensor_width
+        act_ref_cent_offset_right_x = act_ref_cent_offset_right_coord % self.sensor_width
 
         # Get parameters for outlining actual search blocks
-        act_ref_row_outline, row_indices, row_counts =\
+        act_ref_row_top_outline, row_top_indices, row_top_counts =\
             np.unique(act_ref_cent_offset_top_y, return_index = True, return_counts = True)
-        act_ref_column_outline, column_indices, column_counts =\
+        act_ref_row_bottom_outline, row_bottom_indices, row_bottom_counts =\
+            np.unique(act_ref_cent_offset_bottom_y, return_index = True, return_counts = True)
+        act_ref_column_left_outline, column_left_indices, column_left_counts =\
             np.unique(act_ref_cent_offset_top_x, return_index = True, return_counts = True)
+        act_ref_column_right_outline, column_right_indices, column_right_counts =\
+            np.unique(act_ref_cent_offset_right_x, return_index = True, return_counts = True)
 
-        # Outline search blocks
-        rows = len(act_ref_row_outline)
-        columns = len(act_ref_column_outline)
+        # Get number of rows and columns for outlining
+        rows = len(act_ref_row_top_outline)
+        columns = len(act_ref_column_left_outline)
 
-        for i in range(rows // 2):
-            self.SB_layer_2D[act_ref_row_outline[i], act_ref_cent_offset_top_x[row_indices[i]] :\
-                act_ref_cent_offset_top_x[row_indices[i + 1] - 1] + self.SB_diam] = self.outline_int
+        # Outline rows of actual search blocks
+        for i in range(rows // 2 + 1):
+            self.SB_layer_2D[act_ref_row_top_outline[i], act_ref_cent_offset_top_x[row_top_indices[i]] :\
+                act_ref_cent_offset_top_x[row_top_indices[i + 1] - 1] + self.SB_diam] = self.outline_int
 
         for i in range(rows // 2, rows):
-            if i < (rows - 1):
-                self.SB_layer_2D[act_ref_row_outline[i], act_ref_cent_offset_bottom_x[row_indices[i]] :\
-                    act_ref_cent_offset_bottom_x[row_indices[i + 1] - 1] + self.SB_diam] = self.outline_int
+            self.SB_layer_2D[act_ref_row_bottom_outline[i], act_ref_cent_offset_bottom_x[row_bottom_indices[i]] :\
+                act_ref_cent_offset_bottom_x[row_bottom_indices[i] + row_bottom_counts[i]- 1] + self.SB_diam] = self.outline_int    
+
+        # Outline columns of actual search blocks
+        self.index_count = 0
+        
+        for i in range(columns // 2 + 1):
+
+            if i == 0:
+                self.SB_layer_2D[act_ref_cent_offset_top_x[self.index_count] : act_ref_cent_offset_top_x[self.index_count + \
+                    column_left_counts[i] - 1] + self.SB_diam, act_ref_column_left_outline[i]] = self.outline_int
             else:
-                self.SB_layer_2D[act_ref_row_outline[i], act_ref_cent_offset_bottom_x[row_indices[i]] :\
-                    act_ref_cent_offset_bottom_x[row_indices[i] - 1 + row_counts[i]] + self.SB_diam] = self.outline_int
-
-        index_count_1 = 0
-        index_count_2 = 0
-
-        for i in range(columns // 2):
-
-            index_count_1 = index_count_2
-            index_count_2 = index_count_1 + column_counts[i] - 1
-
-            self.SB_layer_2D[act_ref_cent_offset_top_x[index_count_1] : act_ref_cent_offset_top_x[index_count_2] \
-                + self.SB_diam, act_ref_column_outline[i]] = self.outline_int
+                self.index_count += column_left_counts[i - 1] 
+                self.SB_layer_2D[act_ref_cent_offset_top_x[self.index_count] : act_ref_cent_offset_top_x[self.index_count + \
+                    column_left_counts[i] - 1] + self.SB_diam, act_ref_column_left_outline[i]] = self.outline_int
 
         for i in range(columns // 2, columns):
 
-            index_count_1 = index_count_2
-            index_count_2 = index_count_1 + column_counts[i] - 1
-
-            self.SB_layer_2D[act_ref_cent_offset_right_x[index_count_1] : act_ref_cent_offset_right_x[index_count_2] \
-                + self.SB_diam, act_ref_column_outline[i]] = self.outline_int
+            if i == columns // 2:
+                self.SB_layer_2D[act_ref_cent_offset_right_x[self.index_count] - self.SB_diam : act_ref_cent_offset_right_x[self.index_count \
+                    + column_right_counts[i] - 1], act_ref_column_right_outline[i]] = self.outline_int
+            else:
+                self.index_count += column_left_counts[i - 1] 
+                self.SB_layer_2D[act_ref_cent_offset_right_x[self.index_count] - self.SB_diam : act_ref_cent_offset_right_x[self.index_count \
+                    + column_right_counts[i] - 1], act_ref_column_right_outline[i]] = self.outline_int  
 
         # Store search block information
         self.SB_info['pupil_diam'] = self.pupil_diam
-
+        
 
 def debug():
     logger.setLevel(logging.DEBUG)
