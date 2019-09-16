@@ -28,9 +28,9 @@ DM:
   vol_step: 1
 
 search_block:
-  outline_int: 127  # mono8
-  spots_across_diam: 8
-  cent_thres: 5  # mono8
+  outline_int: 255  # uint8
+  spots_across_diam: 15
+  cent_thres: 5  # uint8
 
 AO:
   recon_coeff_num: 70
