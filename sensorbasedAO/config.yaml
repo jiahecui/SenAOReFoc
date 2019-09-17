@@ -29,7 +29,7 @@ DM:
 
 search_block:
   outline_int: 255  # uint8
-  spots_across_diam: 15
+  spots_across_diam: 13
   cent_thres: 5  # uint8
 
 AO:

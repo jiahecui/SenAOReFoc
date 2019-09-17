@@ -8,9 +8,12 @@ cam = xiapi.Camera()
 # start camera communication
 print('Opening camera...')
 cam.open_device_by_SN('26883050')
+print('Device type is %s' % cam.get_device_type())
+print('Device model ID is %s' % cam.get_device_model_id())
+print('Device name is %s' % cam.get_device_name())
 
 # camera settings
-cam.set_imgdataformat('XI_MONO8')
+cam.set_imgdataformat("XI_MONO8")
 cam.set_exposure(2000)
 print('Exposure set to %i us' % cam.get_exposure())
 
