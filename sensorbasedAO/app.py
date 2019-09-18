@@ -307,11 +307,35 @@ class Centroiding():
 
     def start_cam_com(self):
         self.camera.open_device_by_SN(config['camera']['SN'])
+        try:
+            self.camera.is_isexist()
+        except:
+            logger.warn('Error loading camera.')
+        
+        return self.camera.is_isexist()
 
     def set_cam_settings(self):
-        # self.camera.set_imgdataformat(config['camera']['dataformat'])
-        self.camera.set_exposure(2000)
-        # print(self.camera.get_exposure())      
+        self.camera.set_imgdataformat(config['camera']['dataformat'])
+
+        if config['camera']['auto_gain']:
+            self.camera.is_aeag()
+            self.camera.set_exp_priority(config['camera']['exp_priority'])
+            self.camera.set_ae_max_limit(config['camera']['ae_max_limit'])
+        else:
+            self.camera.set_exposure(config['camera']['exposure'])
+        
+        self.camera.set_trigger_source(config['camera']['trg_source'])
+
+        if config['camera']['burst_mode']:
+            self.camera.set_trigger_selector('XI_TRG_SEL_FRAME_BURST_START')
+            self.camera.set_acq_frame_burst_count(config['camera']['burst_frames'])
+        else:
+            self.camera.set_trigger_selector('XI_TRG_SEL_FRAME_START')
+
+        self.camera.set_trigger_overlap(config['camera']['trg_overlap'])
+        self.camera.set_acq_timing_mode(config['camera']['acq_timing_mode'])
+
+           
 
 def debug():
     logger.setLevel(logging.DEBUG)
@@ -345,9 +369,12 @@ def main():
     SB.get_SB_geometry()
     SB_info = SB.get_SB_info()
     cam = xiapi.Camera()
-    cam.set_exposure(2000)
     Cent = Centroiding(cam, SB_info)
-    # Cent.set_cam_settings()
+    try:
+        Cent.start_cam_com()
+    except:
+        logger.warn('Error loading camera')
+    Cent.set_cam_settings()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Sensor-based AO gui')

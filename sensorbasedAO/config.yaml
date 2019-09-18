@@ -13,8 +13,16 @@ lenslet:
 
 camera:
   SN: "26883050"
-  dataformat: "XI_MONO8"
-  exposure: 2000
+  dataformat: "XI_MONO16"
+  exposure: 4000
+  auto_gain: 1
+  exp_priority: 0.8  # exposure n, gain (1 - n)
+  ae_max_limit: 1000000  # maximum time (us) used for exposure in AEAG procedure
+  trg_source: "XI_TRG_SOFTWARE"
+  burst_mode: 1
+  burst_frames: 10
+  trg_overlap: "XI_TRG_OVERLAP_PREV_FRAME"
+  acq_timing_mode: "XI_ACQ_TIMING_MODE_FREE_RUN"
   sensor_width: 2048  # pixels
   sensor_height: 2048  # pixels
   pixel_size: 5.5  # um
