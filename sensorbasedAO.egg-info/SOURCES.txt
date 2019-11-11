@@ -1,0 +1,7 @@
+setup.py
+sensorbasedAO.egg-info/PKG-INFO
+sensorbasedAO.egg-info/SOURCES.txt
+sensorbasedAO.egg-info/dependency_links.txt
+sensorbasedAO.egg-info/entry_points.txt
+sensorbasedAO.egg-info/requires.txt
+sensorbasedAO.egg-info/top_level.txt

@@ -1,0 +1,14 @@
+numpy
+Pillow
+nifpga
+PySide2
+qtawesome
+qimage2ndarray
+tifffile
+imageio
+pyyaml
+pyserial
+
+[test]
+pytest
+pytest-qt

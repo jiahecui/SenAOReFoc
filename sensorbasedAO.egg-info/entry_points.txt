@@ -1,0 +1,4 @@
+[console_scripts]
+sensorbasedAO = sensorbasedAO.app:main
+sensorbasedAO-debug = sensorbasedAO.app:debug
+
