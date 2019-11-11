@@ -30,8 +30,8 @@ cam.start_acquisition()
 try:
     cam.get_image(img, timeout=10)
 
-    # get raw data from camera
-    # for Python3.x function returns bytes
+    #create numpy array with data from camera. Dimensions of array are determined
+    #by imgdataformats
     dataimages = img.get_image_data_numpy()
 
     # print image data and metadata

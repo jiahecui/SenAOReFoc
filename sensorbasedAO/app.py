@@ -15,6 +15,7 @@ from ximea import xiapi
 
 import log
 from config import config
+from sensor import SENSOR
 
 logger = log.get_logger(__name__)
 
@@ -265,35 +266,44 @@ class Centroiding():
         # Get search block settings
         self.SB_settings = settings
 
-        # Get camera instance
-        self.camera = device
+        # Get sensor instance
+        self.sensor = device
 
-    def start_cam_com(self):
-        self.camera.open_device_by_SN(config['camera']['SN'])
-        
-        return self.camera.is_isexist()
+    def get_centroids(self):
+        """
+        Acquires images and acquires centroid positions
+        """
+        # Create instance of Ximea Image to store image data and metadata
+        img = xiapi.Image()
+        dataimages = np.zeros((2048, 2048))
 
-    def set_cam_settings(self):
-        self.camera.set_imgdataformat(config['camera']['dataformat'])
+        # Start data acquisition
+        print('Starting data acquisition...')
+        self.sensor.start_acquisition()
 
-        if config['camera']['auto_gain']:
-            self.camera.is_aeag()
-            self.camera.set_exp_priority(config['camera']['exp_priority'])
-            self.camera.set_ae_max_limit(config['camera']['ae_max_limit'])
-        else:
-            self.camera.set_exposure(config['camera']['exposure'])
-        
-        self.camera.set_trigger_source(config['camera']['trg_source'])
+        # Get data and pass them from camera to img, if timeout error is raised, print error and continue
+        try:
+            self.sensor.get_image(img, timeout = 10)
 
-        if config['camera']['burst_mode']:
-            self.camera.set_trigger_selector('XI_TRG_SEL_FRAME_BURST_START')
-            self.camera.set_acq_frame_burst_count(config['camera']['burst_frames'])
-        else:
-            self.camera.set_trigger_selector('XI_TRG_SEL_FRAME_START')
+            # Create numpy array with data from camera, dimensions are determined by imgdataformats
+            dataimages = img.get_image_data_numpy()
 
-        self.camera.set_acq_timing_mode(config['camera']['acq_timing_mode'])
+            # print image data and metadata
+            print('Image width (pixels):  ' + str(img.width))
+            print('Image height (pixels): ' + str(img.height))
+            print('First line of pixels: ' + str(dataimages[0]))
+            
+        except xiapi.Xi_error as err:
+            if err.status == 10:
+                print('Timeout error occured.')
+            else:
+                raise
 
-           
+        # Stop data acquisition
+        print('Stopping acquisition...')
+        self.sensor.stop_acquisition()  
+
+
 def debug():
     logger.setLevel(logging.DEBUG)
     handler_stream = logging.StreamHandler()
@@ -303,7 +313,7 @@ def debug():
 
     handler_stream.setFormatter(formatter)
     logger.addHandler(handler_stream)
-    logger.info('Started sensor-based AO app in debug mode')
+    logger.info('Started sensorbased AO app in debug mode')
 
     app = App(debug=True)
 
@@ -325,13 +335,17 @@ def main():
     SB.make_reference_SB()
     SB.get_SB_geometry()
     SB_info = SB.get_SB_info()
-    cam = xiapi.Camera()
-    Cent = Centroiding(cam, SB_info)
+
     try:
-        Cent.start_cam_com()
-    except:
-        logger.warning('Error loading camera')
-    # Cent.set_cam_settings()
+        sensor = SENSOR.get(config['camera']['SN'])
+        print('Sensor load success')
+    except Exception as e:
+        logger.warning('Sensor load error', e)
+        sensor = None
+
+    Cent = Centroiding(sensor, SB_info)
+    Cent.get_centroids()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Sensorbased AO gui')
