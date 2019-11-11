@@ -4,6 +4,7 @@ import os
 import imageio
 import argparse
 import math
+import time
 import PIL.Image
 import numpy as np
 
@@ -31,9 +32,12 @@ class Setup_SB():
         self.sensor_width = config['camera']['sensor_width']
         self.sensor_height = config['camera']['sensor_height']
 
-        # Get search block parameters
+        # Get search block parameter
         self.outline_int = config['search_block']['outline_int']
-        self.spots_across_diam = config['search_block']['spots_across_diam'] 
+
+        # Get pupil diameter
+        self.pupil_diam = config['search_block']['pupil_diam'] * 1e3
+        self.pupil_rad = self.pupil_diam / 2
 
         # Initialise search block information parameter
         self.SB_info = {}
@@ -70,6 +74,8 @@ class Setup_SB():
         else:
             self.SB_across_height = self.sensor_height // self.SB_diam
 
+        print("Number of search blocks across width and height is: {} and {}".format(self.SB_across_width, self.SB_across_height))
+
         # Get initial search block layer offset relative to sensor (top left corner)
         SB_offset_x = (self.sensor_width - (self.SB_across_width * self.SB_diam + 1)) // 2
         SB_offset_y = (self.sensor_height - (self.SB_across_height * self.SB_diam + 1)) // 2
@@ -95,12 +101,12 @@ class Setup_SB():
         self.SB_layer_2D = np.reshape(self.SB_layer_1D,(self.sensor_height, self.sensor_width))
         
         # Get arrays for outlining search blocks
-        ref_row_outline = np.arange(SB_offset_y, self.sensor_height - SB_offset_y, self.SB_diam)
-        ref_column_outline = np.arange(SB_offset_x, self.sensor_width - SB_offset_x, self.SB_diam)
+        ref_row_outline = np.arange(SB_offset_y, SB_final_y, self.SB_diam)
+        ref_column_outline = np.arange(SB_offset_x, SB_final_x, self.SB_diam)
 
         # Outline search blocks
-        self.SB_layer_2D[ref_row_outline, SB_offset_x : (self.sensor_width - SB_offset_x)] = self.outline_int
-        self.SB_layer_2D[SB_offset_y : (self.sensor_height - SB_offset_y), ref_column_outline] = self.outline_int
+        self.SB_layer_2D[ref_row_outline, SB_offset_x : SB_final_x] = self.outline_int
+        self.SB_layer_2D[SB_offset_y : SB_final_y, ref_column_outline] = self.outline_int
 
         # Display actual search blocks and reference centroids
         img = PIL.Image.fromarray(self.SB_layer_2D, 'L')
@@ -122,48 +128,8 @@ class Setup_SB():
         # Initialise list of 1D coords of reference centroids within pupil diameter
         self.act_ref_cent_coord = []
 
-        # Get pupil diameter for given number of spots
-        spots_along_diag = self.SB_across_width
-
-        try:
-            self.spots_across_diam > 2 and self.spots_across_diam < spots_along_diag
-        except ValueError as ex:
-            ex_type = sys.exc_info()
-            logger.error('Number of spots across diameter is out of bounds.')
-            print('Exception type: %s ' % ex_type.__name__)
-
-        if (self.spots_across_diam < 2 or self.spots_across_diam > spots_along_diag):
-            print('Number of spots across diameter is out of bounds.')
-
-        for i in range(spots_along_diag // 2):
-            
-            if (self.spots_across_diam % 2 == 0 and self.sensor_width % 2 == 0) or \
-                (self.spots_across_diam % 2 == 1 and self.sensor_width % 2 == 1):
-
-                pupil_rad_temp_max = np.sqrt(((self.sensor_width // 2 - \
-                    (self.ref_cent_x[i] + 1) + self.SB_rad) * self.pixel_size) ** 2 + ((self.sensor_height // 2 - \
-                    self.ref_cent_y[i] + self.SB_rad) * self.pixel_size) ** 2)
-                pupil_rad_temp_min = np.sqrt(((self.sensor_width // 2 - \
-                    (self.ref_cent_x[i + 1] + 1) + self.SB_rad) * self.pixel_size) ** 2 + ((self.sensor_height // 2 - \
-                    self.ref_cent_y[i + 1] + self.SB_rad) * self.pixel_size) ** 2)
-
-            else:
-
-                pupil_rad_temp_max = np.sqrt(((self.sensor_width // 2 - \
-                    (self.ref_cent_x[i] + 1)) * self.pixel_size) ** 2 + ((self.sensor_height // 2 - \
-                    self.ref_cent_y[i]) * self.pixel_size) ** 2)
-                pupil_rad_temp_min = np.sqrt(((self.sensor_width // 2 - \
-                    (self.ref_cent_x[i + 1] + 1)) * self.pixel_size) ** 2 + ((self.sensor_height // 2 - \
-                    self.ref_cent_y[i + 1]) * self.pixel_size) ** 2)
-
-            if self.spots_across_diam % 2 == 1:
-                pixel_edge = (self.SB_diam * (self.spots_across_diam // 2) + self.SB_rad) * self.pixel_size
-            else:
-                pixel_edge = self.SB_diam * (self.spots_across_diam // 2) * self.pixel_size
-            
-            if pupil_rad_temp_max > pixel_edge and pupil_rad_temp_min < pixel_edge:
-                self.pupil_rad = pupil_rad_temp_max
-                break
+        # Get number of spots within pupil diameter
+        self.spots_across_diam = self.pupil_diam // self.lenslet_pitch
 
         # Get reference centroids within pupil diameter
         if (self.spots_across_diam % 2 == 0 and self.sensor_width % 2 == 0) or \
@@ -188,6 +154,7 @@ class Setup_SB():
         self.act_ref_cent_num = len(self.act_ref_cent_coord)
         self.SB_layer_1D[self.act_ref_cent_coord] = self.outline_int
         self.SB_layer_2D = np.reshape(self.SB_layer_1D, (self.sensor_height, self.sensor_width))
+        print("Number of search blocks within pupil is: {}".format(self.act_ref_cent_num))
 
         # Get 1D coord offset of each actual search block
         act_ref_cent_offset_top_coord = self.act_ref_cent_coord - self.SB_rad * self.sensor_width - self.SB_rad
@@ -246,7 +213,7 @@ class Setup_SB():
             else:
                 self.index_count += column_left_counts[i - 1] 
                 self.SB_layer_2D[act_ref_cent_offset_right_x[self.index_count] - self.SB_diam : act_ref_cent_offset_right_x[self.index_count \
-                    + column_right_counts[i] - 1], act_ref_column_right_outline[i]] = self.outline_int  
+                    + column_right_counts[i] - 1], act_ref_column_right_outline[i]] = self.outline_int
 
         # Draw pupil circle on search block layer
         plot_point_num = int(self.pupil_rad * 2 // self.pixel_size * 10)
@@ -271,9 +238,6 @@ class Setup_SB():
         img = PIL.Image.fromarray(self.SB_layer_2D, 'L')
         img.show()
 
-        # Get actual search block coordinates
-        self.act_SB_coords = np.nonzero(np.ravel(self.SB_layer_2D))
-
     def get_SB_info(self):
         """
         Returns search block information
@@ -288,7 +252,6 @@ class Setup_SB():
         self.SB_info['pupil_rad'] = self.pupil_rad
         self.SB_info['act_ref_cent_coord'] = self.act_ref_cent_coord
         self.SB_info['act_ref_cent_num'] = self.act_ref_cent_num
-        self.SB_info['act_SB_coords'] = self.act_SB_coords
 
         return self.SB_info
 
@@ -307,10 +270,6 @@ class Centroiding():
 
     def start_cam_com(self):
         self.camera.open_device_by_SN(config['camera']['SN'])
-        try:
-            self.camera.is_isexist()
-        except:
-            logger.warn('Error loading camera.')
         
         return self.camera.is_isexist()
 
@@ -332,11 +291,9 @@ class Centroiding():
         else:
             self.camera.set_trigger_selector('XI_TRG_SEL_FRAME_START')
 
-        self.camera.set_trigger_overlap(config['camera']['trg_overlap'])
         self.camera.set_acq_timing_mode(config['camera']['acq_timing_mode'])
 
            
-
 def debug():
     logger.setLevel(logging.DEBUG)
     handler_stream = logging.StreamHandler()
@@ -361,7 +318,7 @@ def main():
 
     handler_stream.setFormatter(formatter)
     logger.addHandler(handler_stream)
-    logger.info('Started sensor-based AO app')
+    logger.info('Started sensorbased AO app')
 
     SB = Setup_SB(debug=False)
     SB.register_SB()
@@ -373,11 +330,11 @@ def main():
     try:
         Cent.start_cam_com()
     except:
-        logger.warn('Error loading camera')
-    Cent.set_cam_settings()
+        logger.warning('Error loading camera')
+    # Cent.set_cam_settings()
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Sensor-based AO gui')
+    parser = argparse.ArgumentParser(description='Sensorbased AO gui')
     parser.add_argument("-d", "--debug", help='debug mode',
                         action="store_true")
     args = parser.parse_args()

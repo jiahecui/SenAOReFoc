@@ -9,7 +9,7 @@ fpga:
 
 lenslet:
   lenslet_pitch: 500  # um
-  lenslet_foclength: 45  # mm
+  lenslet_focal_length: 45  # mm
 
 camera:
   SN: "26883050"
@@ -21,7 +21,7 @@ camera:
   trg_source: "XI_TRG_SOFTWARE"
   burst_mode: 1
   burst_frames: 10
-  trg_overlap: "XI_TRG_OVERLAP_PREV_FRAME"
+  trg_overlap: "XI_TRG_OVERLAP_OFF"
   acq_timing_mode: "XI_ACQ_TIMING_MODE_FREE_RUN"
   sensor_width: 2048  # pixels
   sensor_height: 2048  # pixels
@@ -37,8 +37,8 @@ DM:
 
 search_block:
   outline_int: 255  # uint8
-  spots_across_diam: 13
   cent_thres: 5  # uint8
+  pupil_diam: 7.5  # mm
 
 AO:
   recon_coeff_num: 70

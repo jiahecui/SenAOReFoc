@@ -56,7 +56,6 @@ else:
     _device = CDLL(join(LIB_PATH, 'xiapi32.dll'))
 
 
-
 class Xi_error(Exception):
     '''
     Camera error. Specified by return codes from camera c library.
