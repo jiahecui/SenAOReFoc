@@ -15,16 +15,12 @@ camera:
   SN: "26883050"
   dataformat: "XI_MONO16"
   exposure: 4000  # us
-  auto_gain: 1  # Flag for whether to use automatic exposure / gain mode, 0-auto_gain off, 1-auto_gain on
-  aeag: 1  # automatic exposure / gain, 0-False, 1-True
+  auto_gain: 0  # Flag for whether to use automatic exposure / gain mode, 0-auto_gain off, 1-auto_gain on
   exp_priority: 0.8  # exposure n, gain (1 - n)
   ae_max_limit: 500000  # maximum time (us) used for exposure in AEAG procedure
-  trg_source: "XI_TRG_SOFTWARE"
   burst_mode: 0  # Flag for whether to use burst mode, 0-burst_mode off, 1-burst_mode on 
   burst_frames: 10
-  trg_overlap: "XI_TRG_OVERLAP_READ_OUT"
-  acq_timing_mode: "XI_ACQ_TIMING_MODE_FRAME_RATE"
-  framerate: 5  # Hz
+  acq_timing_mode: "XI_ACQ_TIMING_MODE_FREE_RUN"
   sensor_width: 2048  # pixels
   sensor_height: 2048  # pixels
   pixel_size: 5.5  # um

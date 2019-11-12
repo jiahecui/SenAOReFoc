@@ -273,35 +273,47 @@ class Centroiding():
         """
         Acquires images and acquires centroid positions
         """
-        # Create instance of Ximea Image to store image data and metadata
-        img = xiapi.Image()
+        # Create instance of dataimage array and data list to store image data
+        data = []
         dataimages = np.zeros((2048, 2048))
 
-        # Start data acquisition
-        print('Starting data acquisition...')
+        # Create instance of Ximea Image to store image data and metadata
+        img = xiapi.Image()
+
+        # Open device for centroiding instance 
+        self.sensor.open_device_by_SN(config['camera']['SN'])
+
+        # Start data acquisition for each frame
+        print('Starting image acquisition...')
         self.sensor.start_acquisition()
 
-        # Get data and pass them from camera to img, if timeout error is raised, print error and continue
-        try:
-            self.sensor.get_image(img, timeout = 10)
+        # Acquire data for each frame during centroiding
+        for i in range(config['camera']['frame_ave_num']):
+            prev1 = time.perf_counter()
+            try:
+                # Get data and pass them from camera to img
+                self.sensor.get_image(img, timeout = 10)
 
-            # Create numpy array with data from camera, dimensions are determined by imgdataformats
-            dataimages = img.get_image_data_numpy()
+                # Create numpy array with data from camera, dimensions are determined by imgdataformats
+                dataimages = img.get_image_data_numpy()
+        
+                # Append dataimage to data list
+                data.append(dataimages)
+          
+            except xiapi.Xi_error as err:
+                if err.status == 10:
+                    print('Timeout error occurred.')
+                else:
+                    raise
 
-            # print image data and metadata
-            print('Image width (pixels):  ' + str(img.width))
-            print('Image height (pixels): ' + str(img.height))
-            print('First line of pixels: ' + str(dataimages[0]))
-            
-        except xiapi.Xi_error as err:
-            if err.status == 10:
-                print('Timeout error occured.')
-            else:
-                raise
+            prev2 = time.perf_counter()
+            print('Time for acquisition of frame {} is: {}'.format((i + 1), (prev2 - prev1)))
+
+        print('Length of data list is:', len(data))
 
         # Stop data acquisition
-        print('Stopping acquisition...')
-        self.sensor.stop_acquisition()  
+        print('Stopping image acquisition...')
+        self.sensor.stop_acquisition()
 
 
 def debug():
@@ -330,7 +342,7 @@ def main():
     logger.addHandler(handler_stream)
     logger.info('Started sensorbased AO app')
 
-    SB = Setup_SB(debug=False)
+    SB = Setup_SB(debug = False)
     SB.register_SB()
     SB.make_reference_SB()
     SB.get_SB_geometry()
