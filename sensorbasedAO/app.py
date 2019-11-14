@@ -5,6 +5,7 @@ import imageio
 import argparse
 import math
 import time
+import click
 import PIL.Image
 import numpy as np
 
@@ -239,6 +240,10 @@ class Setup_SB():
         img = PIL.Image.fromarray(self.SB_layer_2D, 'L')
         img.show()
 
+        # Get actual search block coordinates
+        self.act_SB_coord = np.nonzero(np.ravel(self.SB_layer_2D))
+        self.act_SB_coord = np.array(self.act_SB_coord)
+
     def get_SB_info(self):
         """
         Returns search block information
@@ -250,9 +255,9 @@ class Setup_SB():
         self.SB_info['ref_cent_x'] = self.ref_cent_x
         self.SB_info['ref_cent_y'] = self.ref_cent_y
         self.SB_info['ref_cent_coord'] = self.ref_cent_coord
-        self.SB_info['pupil_rad'] = self.pupil_rad
         self.SB_info['act_ref_cent_coord'] = self.act_ref_cent_coord
         self.SB_info['act_ref_cent_num'] = self.act_ref_cent_num
+        self.SB_info['act_SB_coord'] = self.act_SB_coord
 
         return self.SB_info
 
@@ -269,9 +274,58 @@ class Centroiding():
         # Get sensor instance
         self.sensor = device
 
-    def get_centroids(self):
+        # Get camera parameters
+        self.pixel_size = config['camera']['pixel_size']
+        self.sensor_width = config['camera']['sensor_width']
+        self.sensor_height = config['camera']['sensor_height']
+
+        # Get search block parameter
+        self.outline_int = config['search_block']['outline_int'] 
+
+    def get_SB_position(self):
         """
-        Acquires images and acquires centroid positions
+        Acquires image and allows user to reposition search blocks
+        """
+        # Acquire S-H spot image
+        self._image = self.acq_image(acq_mode = 0)
+
+        # Show search block layer with precalculated search blocks
+        self.SB_layer_2D = np.zeros([self.sensor_width, self.sensor_height], dtype='uint8')
+        self.SB_layer_2D_temp = self.SB_layer_2D.copy()
+        self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
+        SB_layer = PIL.Image.fromarray(self.SB_layer_2D_temp, 'L')
+        SB_layer.show()
+
+        # Get input from keyboard to reposition search block
+        print('Press arrow keys to centre S-H spots in search blocks.')
+        c = click.getchar()
+
+        # Update act_ref_cent_coord according to keyboard input
+        while c is not '\x0d': 
+            if c == '\xe0H':
+                self.SB_settings['act_ref_cent_coord'] -= self.sensor_width
+                self.SB_settings['act_SB_coord'] -= self.sensor_width
+            elif c == '\xe0P':
+                self.SB_settings['act_ref_cent_coord'] += self.sensor_width
+                self.SB_settings['act_SB_coord'] += self.sensor_width
+            elif c == '\xe0K':
+                self.SB_settings['act_ref_cent_coord'] -= 1
+                self.SB_settings['act_SB_coord'] -= 1
+            elif c == '\xe0M':
+                self.SB_settings['act_ref_cent_coord'] += 1
+                self.SB_settings['act_SB_coord'] += 1
+
+            c = click.getchar()
+
+        # Display actual search blocks and reference centroids
+        self.SB_layer_2D_temp = self.SB_layer_2D.copy()
+        self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
+        SB_layer = PIL.Image.fromarray(self.SB_layer_2D_temp, 'L')
+        SB_layer.show()
+
+    def acq_image(self, acq_mode = 0):
+        """
+        Acquires single image or image data list according to acq_mode
         """
         # Create instance of dataimage array and data list to store image data
         data = []
@@ -286,34 +340,68 @@ class Centroiding():
         # Start data acquisition for each frame
         print('Starting image acquisition...')
         self.sensor.start_acquisition()
-
-        # Acquire data for each frame during centroiding
-        for i in range(config['camera']['frame_ave_num']):
-            prev1 = time.perf_counter()
+        
+        if acq_mode == 0:
+            # Acquire one image and display
             try:
                 # Get data and pass them from camera to img
-                self.sensor.get_image(img, timeout = 10)
+                self.sensor.get_image(img, timeout = 25)
 
                 # Create numpy array with data from camera, dimensions are determined by imgdataformats
-                dataimages = img.get_image_data_numpy()
-        
-                # Append dataimage to data list
-                data.append(dataimages)
-          
+                dataimage = img.get_image_data_numpy()
+
+                # Display dataimage
+                disp_img = PIL.Image.fromarray(dataimage, 'L')
+                disp_img.show()
+
             except xiapi.Xi_error as err:
                 if err.status == 10:
                     print('Timeout error occurred.')
                 else:
                     raise
 
-            prev2 = time.perf_counter()
-            print('Time for acquisition of frame {} is: {}'.format((i + 1), (prev2 - prev1)))
+        elif acq_mode == 1:
+            # Acquire a sequence of images and append to data list
+            for i in range(config['camera']['frame_ave_num']):
+                prev1 = time.perf_counter()
 
-        print('Length of data list is:', len(data))
+                try:
+                    # Get data and pass them from camera to img
+                    self.sensor.get_image(img, timeout = 25)
+                    prev2 = time.perf_counter()
+                    print('Time for acquisition of frame {} is: {}'.format((i + 1), (prev2 - prev1)))
+
+                    # Create numpy array with data from camera, dimensions are determined by imgdataformats
+                    dataimages = img.get_image_data_numpy()
+            
+                    # Append dataimage to data list
+                    data.append(dataimages)
+
+                    # Display dataimage
+                    disp_img = PIL.Image.fromarray(dataimages, 'L')
+                    disp_img.show()
+            
+                except xiapi.Xi_error as err:
+                    if err.status == 10:
+                        print('Timeout error occurred.')
+                    else:
+                        raise
+
+                prev3 = time.perf_counter()
+                print('Time for acquisition of loop {} is: {}'.format((i + 1), (prev3 - prev1)))
+
+            print('Length of data list is:', len(data))
 
         # Stop data acquisition
         print('Stopping image acquisition...')
         self.sensor.stop_acquisition()
+
+        if acq_mode == 0:
+            return dataimage
+        elif acq_mode == 1:
+            return data
+        else:
+            return None
 
 
 def debug():
@@ -356,7 +444,7 @@ def main():
         sensor = None
 
     Cent = Centroiding(sensor, SB_info)
-    Cent.get_centroids()
+    Cent.get_SB_position()
 
 
 if __name__ == '__main__':

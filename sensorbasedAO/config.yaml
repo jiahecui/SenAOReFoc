@@ -21,6 +21,7 @@ camera:
   burst_mode: 0  # Flag for whether to use burst mode, 0-burst_mode off, 1-burst_mode on 
   burst_frames: 10
   acq_timing_mode: "XI_ACQ_TIMING_MODE_FREE_RUN"
+  frame_rate: 5  # Hz
   sensor_width: 2048  # pixels
   sensor_height: 2048  # pixels
   pixel_size: 5.5  # um

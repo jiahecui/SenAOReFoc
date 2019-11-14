@@ -33,6 +33,7 @@ class SENSOR_XIMEA(xiapi.Camera):
             self.sensor.set_acq_frame_burst_count(config['camera']['burst_frames'])
 
         self.sensor.set_acq_timing_mode(config['camera']['acq_timing_mode'])
+        # self.sensor.set_framerate(config['camera']['frame_rate'])
 
         super().__init__()
 
