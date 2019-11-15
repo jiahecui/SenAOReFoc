@@ -292,6 +292,7 @@ class Centroiding():
         # Show search block layer with precalculated search blocks
         self.SB_layer_2D = np.zeros([self.sensor_width, self.sensor_height], dtype='uint8')
         self.SB_layer_2D_temp = self.SB_layer_2D.copy()
+        print(self.SB_settings['act_SB_coord'])
         self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
         SB_layer = PIL.Image.fromarray(self.SB_layer_2D_temp, 'L')
         SB_layer.show()
@@ -302,16 +303,16 @@ class Centroiding():
 
         # Update act_ref_cent_coord according to keyboard input
         while c is not '\x0d': 
-            if c == '\xe0H':
+            if c == '\xe0H' or c == '\x00H':
                 self.SB_settings['act_ref_cent_coord'] -= self.sensor_width
                 self.SB_settings['act_SB_coord'] -= self.sensor_width
-            elif c == '\xe0P':
+            elif c == '\xe0P' or c == '\x00P':
                 self.SB_settings['act_ref_cent_coord'] += self.sensor_width
                 self.SB_settings['act_SB_coord'] += self.sensor_width
-            elif c == '\xe0K':
+            elif c == '\xe0K' or c == '\x00K':
                 self.SB_settings['act_ref_cent_coord'] -= 1
                 self.SB_settings['act_SB_coord'] -= 1
-            elif c == '\xe0M':
+            elif c == '\xe0M' or c == '\x00M':
                 self.SB_settings['act_ref_cent_coord'] += 1
                 self.SB_settings['act_SB_coord'] += 1
 
@@ -319,6 +320,7 @@ class Centroiding():
 
         # Display actual search blocks and reference centroids
         self.SB_layer_2D_temp = self.SB_layer_2D.copy()
+        print(self.SB_settings['act_SB_coord'])
         self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
         SB_layer = PIL.Image.fromarray(self.SB_layer_2D_temp, 'L')
         SB_layer.show()

@@ -8,3 +8,4 @@ imageio
 pytest
 pytest-qt
 pyyaml
+Click
