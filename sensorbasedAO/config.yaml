@@ -14,6 +14,8 @@ lenslet:
 camera:
   SN: "26883050"
   dataformat: "XI_MONO16"
+  data_min: 0  # Minimum image output value
+  data_max: 65535  # Maximum image output value for dataformat
   exposure: 4000  # us
   auto_gain: 0  # Flag for whether to use automatic exposure / gain mode, 0-auto_gain off, 1-auto_gain on
   exp_priority: 0.8  # exposure n, gain (1 - n)
@@ -36,8 +38,13 @@ DM:
 
 search_block:
   outline_int: 255  # uint8
-  cent_thres: 5  # uint8
   pupil_diam: 7.5  # mm
+
+image:
+  normalise: 1  # 0-normalise off, 1-normalise on
+  norm_min: 5  # Below which will clip to 0, uint8
+  norm_max: 255  # Above which will clip to 1, uint8
+  rescale: 0  # 0-rescale off, 1-rescale on
 
 AO:
   recon_coeff_num: 70
