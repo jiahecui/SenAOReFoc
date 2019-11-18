@@ -61,6 +61,9 @@
             <property name="text">
              <string>Initialise</string>
             </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
          </layout>
@@ -146,8 +149,8 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>800</width>
-          <height>800</height>
+          <width>850</width>
+          <height>850</height>
          </size>
         </property>
        </widget>

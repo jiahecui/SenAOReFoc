@@ -32,20 +32,19 @@ class Main(QMainWindow):
         # self.ui.stopBtn.clicked.connect(self.on_stop)
         self.ui.quitBtn.clicked.connect(self.on_quit)
 
-    def update_image(self, image):
+    def update_image(self, image, flag):
         """
         Update image on S-H viewer
 
-        Args: image as numpy array
+        Args: 
+            image as numpy array
+            flag = 0 for search block layer display
+            flag = 1 for S-H spot image display
         """
         print('Got to update image!')
         print('Non-zero values in image before sent to S-H viewer:', np.nonzero(image))
 
-        if self.ui.initialiseBtn.isChecked():
-            self.ui.SHViewer.set_image(image, flag = 0)
-        else:
-            self.ui.SHViewer.set_image(image, flag = 1)
-        
+        self.ui.SHViewer.set_image(image, flag)       
         self.image_temp = image
 
     #========== GUI event handlers ==========#

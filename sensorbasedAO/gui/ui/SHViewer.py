@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'SHViewer.ui',
 # licensing of 'SHViewer.ui' applies.
 #
-# Created: Sun Nov 17 16:38:10 2019
+# Created: Mon Nov 18 18:09:27 2019
 #      by: pyside2-uic  running on PySide2 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,13 +13,13 @@ from PySide2 import QtCore, QtGui, QtWidgets
 class Ui_SHViewer(object):
     def setupUi(self, SHViewer):
         SHViewer.setObjectName("SHViewer")
-        SHViewer.resize(1000, 850)
+        SHViewer.resize(850, 850)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(SHViewer.sizePolicy().hasHeightForWidth())
         SHViewer.setSizePolicy(sizePolicy)
-        SHViewer.setMinimumSize(QtCore.QSize(1000, 850))
+        SHViewer.setMinimumSize(QtCore.QSize(850, 850))
         self.gridLayout = QtWidgets.QGridLayout(SHViewer)
         self.gridLayout.setObjectName("gridLayout")
         self.topLayout = QtWidgets.QVBoxLayout()

@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Sun Nov 17 15:38:34 2019
+# Created: Mon Nov 18 18:09:20 2019
 #      by: pyside2-uic  running on PySide2 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -89,7 +89,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.SHViewer.sizePolicy().hasHeightForWidth())
         self.SHViewer.setSizePolicy(sizePolicy)
-        self.SHViewer.setMinimumSize(QtCore.QSize(800, 800))
+        self.SHViewer.setMinimumSize(QtCore.QSize(850, 850))
         self.SHViewer.setObjectName("SHViewer")
         self.mainLayout.addWidget(self.SHViewer)
         self.horizontalLayout.addLayout(self.mainLayout)

@@ -7,6 +7,7 @@ import os
 import argparse
 import math
 import time
+import PIL.Image
 import numpy as np
 
 import log
@@ -116,6 +117,8 @@ class Setup_SB(QObject):
             self.SB_layer_2D[SB_offset_y : SB_final_y, ref_column_outline] = self.outline_int
 
             # Display search blocks and reference centroids
+            im = PIL.Image.fromarray(self.SB_layer_2D, 'L')
+            im.show()
             self.layer.emit(self.SB_layer_2D)
             time.sleep(1)
 
@@ -236,12 +239,14 @@ class Setup_SB(QObject):
             self.SB_layer_2D[x, y] = self.outline_int
 
             # Display actual search blocks and reference centroids
+            im = PIL.Image.fromarray(self.SB_layer_2D, 'L')
+            im.show()
             self.layer.emit(self.SB_layer_2D)
 
             # Get actual search block coordinates
             self.act_SB_coord = np.nonzero(np.ravel(self.SB_layer_2D))
             self.act_SB_coord = np.array(self.act_SB_coord)
-
+            os.system('pause')
             """
             Returns search block information
             """

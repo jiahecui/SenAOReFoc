@@ -95,7 +95,7 @@ class App(QApplication):
         
         # Connect to signals
         SB_thread.started.connect(SB_worker.run)
-        SB_worker.layer.connect(lambda obj: self.main.update_image(obj))
+        SB_worker.layer.connect(lambda obj: self.handle_layer_disp(obj))
         SB_worker.info.connect(lambda obj: self.handle_SB_info(obj))
         SB_worker.error.connect(lambda obj: self.handle_error(obj))
         SB_worker.done.connect(self.handle_SB_done)
@@ -120,7 +120,8 @@ class App(QApplication):
 
         # Connect to signals
         cent_thread.started.connect(cent_worker.run)
-        cent_worker.image.connect(lambda obj: self.main.update_image(obj))
+        cent_worker.layer.connect(lambda obj: self.handle_layer_disp(obj))
+        cent_worker.image.connect(lambda obj: self.handle_image_disp(obj))
         cent_worker.error.connect(lambda obj: self.handle_error(obj))
         # cent_worker.done.connect()
         # cent_worker.info.connect()
@@ -133,6 +134,18 @@ class App(QApplication):
         cent_thread.start()
 
     #========== Signal handlers ==========#
+    def handle_layer_disp(self, obj):
+        """
+        Handle display of search block layer
+        """
+        self.main.update_image(obj, flag = 0)
+
+    def handle_image_disp(self, obj):
+        """
+        Handle display of S-H spot images
+        """
+        self.main.update_image(obj, flag = 1)
+
     def handle_SB_info(self, obj):
         """
         Handle search block geometry and reference centroid information

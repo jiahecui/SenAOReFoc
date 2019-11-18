@@ -48,7 +48,7 @@ class SHViewer(QWidget):
         return settings
 
     #==========Methods==========#
-    def set_image(self, array, flag = 1):
+    def set_image(self, array, flag = 0):
         # Set raw data array
         self.array_raw = array
 

@@ -29,6 +29,7 @@ class Centroiding(QObject):
     done = Signal(object)
     error = Signal(object)
     image = Signal(object)
+    layer = Signal(object)
     info = Signal(object)
     
     def __init__(self, device, settings):
@@ -138,14 +139,16 @@ class Centroiding(QObject):
             # Show search block layer with precalculated search blocks
             self.SB_layer_2D = np.zeros([self.sensor_width, self.sensor_height], dtype='uint8')
             self.SB_layer_2D_temp = self.SB_layer_2D.copy()
-            print(self.SB_settings['act_SB_coord'])
+            print('Actual search block coords before shift', self.SB_settings['act_SB_coord'])
             self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
 
             # Acquire S-H spot image
             self._image = self.acq_image(acq_mode = 0)
+            self.image.emit(self._image)
 
             # Get input from keyboard to reposition search block
-            print('Press arrow keys to centre S-H spots in search blocks.\nPress Enter to finish.')
+            click.echo('Press arrow keys to centre S-H spots in search blocks.\nPress Enter to finish.', nl = False)
+            
             c = click.getchar()
 
             # Update act_ref_cent_coord according to keyboard input
@@ -165,9 +168,9 @@ class Centroiding(QObject):
 
                 # Display actual search blocks as they move
                 self.SB_layer_2D_temp = self.SB_layer_2D.copy()
-                print(self.SB_settings['act_SB_coord'])
+                print('Actual search block coords before shift', self.SB_settings['act_SB_coord'])
                 self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
-                self.image.emit(self._image + self.SB_layer_2D_temp)
+                self.layer.emit(self.SB_layer_2D_temp)
 
                 c = click.getchar()
 
