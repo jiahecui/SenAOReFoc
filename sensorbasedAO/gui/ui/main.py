@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Mon Nov 18 18:09:20 2019
+# Created: Mon Nov 18 23:22:07 2019
 #      by: pyside2-uic  running on PySide2 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,13 +13,13 @@ from PySide2 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1200, 900)
+        MainWindow.resize(1360, 1080)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
-        MainWindow.setMinimumSize(QtCore.QSize(1200, 900))
+        MainWindow.setMinimumSize(QtCore.QSize(1360, 1080))
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("../resources/icons/AO.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
@@ -89,7 +89,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.SHViewer.sizePolicy().hasHeightForWidth())
         self.SHViewer.setSizePolicy(sizePolicy)
-        self.SHViewer.setMinimumSize(QtCore.QSize(850, 850))
+        self.SHViewer.setMinimumSize(QtCore.QSize(1046, 1046))
         self.SHViewer.setObjectName("SHViewer")
         self.mainLayout.addWidget(self.SHViewer)
         self.horizontalLayout.addLayout(self.mainLayout)
