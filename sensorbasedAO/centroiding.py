@@ -41,9 +41,10 @@ class Centroiding(QObject):
         self.sensor = device
 
         # Get camera parameters
-        self.pixel_size = config['camera']['pixel_size']
-        self.sensor_width = config['camera']['sensor_width']
-        self.sensor_height = config['camera']['sensor_height']
+        self.pixel_size = config['camera']['pixel_size'] * config['camera']['bin_factor']
+        self.sensor_width = config['camera']['sensor_width'] // config['camera']['bin_factor']
+        self.sensor_height = config['camera']['sensor_height'] // config['camera']['bin_factor']
+        self.bin_factor = config['camera']['bin_factor']
 
         # Get search block parameter
         self.outline_int = config['search_block']['outline_int']
@@ -56,7 +57,7 @@ class Centroiding(QObject):
         """
         # Create instance of dataimage array and data list to store image data
         data = []
-        dataimages = np.zeros((2048, 2048))
+        dataimages = np.zeros((self.sensor_width, self.sensor_height))
 
         # Create instance of Ximea Image to store image data and metadata
         img = xiapi.Image()
@@ -76,9 +77,13 @@ class Centroiding(QObject):
 
                 # Create numpy array with data from camera, dimensions are determined by imgdataformats
                 dataimage = img.get_image_data_numpy()
+                
+                # Bin pixels to fit on S-H viewer
+                dataimage = self.img_bin(dataimage, (self.sensor_width // self.bin_factor, \
+                    self.sensor_height // self.bin_factor))
 
                 # Display dataimage
-                self.image.emit(dataimage + self.SB_layer_2D_temp)
+                self.image.emit(dataimage)
 
             except xiapi.Xi_error as err:
                 if err.status == 10:
@@ -100,8 +105,12 @@ class Centroiding(QObject):
                     # Create numpy array with data from camera, dimensions are determined by imgdataformats
                     dataimages = img.get_image_data_numpy()
 
+                    # Bin pixels to fit on S-H viewer
+                    dataimages = self.img_bin(dataimages, (self.sensor_width // self.bin_factor, \
+                        self.sensor_height // self.bin_factor))
+
                     # Display dataimage
-                    self.image.emit(dataimages + self.SB_layer_2D_temp)
+                    self.image.emit(dataimages)
             
                     # Append dataimage to data list
                     data.append(dataimages)
@@ -128,6 +137,15 @@ class Centroiding(QObject):
         else:
             return None
 
+    def img_bin(self, array, new_shape):
+        """
+        Bins numpy arrays to form new_shape by averaging pixels
+        """
+        shape = (new_shape[0], array.shape[0] // new_shape[0], new_shape[1], array.shape[1] // new_shape[1])
+        new_array = array.reshape(shape).mean(-1).mean(1)
+
+        return new_array
+
     @Slot(object)
     def run(self):
         try:
@@ -139,16 +157,17 @@ class Centroiding(QObject):
             # Show search block layer with precalculated search blocks
             self.SB_layer_2D = np.zeros([self.sensor_width, self.sensor_height], dtype='uint8')
             self.SB_layer_2D_temp = self.SB_layer_2D.copy()
-            print('Actual search block coords before shift', self.SB_settings['act_SB_coord'])
             self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
+
+            # Keep dark background
+            self.image.emit(self.SB_layer_2D)
 
             # Acquire S-H spot image
             self._image = self.acq_image(acq_mode = 0)
-            self.image.emit(self._image)
+            # self.image.emit(self._image)
 
             # Get input from keyboard to reposition search block
             click.echo('Press arrow keys to centre S-H spots in search blocks.\nPress Enter to finish.', nl = False)
-            
             c = click.getchar()
 
             # Update act_ref_cent_coord according to keyboard input
@@ -168,7 +187,6 @@ class Centroiding(QObject):
 
                 # Display actual search blocks as they move
                 self.SB_layer_2D_temp = self.SB_layer_2D.copy()
-                print('Actual search block coords before shift', self.SB_settings['act_SB_coord'])
                 self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
                 self.layer.emit(self.SB_layer_2D_temp)
 

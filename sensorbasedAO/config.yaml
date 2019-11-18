@@ -15,7 +15,7 @@ camera:
   SN: "26883050"
   dataformat: "XI_MONO16"
   data_min: 0  # Minimum image output value
-  data_max: 65535  # Maximum image output value for dataformat
+  data_max: 1023  # Maximum image output value for dataformat
   exposure: 4000  # us
   auto_gain: 0  # Flag for whether to use automatic exposure / gain mode, 0-auto_gain off, 1-auto_gain on
   exp_priority: 0.8  # exposure n, gain (1 - n)
@@ -26,6 +26,7 @@ camera:
   frame_rate: 5  # Hz
   sensor_width: 2048  # pixels
   sensor_height: 2048  # pixels
+  bin_factor: 2
   pixel_size: 5.5  # um
   frame_ave_num: 5
   

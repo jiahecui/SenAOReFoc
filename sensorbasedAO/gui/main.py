@@ -41,9 +41,6 @@ class Main(QMainWindow):
             flag = 0 for search block layer display
             flag = 1 for S-H spot image display
         """
-        print('Got to update image!')
-        print('Non-zero values in image before sent to S-H viewer:', np.nonzero(image))
-
         self.ui.SHViewer.set_image(image, flag)       
         self.image_temp = image
 

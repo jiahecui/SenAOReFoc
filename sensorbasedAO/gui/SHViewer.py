@@ -58,9 +58,6 @@ class SHViewer(QWidget):
         else:
             self.array = self.array_raw.copy()
 
-        print("Size of image array before converted to qimage:", np.size(self.array))
-        print("Non-zero elements in image array before display:", np.nonzero(self.array))
-
         # Display image on image viewer
         self.ui.graphicsView.setImage(array2qimage(self.array))
 
@@ -79,9 +76,13 @@ class SHViewer(QWidget):
         scale_max = np.interp(settings['norm_max'], \
             (np.iinfo(self.dtype).min, np.iinfo(self.dtype).max), \
                 (settings['data_min'], settings['data_max']))
+            
+        print('Scale_min and scale_max equals {} and {}'.format(scale_min, scale_max))
 
         # Clip array to scale_min and scale_max
         self.array = np.clip(self.array, scale_min, scale_max)
+
+        print("Values in image array after normalise:", self.array)
 
         # Rescale to image viewer dtype
         if settings['rescale']:
@@ -94,7 +95,7 @@ class SHViewer(QWidget):
             self.array = np.interp(self.array, (scale_min, scale_max), \
                 (np.iinfo(self.dtype).min, np.iinfo(self.dtype).max)).astype(self.dtype)
 
-        print("Values in image array after update:", self.array)
+        print("Values in image array after rescale:", self.array)
 
 
 if __name__ == '__main__':

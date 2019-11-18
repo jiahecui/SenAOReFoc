@@ -30,10 +30,10 @@ class Setup_SB(QObject):
         # Get lenslet parameters
         self.lenslet_pitch = config['lenslet']['lenslet_pitch']
 
-        # Get camera parameters
-        self.pixel_size = config['camera']['pixel_size']
-        self.sensor_width = config['camera']['sensor_width']
-        self.sensor_height = config['camera']['sensor_height']
+        # Get search block layer parameters
+        self.pixel_size = config['camera']['pixel_size'] * config['camera']['bin_factor']
+        self.sensor_width = config['camera']['sensor_width'] // config['camera']['bin_factor']
+        self.sensor_height = config['camera']['sensor_height'] // config['camera']['bin_factor']
 
         # Get search block parameter
         self.outline_int = config['search_block']['outline_int']
@@ -242,6 +242,7 @@ class Setup_SB(QObject):
             # im = PIL.Image.fromarray(self.SB_layer_2D, 'L')
             # im.show()
             self.layer.emit(self.SB_layer_2D)
+            time.sleep(1)
 
             # Get actual search block coordinates
             self.act_SB_coord = np.nonzero(np.ravel(self.SB_layer_2D))
