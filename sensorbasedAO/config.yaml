@@ -44,7 +44,7 @@ image:
   normalise: 1  # 0-normalise off, 1-normalise on
   norm_min: 5  # Below which will clip to 0, uint8
   norm_max: 255  # Above which will clip to 1, uint8
-  rescale: 0  # 0-rescale off, 1-rescale on
+  rescale: 1  # 0-rescale off, 1-rescale on
 
 AO:
   recon_coeff_num: 70

@@ -4,6 +4,7 @@ from PySide2.QtCore import QThread, QObject, Slot, Signal, QSize, QTimer
 import qtawesome as qta
 
 import os
+import numpy as np
 
 from sensorbasedAO.gui.ui.main import Ui_MainWindow
 from sensorbasedAO.gui.common import FloatingWidget
@@ -28,7 +29,7 @@ class Main(QMainWindow):
 
         # Main handlers
         self.ui.initialiseBtn.clicked.connect(self.on_initialise)
-        self.ui.stopBtn.clicked.connect(self.on_stop)
+        # self.ui.stopBtn.clicked.connect(self.on_stop)
         self.ui.quitBtn.clicked.connect(self.on_quit)
 
     def update_image(self, image):
@@ -37,7 +38,14 @@ class Main(QMainWindow):
 
         Args: image as numpy array
         """
-        self.ui.SHViewer.set_image(image)
+        print('Got to update image!')
+        print('Non-zero values in image before sent to S-H viewer:', np.nonzero(image))
+
+        if self.ui.initialiseBtn.isChecked():
+            self.ui.SHViewer.set_image(image, flag = 0)
+        else:
+            self.ui.SHViewer.set_image(image, flag = 1)
+        
         self.image_temp = image
 
     #========== GUI event handlers ==========#
@@ -52,7 +60,10 @@ class Main(QMainWindow):
             btn.setChecked(False)
         else:
             self.app.setup_SB()
-
+            btn.setChecked(True)
+            
+    def on_quit(self):
+        self.close()
 
 
         

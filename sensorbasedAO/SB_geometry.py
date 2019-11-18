@@ -48,6 +48,8 @@ class Setup_SB(QObject):
         self.SB_layer_2D = np.zeros([self.sensor_width, self.sensor_height], dtype='uint8')
         self.SB_layer_1D = np.ravel(self.SB_layer_2D)
 
+        super().__init__()
+
     @Slot(object)
     def run(self):
         try:
@@ -115,6 +117,7 @@ class Setup_SB(QObject):
 
             # Display search blocks and reference centroids
             self.layer.emit(self.SB_layer_2D)
+            time.sleep(1)
 
             """
             Calculates search block geometry from given number of spots across diameter

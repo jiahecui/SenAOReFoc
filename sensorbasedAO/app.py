@@ -90,15 +90,15 @@ class App(QApplication):
         # Create SB worker and thread
         SB_thread = QThread()
         SB_thread.setObjectName('SB_thread')
-        SB_worker = Setup_SB(debug = self.debug)
+        SB_worker = Setup_SB()
         SB_worker.moveToThread(SB_thread)
-
+        
         # Connect to signals
         SB_thread.started.connect(SB_worker.run)
         SB_worker.layer.connect(lambda obj: self.main.update_image(obj))
         SB_worker.info.connect(lambda obj: self.handle_SB_info(obj))
         SB_worker.error.connect(lambda obj: self.handle_error(obj))
-        SB_thread.done.connect(self.handle_SB_done)
+        SB_worker.done.connect(self.handle_SB_done)
 
         # Store SB worker and thread
         self.workers['SB_worker'] = SB_worker
@@ -119,10 +119,10 @@ class App(QApplication):
 
         # Connect to signals
         cent_thread.started.connect(cent_worker.run)
-        cent_thread.image.connect(lambda obj: self.main.update_image(obj))
-        cent_thread.error.connect(lambda obj: self.handle_error(obj))
-        cent_thread.done.connect()
-        cent_thread.info.connect()
+        cent_worker.image.connect(lambda obj: self.main.update_image(obj))
+        cent_worker.error.connect(lambda obj: self.handle_error(obj))
+        # cent_worker.done.connect()
+        # cent_worker.info.connect()
 
         # Store centroiding worker and thread
         self.workers['cent_worker'] = cent_worker

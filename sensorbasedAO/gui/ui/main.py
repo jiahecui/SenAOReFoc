@@ -45,6 +45,7 @@ class Ui_MainWindow(object):
         font.setWeight(75)
         font.setBold(True)
         self.initialiseBtn.setFont(font)
+        self.initialiseBtn.setCheckable(True)
         self.initialiseBtn.setObjectName("initialiseBtn")
         self.horizontalLayout_4.addWidget(self.initialiseBtn)
         self.mainContentLayout.addLayout(self.horizontalLayout_4)

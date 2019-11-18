@@ -2,8 +2,8 @@ from PySide2.QtWidgets import QApplication, QWidget, QGraphicsScene, QGraphicsVi
 from PySide2.QtGui import QPixmap
 from PySide2.QtCore import QSize, QPoint, QRect, Signal
 
-from qimage2ndarray import array2qimage, gray2qimage
 import qtawesome as qta
+from qimage2ndarray import array2qimage, gray2qimage
 
 import numpy as np
 
@@ -24,15 +24,14 @@ class SHViewer(QWidget):
         self.ui.setupUi(self)
 
         # Initialise image array and datatype
-        self.array_raw = Image(np.zeros(shape = (1,1)))
-        self.array = Image(np.zeros(shape = (1, 1)))
+        self.sensor_width = config['camera']['sensor_width']
+        self.sensor_height = config['camera']['sensor_height']
+        self.array_raw = Image(np.zeros(shape = (self.sensor_width, self.sensor_height)))
+        self.array = Image(np.zeros(shape = (self.sensor_width, self.sensor_height)))
         self.dtype = dtype
 
         # Get image display settings
         self.settings = self.get_settings()
-
-        # Update settings on display image
-        self.update()
 
         # Display image on image viewer
         self.ui.graphicsView.setImage(array2qimage(self.array), reset = False)
@@ -49,21 +48,26 @@ class SHViewer(QWidget):
         return settings
 
     #==========Methods==========#
-    def set_image(self, array):
+    def set_image(self, array, flag = 1):
         # Set raw data array
         self.array_raw = array
 
         # Update image display settings
-        self.update()
+        if flag:
+            self.update()
+        else:
+            self.array = self.array_raw.copy()
 
-        print("size of image array before converted to qimage:", np.size(self.array))
-        print("values in image array:", self.array)
+        print("Size of image array before converted to qimage:", np.size(self.array))
+        print("Non-zero elements in image array before display:", np.nonzero(self.array))
 
         # Display image on image viewer
         self.ui.graphicsView.setImage(array2qimage(self.array))
 
     def update(self):
         self.array = self.array_raw.copy()
+
+        print("Values in image array before update:", self.array)
 
         # Get image display settings
         settings = self.get_settings()
@@ -90,6 +94,8 @@ class SHViewer(QWidget):
             self.array = np.interp(self.array, (scale_min, scale_max), \
                 (np.iinfo(self.dtype).min, np.iinfo(self.dtype).max)).astype(self.dtype)
 
+        print("Values in image array after update:", self.array)
+
 
 if __name__ == '__main__':
     import sys
@@ -97,5 +103,5 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     SH_viewer = SHViewer()
     SH_viewer.show()
-    SH_viewer.set_image(np.random.randint(0,10,size=(100,100)))
+    SH_viewer.set_image(np.random.randint(0,10,size = (100, 100)))
     sys.exit(app.exec_())

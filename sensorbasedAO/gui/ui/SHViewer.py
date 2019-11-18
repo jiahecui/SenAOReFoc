@@ -46,7 +46,7 @@ class Ui_SHViewer(object):
     def retranslateUi(self, SHViewer):
         SHViewer.setWindowTitle(QtWidgets.QApplication.translate("SHViewer", "Form", None, -1))
 
-from doptical.gui.common import ImageView
+from sensorbasedAO.gui.common import ImageView
 
 if __name__ == "__main__":
     import sys

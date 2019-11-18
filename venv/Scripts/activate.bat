@@ -1,6 +1,6 @@
 @echo off
 
-set "VIRTUAL_ENV=F:\Documents\oxford\SensorbasedAO\venv"
+set "VIRTUAL_ENV=F:\科研\Oxford\SensorbasedAO\venv"
 
 if defined _OLD_VIRTUAL_PROMPT (
     set "PROMPT=%_OLD_VIRTUAL_PROMPT%"

@@ -47,6 +47,8 @@ class Centroiding(QObject):
         # Get search block parameter
         self.outline_int = config['search_block']['outline_int']
 
+        super().__init__()
+
     def acq_image(self, acq_mode = 0):
         """
         Acquires single image or image data list according to acq_mode, 0 for single image
@@ -143,7 +145,7 @@ class Centroiding(QObject):
             self._image = self.acq_image(acq_mode = 0)
 
             # Get input from keyboard to reposition search block
-            print('Press arrow keys to centre S-H spots in search blocks.\n Press 'Enter' to finish.')
+            print('Press arrow keys to centre S-H spots in search blocks.\n Press Enter to finish.')
             c = click.getchar()
 
             # Update act_ref_cent_coord according to keyboard input
@@ -169,7 +171,7 @@ class Centroiding(QObject):
 
                 c = click.getchar()
 
-         except Exception as e:
+        except Exception as e:
             raise
             self.error.emit(e)
 
