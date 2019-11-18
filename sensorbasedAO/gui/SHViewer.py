@@ -1,12 +1,12 @@
-"""
-Module for viewing S-H spots 
-"""
 from PySide2.QtWidgets import QApplication, QWidget, QGraphicsScene, QGraphicsView, QRubberBand
 from PySide2.QtGui import QPixmap
 from PySide2.QtCore import QSize, QPoint, QRect, Signal
+
 from qimage2ndarray import array2qimage, gray2qimage
 import qtawesome as qta
+
 import numpy as np
+
 from sensorbasedAO.gui.ui.SHViewer import Ui_SHViewer
 from sensorbasedAO.data import Image
 from sensorbasedAO.config import config
@@ -15,7 +15,6 @@ class SHViewer(QWidget):
     """
     SH viewer class
     """
-    dock = Signal(bool)
 
     def __init__(self, parent = None, dtype = 'uint8'):
         super().__init__(parent)
@@ -23,18 +22,11 @@ class SHViewer(QWidget):
         # Set up and initialise Ui_SHViewer class
         self.ui = Ui_SHViewer()
         self.ui.setupUi(self)
-        self.customise_ui()
 
         # Initialise image array and datatype
         self.array_raw = Image(np.zeros(shape = (1,1)))
         self.array = Image(np.zeros(shape = (1, 1)))
         self.dtype = dtype
-
-        # Default imageviewer docked
-        self.docked = True
-
-        # Bind handler
-        self.ui.SHViewerDock.clicked.connect(self.on_dock)
 
         # Get image display settings
         self.settings = self.get_settings()
@@ -44,10 +36,6 @@ class SHViewer(QWidget):
 
         # Display image on image viewer
         self.ui.graphicsView.setImage(array2qimage(self.array), reset = False)
-
-    def customise_ui(self):
-        self.ui.SHViewerDock.setIcon(qta.icon('ei.resize-full'))
-        self.ui.SHViewerDock.setIconSize(QSize(14, 14)) 
 
     def get_settings(self):
         settings = {}
@@ -59,10 +47,6 @@ class SHViewer(QWidget):
         settings['data_max'] = config['camera']['data_max']
 
         return settings
-
-    def on_dock(self):
-        self.docked = not self.docked
-        self.dock.emit(self.docked)
 
     #==========Methods==========#
     def set_image(self, array):

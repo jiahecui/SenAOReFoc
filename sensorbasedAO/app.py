@@ -20,6 +20,8 @@ from ximea import xiapi
 import log
 from config import config
 from sensor import SENSOR
+from gui.main import Main
+from SB_geometry import Setup_SB
 
 logger = log.get_logger(__name__)
 
@@ -81,6 +83,59 @@ class App(QApplication):
         self.devices['sensor'] = sensor
 
     def setup_SB(self):
+        """
+        Setup search block geometry and get reference centroids
+        """
+        # Create SB worker and thread
+        SB_thread = QThread()
+        SB_thread.setObjectName('SB_thread')
+        SB_worker = Setup_SB(debug = self.debug)
+        SB_worker.moveToThread(SB_thread)
+
+        # Connect to signals
+        SB_thread.started.connect(SB_worker.run)
+        SB_worker.layer.connect(lambda obj: self.main.update_image(obj))
+        SB_worker.info.connect(lambda obj: self.handle_SB_info(obj))
+        SB_worker.error.connect(lambda obj: self.handle_SB_error(obj))
+        SB_thread.done.connect(self.handle_SB_done)
+
+        # Store SB worker and thread
+        self.workers['SB_worker'] = SB_worker
+        self.threads['SB_thread'] = SB_thread
+
+        # Start SB thread
+        SB_thread.start()
+
+    def get_centroids(self, sensor, SB_info):
+        """
+        Get actual centroids of S-H spots
+        """
+        # Create centroiding worker and thread
+        cent_thread = QThread()
+        cent_thread = setObjectName('cent_thread')
+        cent_worker = 
+
+    #========== Signal handlers ==========#
+    def handle_SB_info(self, obj):
+        """
+        Handle search block geometry and reference centroid information
+        """
+        self.SB_info = obj
+
+    def handle_SB_error(self, error):
+        """
+        Handle errors from setting up search block geometry
+        """
+        raise(RuntimeError(error))
+        
+    def handle_SB_done(self):
+        """
+        Handle end of search block geometry setup
+        """
+        self.threads['SB_thread'].quit()
+        self.threads['SB_thread'].wait()
+        self.main.ui.initialiseBtn.setChecked(False)
+        self.get_centroids(self.devices['sensor'], self.SB_info)
 
 
 def debug():
@@ -109,18 +164,9 @@ def main():
     logger.addHandler(handler_stream)
     logger.info('Started sensorbased AO app')
 
-    SB = Setup_SB(debug = False)
-    SB.register_SB()
-    SB.make_reference_SB()
-    SB.get_SB_geometry()
-    SB_info = SB.get_SB_info()
+    app = App(debug = False)
 
-    try:
-        sensor = SENSOR.get(config['camera']['SN'])
-        print('Sensor load success')
-    except Exception as e:
-        logger.warning('Sensor load error', e)
-        sensor = None
+    sys.exit(app.exec_())
 
     Cent = Centroiding(sensor, SB_info)
     Cent.get_SB_position()
