@@ -7,7 +7,6 @@ import os
 import argparse
 import math
 import time
-import PIL.Image
 import numpy as np
 
 import log
@@ -17,7 +16,7 @@ logger = log.get_logger(__name__)
 
 class Setup_SB(QObject):
     """
-    Sets up reference search blocks
+    Sets up reference search block geometry
     """
     start = Signal()
     done = Signal(object)

@@ -1,3 +1,6 @@
+from PySide2.QtCore import QThread, QObject, Signal, Slot
+from PySide2.QtWidgets import QApplication
+
 import logging
 import sys
 import os
@@ -6,7 +9,6 @@ import argparse
 import math
 import time
 import click
-import PIL.Image
 import numpy as np
 
 from datetime import datetime
@@ -19,10 +21,16 @@ from sensor import SENSOR
 
 logger = log.get_logger(__name__)
 
-class Centroiding():
+class Centroiding(QObject):
     """
     Calculates centroids of S-H spots on camera sensor
     """
+    start = Signal()
+    done = Signal(object)
+    error = Signal(object)
+    image = Signal(object)
+    info = Signal(object)
+    
     def __init__(self, device, settings):
 
         # Get search block settings
@@ -37,54 +45,11 @@ class Centroiding():
         self.sensor_height = config['camera']['sensor_height']
 
         # Get search block parameter
-        self.outline_int = config['search_block']['outline_int'] 
-
-    def get_SB_position(self):
-        """
-        Acquires image and allows user to reposition search blocks
-        """
-        # Acquire S-H spot image
-        self._image = self.acq_image(acq_mode = 0)
-
-        # Show search block layer with precalculated search blocks
-        self.SB_layer_2D = np.zeros([self.sensor_width, self.sensor_height], dtype='uint8')
-        self.SB_layer_2D_temp = self.SB_layer_2D.copy()
-        print(self.SB_settings['act_SB_coord'])
-        self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
-        SB_layer = PIL.Image.fromarray(self.SB_layer_2D_temp, 'L')
-        SB_layer.show()
-
-        # Get input from keyboard to reposition search block
-        print('Press arrow keys to centre S-H spots in search blocks.')
-        c = click.getchar()
-
-        # Update act_ref_cent_coord according to keyboard input
-        while c is not '\x0d': 
-            if c == '\xe0H' or c == '\x00H':
-                self.SB_settings['act_ref_cent_coord'] -= self.sensor_width
-                self.SB_settings['act_SB_coord'] -= self.sensor_width
-            elif c == '\xe0P' or c == '\x00P':
-                self.SB_settings['act_ref_cent_coord'] += self.sensor_width
-                self.SB_settings['act_SB_coord'] += self.sensor_width
-            elif c == '\xe0K' or c == '\x00K':
-                self.SB_settings['act_ref_cent_coord'] -= 1
-                self.SB_settings['act_SB_coord'] -= 1
-            elif c == '\xe0M' or c == '\x00M':
-                self.SB_settings['act_ref_cent_coord'] += 1
-                self.SB_settings['act_SB_coord'] += 1
-
-            c = click.getchar()
-
-        # Display actual search blocks and reference centroids
-        self.SB_layer_2D_temp = self.SB_layer_2D.copy()
-        print(self.SB_settings['act_SB_coord'])
-        self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
-        SB_layer = PIL.Image.fromarray(self.SB_layer_2D_temp, 'L')
-        SB_layer.show()
+        self.outline_int = config['search_block']['outline_int']
 
     def acq_image(self, acq_mode = 0):
         """
-        Acquires single image or image data list according to acq_mode
+        Acquires single image or image data list according to acq_mode, 0 for single image
         """
         # Create instance of dataimage array and data list to store image data
         data = []
@@ -110,8 +75,7 @@ class Centroiding():
                 dataimage = img.get_image_data_numpy()
 
                 # Display dataimage
-                disp_img = PIL.Image.fromarray(dataimage, 'L')
-                disp_img.show()
+                self.image.emit(dataimage + self.SB_layer_2D_temp)
 
             except xiapi.Xi_error as err:
                 if err.status == 10:
@@ -132,13 +96,12 @@ class Centroiding():
 
                     # Create numpy array with data from camera, dimensions are determined by imgdataformats
                     dataimages = img.get_image_data_numpy()
+
+                    # Display dataimage
+                    self.image.emit(dataimages + self.SB_layer_2D_temp)
             
                     # Append dataimage to data list
                     data.append(dataimages)
-
-                    # Display dataimage
-                    disp_img = PIL.Image.fromarray(dataimages, 'L')
-                    disp_img.show()
             
                 except xiapi.Xi_error as err:
                     if err.status == 10:
@@ -161,3 +124,54 @@ class Centroiding():
             return data
         else:
             return None
+
+    @Slot(object)
+    def run(self):
+        try:
+            self.start.emit()
+
+            """
+            Acquires image and allows user to reposition search blocks
+            """
+            # Show search block layer with precalculated search blocks
+            self.SB_layer_2D = np.zeros([self.sensor_width, self.sensor_height], dtype='uint8')
+            self.SB_layer_2D_temp = self.SB_layer_2D.copy()
+            print(self.SB_settings['act_SB_coord'])
+            self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
+
+            # Acquire S-H spot image
+            self._image = self.acq_image(acq_mode = 0)
+
+            # Get input from keyboard to reposition search block
+            print('Press arrow keys to centre S-H spots in search blocks.\n Press 'Enter' to finish.')
+            c = click.getchar()
+
+            # Update act_ref_cent_coord according to keyboard input
+            while c is not '\x0d': 
+                if c == '\xe0H' or c == '\x00H':
+                    self.SB_settings['act_ref_cent_coord'] -= self.sensor_width
+                    self.SB_settings['act_SB_coord'] -= self.sensor_width
+                elif c == '\xe0P' or c == '\x00P':
+                    self.SB_settings['act_ref_cent_coord'] += self.sensor_width
+                    self.SB_settings['act_SB_coord'] += self.sensor_width
+                elif c == '\xe0K' or c == '\x00K':
+                    self.SB_settings['act_ref_cent_coord'] -= 1
+                    self.SB_settings['act_SB_coord'] -= 1
+                elif c == '\xe0M' or c == '\x00M':
+                    self.SB_settings['act_ref_cent_coord'] += 1
+                    self.SB_settings['act_SB_coord'] += 1
+
+                # Display actual search blocks as they move
+                self.SB_layer_2D_temp = self.SB_layer_2D.copy()
+                print(self.SB_settings['act_SB_coord'])
+                self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
+                self.image.emit(self._image + self.SB_layer_2D_temp)
+
+                c = click.getchar()
+
+         except Exception as e:
+            raise
+            self.error.emit(e)
+
+
+    

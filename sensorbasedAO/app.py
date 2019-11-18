@@ -22,6 +22,7 @@ from config import config
 from sensor import SENSOR
 from gui.main import Main
 from SB_geometry import Setup_SB
+from centroiding import Centroiding
 
 logger = log.get_logger(__name__)
 
@@ -96,7 +97,7 @@ class App(QApplication):
         SB_thread.started.connect(SB_worker.run)
         SB_worker.layer.connect(lambda obj: self.main.update_image(obj))
         SB_worker.info.connect(lambda obj: self.handle_SB_info(obj))
-        SB_worker.error.connect(lambda obj: self.handle_SB_error(obj))
+        SB_worker.error.connect(lambda obj: self.handle_error(obj))
         SB_thread.done.connect(self.handle_SB_done)
 
         # Store SB worker and thread
@@ -113,7 +114,22 @@ class App(QApplication):
         # Create centroiding worker and thread
         cent_thread = QThread()
         cent_thread = setObjectName('cent_thread')
-        cent_worker = 
+        cent_worker = Centroiding(sensor, SB_info)
+        cent_worker.moveToThread(cent_thread)
+
+        # Connect to signals
+        cent_thread.started.connect(cent_worker.run)
+        cent_thread.image.connect(lambda obj: self.main.update_image(obj))
+        cent_thread.error.connect(lambda obj: self.handle_error(obj))
+        cent_thread.done.connect()
+        cent_thread.info.connect()
+
+        # Store centroiding worker and thread
+        self.workers['cent_worker'] = cent_worker
+        self.threads['cent_thread'] = cent_thread
+
+        # Start SB thread
+        cent_thread.start()
 
     #========== Signal handlers ==========#
     def handle_SB_info(self, obj):
@@ -122,9 +138,9 @@ class App(QApplication):
         """
         self.SB_info = obj
 
-    def handle_SB_error(self, error):
+    def handle_error(self, error):
         """
-        Handle errors from setting up search block geometry
+        Handle errors from threads
         """
         raise(RuntimeError(error))
         
@@ -167,10 +183,6 @@ def main():
     app = App(debug = False)
 
     sys.exit(app.exec_())
-
-    Cent = Centroiding(sensor, SB_info)
-    Cent.get_SB_position()
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Sensorbased AO gui')
