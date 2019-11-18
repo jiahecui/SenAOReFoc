@@ -1,0 +1,3 @@
+[console_scripts]
+imagecodecs = imagecodecs.__main__:main
+

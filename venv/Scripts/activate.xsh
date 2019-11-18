@@ -28,7 +28,7 @@ def _deactivate(args):
 _deactivate(["nondestructive"])
 aliases["deactivate"] = _deactivate
 
-$VIRTUAL_ENV = r"F:\科研\Oxford\SensorbasedAO\venv"
+$VIRTUAL_ENV = r"F:\Documents\oxford\SensorbasedAO\venv"
 
 $_OLD_VIRTUAL_PATH = $PATH
 $PATH = $PATH[:]
