@@ -19,7 +19,7 @@ class Setup_SB(QObject):
     Sets up reference search block geometry
     """
     start = Signal()
-    done = Signal(object)
+    done = Signal()
     error = Signal(object)
     layer = Signal(object)
     info = Signal(object)

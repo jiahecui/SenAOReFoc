@@ -145,7 +145,7 @@ class Centroiding(QObject):
             self._image = self.acq_image(acq_mode = 0)
 
             # Get input from keyboard to reposition search block
-            print('Press arrow keys to centre S-H spots in search blocks.\n Press Enter to finish.')
+            print('Press arrow keys to centre S-H spots in search blocks.\nPress Enter to finish.')
             c = click.getchar()
 
             # Update act_ref_cent_coord according to keyboard input
