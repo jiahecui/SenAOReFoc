@@ -59,9 +59,14 @@ class SHViewer(QWidget):
         # Update image display settings
         if flag:
             self.update()
-            self.img_array = array
+            self.img_array = self.array
         else:
             self.array = self.img_array.copy() + self.array_raw.copy()
+
+        print('Values in array are:', array)
+        print('Values in self.array_raw are:', self.array_raw)
+        print('Values in self.array are:', self.array)
+        print('Values in self.img_array are:', self.img_array)
 
         # Display image on image viewer
         self.ui.graphicsView.setImage(array2qimage(self.array))
