@@ -111,7 +111,6 @@ class App(QApplication):
         """
         Get actual centroids of S-H spots
         """
-        print('Starting to get centroids')
         # Create centroiding worker and thread
         cent_thread = QThread()
         cent_thread.setObjectName('cent_thread')

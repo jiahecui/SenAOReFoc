@@ -57,7 +57,6 @@ class Centroiding(QObject):
         """
         # Create instance of dataimage array and data list to store image data
         data = []
-        dataimages = np.zeros((self.sensor_width, self.sensor_height))
 
         # Create instance of Ximea Image to store image data and metadata
         img = xiapi.Image()
@@ -79,8 +78,7 @@ class Centroiding(QObject):
                 dataimage = img.get_image_data_numpy()
                 
                 # Bin pixels to fit on S-H viewer
-                dataimage = self.img_bin(dataimage, (self.sensor_width // self.bin_factor, \
-                    self.sensor_height // self.bin_factor))
+                dataimage = self.img_bin(dataimage, (self.sensor_width, self.sensor_height))
 
                 # Display dataimage
                 self.image.emit(dataimage)
@@ -106,8 +104,7 @@ class Centroiding(QObject):
                     dataimages = img.get_image_data_numpy()
 
                     # Bin pixels to fit on S-H viewer
-                    dataimages = self.img_bin(dataimages, (self.sensor_width // self.bin_factor, \
-                        self.sensor_height // self.bin_factor))
+                    dataimages = self.img_bin(dataimages, (self.sensor_width, self.sensor_height))
 
                     # Display dataimage
                     self.image.emit(dataimages)
@@ -154,24 +151,18 @@ class Centroiding(QObject):
             """
             Acquires image and allows user to reposition search blocks
             """
-            # Show search block layer with precalculated search blocks
+            # Initialise search block layer
             self.SB_layer_2D = np.zeros([self.sensor_width, self.sensor_height], dtype='uint8')
-            self.SB_layer_2D_temp = self.SB_layer_2D.copy()
-            self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
-
-            # Keep dark background
-            self.image.emit(self.SB_layer_2D)
 
             # Acquire S-H spot image
             self._image = self.acq_image(acq_mode = 0)
-            # self.image.emit(self._image)
 
             # Get input from keyboard to reposition search block
             click.echo('Press arrow keys to centre S-H spots in search blocks.\nPress Enter to finish.', nl = False)
             c = click.getchar()
 
             # Update act_ref_cent_coord according to keyboard input
-            while c is not '\x0d': 
+            while c is not '\x00d': 
                 if c == '\xe0H' or c == '\x00H':
                     self.SB_settings['act_ref_cent_coord'] -= self.sensor_width
                     self.SB_settings['act_SB_coord'] -= self.sensor_width

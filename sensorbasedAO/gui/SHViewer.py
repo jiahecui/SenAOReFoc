@@ -24,10 +24,11 @@ class SHViewer(QWidget):
         self.ui.setupUi(self)
 
         # Initialise image array and datatype
-        self.sensor_width = config['camera']['sensor_width']
-        self.sensor_height = config['camera']['sensor_height']
+        self.sensor_width = config['camera']['sensor_width'] // config['camera']['bin_factor']
+        self.sensor_height = config['camera']['sensor_height'] // config['camera']['bin_factor']
         self.array_raw = Image(np.zeros(shape = (self.sensor_width, self.sensor_height)))
         self.array = Image(np.zeros(shape = (self.sensor_width, self.sensor_height)))
+        self.img_array = Image(np.zeros(shape = (self.sensor_width, self.sensor_height)))
         self.dtype = dtype
 
         # Get image display settings
@@ -49,22 +50,27 @@ class SHViewer(QWidget):
 
     #==========Methods==========#
     def set_image(self, array, flag = 0):
+        """
+        Conditions the image for display on S-H viewer
+        """
         # Set raw data array
         self.array_raw = array
 
         # Update image display settings
         if flag:
             self.update()
+            self.img_array = array
         else:
-            self.array = self.array_raw.copy()
+            self.array = self.img_array.copy() + self.array_raw.copy()
 
         # Display image on image viewer
         self.ui.graphicsView.setImage(array2qimage(self.array))
 
     def update(self):
+        """
+        Normalises and rescales image
+        """
         self.array = self.array_raw.copy()
-
-        print("Values in image array before update:", self.array)
 
         # Get image display settings
         settings = self.get_settings()
@@ -76,13 +82,9 @@ class SHViewer(QWidget):
         scale_max = np.interp(settings['norm_max'], \
             (np.iinfo(self.dtype).min, np.iinfo(self.dtype).max), \
                 (settings['data_min'], settings['data_max']))
-            
-        print('Scale_min and scale_max equals {} and {}'.format(scale_min, scale_max))
 
         # Clip array to scale_min and scale_max
         self.array = np.clip(self.array, scale_min, scale_max)
-
-        print("Values in image array after normalise:", self.array)
 
         # Rescale to image viewer dtype
         if settings['rescale']:
@@ -94,8 +96,6 @@ class SHViewer(QWidget):
         else:
             self.array = np.interp(self.array, (scale_min, scale_max), \
                 (np.iinfo(self.dtype).min, np.iinfo(self.dtype).max)).astype(self.dtype)
-
-        print("Values in image array after rescale:", self.array)
 
 
 if __name__ == '__main__':
