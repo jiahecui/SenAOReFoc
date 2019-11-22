@@ -92,6 +92,8 @@ class Setup_SB(QObject):
             SB_final_x = self.sensor_width - SB_offset_x
             SB_final_y = self.sensor_height - SB_offset_y
 
+            # print('Offset_x: {}, offset_y: {}, final_x: {}, final_y: {}'.format(SB_offset_x, SB_offset_y, SB_final_x, SB_final_y))
+
             # Get reference centroids
             self.ref_cent_x = np.arange(SB_offset_x + self.SB_rad, SB_final_x - self.SB_rad, self.SB_diam)
             self.ref_cent_y = np.arange(SB_offset_y + self.SB_rad, SB_final_y - self.SB_rad, self.SB_diam)
@@ -251,6 +253,9 @@ class Setup_SB(QObject):
             """
             Returns search block information
             """
+            self.SB_info['pixel_size'] = self.pixel_size
+            self.SB_info['sensor_width'] = self.sensor_width
+            self.SB_info['sensor_height'] = self.sensor_height
             self.SB_info['SB_rad'] = self.SB_rad
             self.SB_info['SB_diam'] = self.SB_diam  
             self.SB_info['SB_across_width'] = self.SB_across_width

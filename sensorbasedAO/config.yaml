@@ -38,12 +38,13 @@ DM:
   vol_step: 1
 
 search_block:
+  div_elem: 4  # Number of elements in each dimension
   outline_int: 255  # uint8
   pupil_diam: 7.5  # mm
 
 image:
   normalise: 1  # 0-normalise off, 1-normalise on
-  norm_min: 10  # Below which will clip to 0, uint8
+  norm_min: 7  # Below which will clip to 0, uint8
   norm_max: 255  # Above which will clip to 1, uint8
   rescale: 1  # 0-rescale off, 1-rescale on
 
