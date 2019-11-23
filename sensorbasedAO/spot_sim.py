@@ -31,8 +31,8 @@ class SpotSim():
         for i in range(len(offset_coord)):
   
             # Generate random positions for centre of each S-H spot
-            xc = round(random.uniform(-0.5, 0.5), 2)
-            yc = round(random.uniform(-0.5, 0.5), 2)
+            xc = round(random.uniform(-0.2, 0.2), 2)
+            yc = round(random.uniform(-0.2, 0.2), 2)
 
             # Generate a Gaussian profile S-H spot
             Gaus_spot = self.dirac_function(x, y, xc, yc, sigma, array_size)
