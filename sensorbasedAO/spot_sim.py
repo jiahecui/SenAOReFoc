@@ -13,7 +13,7 @@ class SpotSim():
 
     def SH_spot_sim(self):
         """
-        Generates a simulated S-H spot image
+        Integrates the same number and geometry of Gaussian profile S-H spots as search blocks into one image
         """
         # Initialise spot image array
         self.SH_spot_img = np.zeros([self.settings['sensor_width'], self.settings['sensor_height']])
