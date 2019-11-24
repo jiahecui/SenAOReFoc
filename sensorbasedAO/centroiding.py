@@ -160,10 +160,14 @@ class Centroiding(QObject):
             self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
             self.layer.emit(self.SB_layer_2D_temp)
 
-            # Acquire S-H spot image
+            # Acquire S-H spot image or use simulated Gaussian profile S-H spot image 
             # self._image = self.acq_image(acq_mode = 0)
             spot_img = SpotSim(self.SB_settings)
             self._image, self.spot_cent_x, self.spot_cent_y = spot_img.SH_spot_sim()
+
+            # Image thresholding to remove background
+            self._image = self._image - config['image']['threshold'] * np.amax(self._image)
+            self._image[self._image < 0] = 0
             self.image.emit(self._image)
 
             # Get input from keyboard to reposition search block
@@ -216,42 +220,68 @@ class Centroiding(QObject):
             # Initialise actual S-H spot centroid coords array
             self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y = (np.zeros(len(self.act_ref_cent_coord)) for i in range(3))
 
-            # Calculate actual S-H spot centroids for each search block
+            # Calculate actual S-H spot centroids for each search block using a dynamic range 
             for i in range(len(self.act_ref_cent_coord)):
 
-                # Initialise temporary summing parameters
-                sum_x = 0
-                sum_y = 0
-                sum_pix = 0
+                for n in range(config['image']['dynamic_num']):
 
-                # Get 2D coords of pixels in each search block that need to be summed
-                if self.SB_settings['odd_pix']:
+                    # Initialise temporary summing parameters
+                    sum_x = 0
+                    sum_y = 0
+                    sum_pix = 0
 
-                    SB_pix_coord_x = np.arange(self.act_ref_cent_coord_x[i] - self.SB_rad + 1, \
-                        self.act_ref_cent_coord_x[i] + self.SB_rad - 1)
-                    SB_pix_coord_y = np.arange(self.act_ref_cent_coord_y[i] - self.SB_rad + 1, \
-                        self.act_ref_cent_coord_y[i] + self.SB_rad - 1)
-                else:
+                    if n == 0:
+                        # Get 2D coords of pixels in each search block that need to be summed
+                        if self.SB_settings['odd_pix']:
+                            SB_pix_coord_x = np.arange(self.act_ref_cent_coord_x[i] - self.SB_rad + 1, \
+                                self.act_ref_cent_coord_x[i] + self.SB_rad - 1)
+                            SB_pix_coord_y = np.arange(self.act_ref_cent_coord_y[i] - self.SB_rad + 1, \
+                                self.act_ref_cent_coord_y[i] + self.SB_rad - 1)
+                        else:
+                            SB_pix_coord_x = np.arange(self.act_ref_cent_coord_x[i] - self.SB_rad + 2, \
+                                self.act_ref_cent_coord_x[i] + self.SB_rad - 1)
+                            SB_pix_coord_y = np.arange(self.act_ref_cent_coord_y[i] - self.SB_rad + 2, \
+                                self.act_ref_cent_coord_y[i] + self.SB_rad - 1)
+                    else:
+                        # Judge the position of S-H spot centroid relative to centre of search block and decrease dynamic range
+                        if self.act_cent_coord_x[i] > self.act_ref_cent_coord_x[i]:
+                            SB_pix_coord_x = SB_pix_coord_x[1:]
+                        elif self.act_cent_coord_x[i] < self.act_ref_cent_coord_x[i]:
+                            SB_pix_coord_x = SB_pix_coord_x[:-1]
+                        else:
+                            SB_pix_coord_x = SB_pix_coord_x[1:-1]
 
-                    SB_pix_coord_x = np.arange(self.act_ref_cent_coord_x[i] - self.SB_rad + 2, \
-                        self.act_ref_cent_coord_x[i] + self.SB_rad - 1)
-                    SB_pix_coord_y = np.arange(self.act_ref_cent_coord_y[i] - self.SB_rad + 2, \
-                        self.act_ref_cent_coord_y[i] + self.SB_rad - 1)
+                        if self.act_cent_coord_y[i] > self.act_ref_cent_coord_y[i]:
+                            SB_pix_coord_y = SB_pix_coord_y[1:]
+                        elif self.act_cent_coord_y[i] < self.act_ref_cent_coord_y[i]:
+                            SB_pix_coord_y = SB_pix_coord_y[:-1]
+                        else:
+                            SB_pix_coord_y = SB_pix_coord_y[1:-1]
 
-                # print('SB_pixel_coord_x_{}: {}'.format(i, SB_pix_coord_x))
-                # print('SB_pixel_coord_y_{}: {}'.format(i, SB_pix_coord_y))
-                # print('Length of pixel coord in one dimension: {}'.format(len(SB_pix_coord_x)))
+                    # if i == 0:
+                    #     print('SB_pixel_coord_x_{}_{}: {}'.format(i, n, SB_pix_coord_x))
+                    #     print('SB_pixel_coord_y_{}_{}: {}'.format(i, n, SB_pix_coord_y))
+                    #     print('Length of pixel coord along x axis for cycle {}: {}'.format(n, len(SB_pix_coord_x)))
+                    #     print('Length of pixel coord along y axis for cycle {}: {}'.format(n, len(SB_pix_coord_y)))
 
-                # Calculate actual S-H spot centroids by doing weighted sum
-                for j in range(self.SB_diam - 2):
-                    for k in range(self.SB_diam - 2):
-                        sum_x += self._image[int(SB_pix_coord_y[j]), int(SB_pix_coord_x[k])] * SB_pix_coord_x[k]
-                        sum_y += self._image[int(SB_pix_coord_y[j]), int(SB_pix_coord_x[k])] * SB_pix_coord_y[j]
-                        sum_pix += self._image[int(SB_pix_coord_y[j]), int(SB_pix_coord_x[k])]
-                    
-                self.act_cent_coord_x[i] = sum_x / sum_pix
-                self.act_cent_coord_y[i] = sum_y / sum_pix
-                self.act_cent_coord[i] = int(self.act_cent_coord_y[i]) * self.sensor_width + int(self.act_cent_coord_x[i])
+                    # Calculate actual S-H spot centroids by doing weighted sum
+                    for j in range(len(SB_pix_coord_y)):
+                        for k in range(len(SB_pix_coord_x)):
+                            sum_x += self._image[int(SB_pix_coord_y[j]), int(SB_pix_coord_x[k])] * SB_pix_coord_x[k]
+                            sum_y += self._image[int(SB_pix_coord_y[j]), int(SB_pix_coord_x[k])] * SB_pix_coord_y[j]
+                            sum_pix += self._image[int(SB_pix_coord_y[j]), int(SB_pix_coord_x[k])]
+
+                    self.act_cent_coord_x[i] = sum_x / sum_pix
+                    self.act_cent_coord_y[i] = sum_y / sum_pix
+                    self.act_cent_coord[i] = int(self.act_cent_coord_y[i]) * self.sensor_width + int(self.act_cent_coord_x[i])                          
+
+            # Calculate average centroid error 
+            error_temp = 0
+            error_x = self.act_cent_coord_x - self.spot_cent_x
+            error_y = self.act_cent_coord_y - self.spot_cent_y
+            for i in range(len(error_x)):
+                error_temp += np.sqrt(error_x[i] ** 2 + error_y[i] ** 2)
+            error_tot = error_temp / len(error_x)
 
             # Calculate raw slopes in each dimension
             self.slope_x = self.act_cent_coord_x - self.act_ref_cent_coord_x
@@ -260,10 +290,11 @@ class Centroiding(QObject):
             # print('Act_cent_coord_x:', self.act_cent_coord_x)
             # print('Act_cent_coord_y:', self.act_cent_coord_y)
             # print('Act_cent_coord:', self.act_cent_coord)
-            print('Error along x axis:', self.act_cent_coord_x - self.spot_cent_x)
-            print('Error along y axis:', self.act_cent_coord_y - self.spot_cent_y)
-            print('Slope along x axis:', self.slope_x)
-            print('Slope along y axis:', self.slope_y)
+            # print('Error along x axis:', error_x)
+            # print('Error along y axis:', error_y)
+            print('Average position error:', error_tot)
+            # print('Slope along x axis:', self.slope_x)
+            # print('Slope along y axis:', self.slope_y)
 
             # Draw actual S-H spot centroids on image layer
             self.SB_layer_2D.ravel()[self.act_cent_coord.astype(int)] = self.outline_int

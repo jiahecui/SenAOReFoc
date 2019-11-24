@@ -27,7 +27,7 @@ class SpotSim():
         self.spot_cent_y = np.zeros(len(offset_coord))
 
         # Get other non-variable parameters for generation of a Gaussian profile S-H spot
-        sigma = 0.1
+        sigma = 0.2
         array_size = self.settings['SB_diam']
         x = np.linspace(-1, 1, array_size)
         y = np.linspace(-1, 1, array_size)
@@ -38,8 +38,10 @@ class SpotSim():
         for i in range(len(offset_coord)):
   
             # Generate random positions for centre of each S-H spot
-            xc = round(random.uniform(-0.1, 0.1), 2)
-            yc = round(random.uniform(-0.1, 0.1), 2)
+            # xc = round(random.uniform(-0.1, 0.1), 2)
+            # yc = round(random.uniform(-0.1, 0.1), 2)
+            xc = round(random.uniform(-0.2, 0.2), 2)
+            yc = round(random.uniform(-0.2, 0.2), 2)
 
             # Generate a Gaussian profile S-H spot
             Gaus_spot = self.dirac_function(x, y, xc, yc, sigma, array_size)
