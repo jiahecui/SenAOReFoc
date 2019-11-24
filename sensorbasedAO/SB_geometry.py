@@ -32,8 +32,8 @@ class Setup_SB(QObject):
 
         # Get search block layer parameters
         self.pixel_size = config['camera']['pixel_size'] * config['camera']['bin_factor']
-        self.sensor_width = config['camera']['sensor_width'] // config['camera']['bin_factor']
-        self.sensor_height = config['camera']['sensor_height'] // config['camera']['bin_factor']
+        self.sensor_width = int(config['camera']['sensor_width'] // config['camera']['bin_factor'])
+        self.sensor_height = int(config['camera']['sensor_height'] // config['camera']['bin_factor'])
 
         # Get search block parameter
         self.outline_int = config['search_block']['outline_int']
@@ -67,14 +67,14 @@ class Setup_SB(QObject):
             """
             # Get number of search blocks across both sensor dimensions
             if self.sensor_width % self.SB_diam == 0:
-                self.SB_across_width = self.sensor_width // self.SB_diam - 1
+                self.SB_across_width = int(self.sensor_width // self.SB_diam - 1)
             else:
-                self.SB_across_width = self.sensor_width // self.SB_diam
+                self.SB_across_width = int(self.sensor_width // self.SB_diam)
 
             if self.sensor_height % self.SB_diam == 0:
-                self.SB_across_height = self.sensor_height // self.SB_diam - 1
+                self.SB_across_height = int(self.sensor_height // self.SB_diam - 1)
             else:
-                self.SB_across_height = self.sensor_height // self.SB_diam
+                self.SB_across_height = int(self.sensor_height // self.SB_diam)
 
             # print("Number of search blocks across width and height is: {} and {}".format(self.SB_across_width, self.SB_across_height))
 
@@ -115,6 +115,8 @@ class Setup_SB(QObject):
             self.SB_layer_2D[ref_row_outline, int(SB_offset_x) : int(SB_final_x)] = self.outline_int
             self.SB_layer_2D[int(SB_offset_y) : int(SB_final_y), ref_column_outline] = self.outline_int
 
+            # print(self.SB_layer_2D.ravel()[self.ref_cent_coord[1].astype(int) - 25 : self.ref_cent_coord[1].astype(int) + 25])
+
             # Display search blocks and reference centroids
             # im = PIL.Image.fromarray(self.SB_layer_2D, 'L')
             # im.show()
@@ -127,8 +129,8 @@ class Setup_SB(QObject):
             # Clear search block layer
             self.SB_layer_2D = np.zeros([self.sensor_width, self.sensor_height], dtype='uint8')
 
-            # Initialise list of 1D coords of reference centroids within pupil diameter
-            self.act_ref_cent_coord = []
+            # Initialise list of 1D and 2D coords of reference centroids within pupil diameter
+            self.act_ref_cent_coord, self.act_ref_cent_coord_x, self.act_ref_cent_coord_y = ([] for i in range(3))
 
             # Get number of spots within pupil diameter
             self.spots_across_diam = self.pupil_diam // self.lenslet_pitch
@@ -141,7 +143,9 @@ class Setup_SB(QObject):
                     for i in self.ref_cent_x:
                         if ((np.sqrt(((abs((i + 1 - self.sensor_width // 2)) + self.SB_rad) * self.pixel_size) ** 2 + \
                             ((abs((j + 1 - self.sensor_height // 2)) + self.SB_rad) * self.pixel_size) ** 2)) < self.pupil_rad):
-                            self.act_ref_cent_coord.append(j * self.sensor_width + i)
+                            self.act_ref_cent_coord.append(int(j) * self.sensor_width + int(i))
+                            self.act_ref_cent_coord_x.append(i)
+                            self.act_ref_cent_coord_y.append(j)
 
             else:
 
@@ -149,74 +153,53 @@ class Setup_SB(QObject):
                     for i in self.ref_cent_x:
                         if ((np.sqrt(((abs((i + 1 - (self.sensor_width // 2 - self.SB_rad))) + self.SB_rad) * self.pixel_size) ** 2 + \
                             ((abs((j + 1 - (self.sensor_height // 2 - self.SB_rad))) + self.SB_rad) * self.pixel_size) ** 2)) < self.pupil_rad):
-                            self.act_ref_cent_coord.append(j * self.sensor_width + i)
+                            self.act_ref_cent_coord.append(int(j) * self.sensor_width + int(i))
+                            self.act_ref_cent_coord_x.append(i)
+                            self.act_ref_cent_coord_y.append(j)
                       
-            # Set actual search block reference centroids
-            self.act_ref_cent_coord = np.array(self.act_ref_cent_coord)
+            # Draw actual search block reference centroids
+            (self.act_ref_cent_coord, self.act_ref_cent_coord_x, self.act_ref_cent_coord_y) = \
+                map(np.array, (self.act_ref_cent_coord, self.act_ref_cent_coord_x, self.act_ref_cent_coord_y))
             self.act_ref_cent_num = len(self.act_ref_cent_coord)
-            self.SB_layer_2D.ravel()[(self.act_ref_cent_coord - self.sensor_width // 2).astype(int)] = self.outline_int
-            
+            self.SB_layer_2D.ravel()[self.act_ref_cent_coord.astype(int)] = self.outline_int
+
             # print("Number of search blocks within pupil is: {}".format(self.act_ref_cent_num))
            
-            # Get 1D coord offset of each actual search block
-            act_ref_cent_offset_top_coord = self.act_ref_cent_coord - self.SB_rad * self.sensor_width - self.SB_rad
-            act_ref_cent_offset_bottom_coord = self.act_ref_cent_coord + self.SB_rad * self.sensor_width - self.SB_rad
-            act_ref_cent_offset_right_coord = self.act_ref_cent_coord - self.SB_rad * self.sensor_width + self.SB_rad
+            # Draw actual search blocks on search block layer
+            for i in range(self.act_ref_cent_num):
 
-            # Get 2D coord offset of each actual search block
-            act_ref_cent_offset_top_y = act_ref_cent_offset_top_coord // self.sensor_width
-            act_ref_cent_offset_top_x = act_ref_cent_offset_top_coord % self.sensor_width
-            act_ref_cent_offset_bottom_y = act_ref_cent_offset_bottom_coord // self.sensor_width
-            act_ref_cent_offset_bottom_x = act_ref_cent_offset_bottom_coord % self.sensor_width
-            act_ref_cent_offset_right_y = act_ref_cent_offset_right_coord // self.sensor_width
-            act_ref_cent_offset_right_x = act_ref_cent_offset_right_coord % self.sensor_width
+                # If odd number of pixels in a search block
+                if self.SB_diam % 2 == 1:
+                    # Outline top
+                    self.SB_layer_2D[int(self.act_ref_cent_coord_y[i] - self.SB_rad), \
+                        int(self.act_ref_cent_coord_x[i] - self.SB_rad) : int(self.act_ref_cent_coord_x[i] + self.SB_rad)] = self.outline_int
+                    # Outline bottom
+                    self.SB_layer_2D[int(self.act_ref_cent_coord_y[i] + self.SB_rad), \
+                        int(self.act_ref_cent_coord_x[i] - self.SB_rad) : int(self.act_ref_cent_coord_x[i] + self.SB_rad)] = self.outline_int
+                    # Outline left
+                    self.SB_layer_2D[int(self.act_ref_cent_coord_y[i] - self.SB_rad) : int(self.act_ref_cent_coord_y[i] + self.SB_rad), \
+                        int(self.act_ref_cent_coord_x[i] - self.SB_rad)] = self.outline_int
+                    # Outline right
+                    self.SB_layer_2D[int(self.act_ref_cent_coord_y[i] - self.SB_rad) : int(self.act_ref_cent_coord_y[i] + self.SB_rad), \
+                        int(self.act_ref_cent_coord_x[i] + self.SB_rad)] = self.outline_int
 
-            # Get parameters for outlining actual search blocks
-            act_ref_row_top_outline, row_top_indices, row_top_counts =\
-                np.unique(act_ref_cent_offset_top_y, return_index = True, return_counts = True)
-            act_ref_row_bottom_outline, row_bottom_indices, row_bottom_counts =\
-                np.unique(act_ref_cent_offset_bottom_y, return_index = True, return_counts = True)
-            act_ref_column_left_outline, column_left_indices, column_left_counts =\
-                np.unique(act_ref_cent_offset_top_x, return_index = True, return_counts = True)
-            act_ref_column_right_outline, column_right_indices, column_right_counts =\
-                np.unique(act_ref_cent_offset_right_x, return_index = True, return_counts = True)
-
-            # Get number of rows and columns for outlining
-            rows = len(act_ref_row_top_outline)
-            columns = len(act_ref_column_left_outline)
-
-            # Outline rows of actual search blocks
-            for i in range(rows // 2 + 1):
-                self.SB_layer_2D[int(act_ref_row_top_outline[i]), int(act_ref_cent_offset_top_x[row_top_indices[i]]) :\
-                    int(act_ref_cent_offset_top_x[row_top_indices[i + 1] - 1] + self.SB_diam)] = self.outline_int
-
-            for i in range(rows // 2, rows):
-                self.SB_layer_2D[int(act_ref_row_bottom_outline[i]), int(act_ref_cent_offset_bottom_x[row_bottom_indices[i]]) :\
-                    int(act_ref_cent_offset_bottom_x[row_bottom_indices[i] + row_bottom_counts[i]- 1] + self.SB_diam)] = self.outline_int    
-
-            # Outline columns of actual search blocks
-            self.index_count = 0
+                # If even number of pixels in a search block
+                elif self.SB_diam % 2 == 0:
+                    # Outline top
+                    self.SB_layer_2D[int(self.act_ref_cent_coord_y[i] - self.SB_rad + 1), \
+                        int(self.act_ref_cent_coord_x[i] - self.SB_rad + 1) : int(self.act_ref_cent_coord_x[i] + self.SB_rad)] = self.outline_int
+                    # Outline bottom
+                    self.SB_layer_2D[int(self.act_ref_cent_coord_y[i] + self.SB_rad), \
+                        int(self.act_ref_cent_coord_x[i] - self.SB_rad + 1) : int(self.act_ref_cent_coord_x[i] + self.SB_rad)] = self.outline_int
+                    # Outline left
+                    self.SB_layer_2D[int(self.act_ref_cent_coord_y[i] - self.SB_rad + 1) : int(self.act_ref_cent_coord_y[i] + self.SB_rad), \
+                        int(self.act_ref_cent_coord_x[i] - self.SB_rad + 1)] = self.outline_int
+                    # Outline right
+                    self.SB_layer_2D[int(self.act_ref_cent_coord_y[i] - self.SB_rad + 1) : int(self.act_ref_cent_coord_y[i] + self.SB_rad), \
+                        int(self.act_ref_cent_coord_x[i] + self.SB_rad)] = self.outline_int
             
-            for i in range(columns // 2 + 1):
+            # print(self.SB_layer_2D.ravel()[self.act_ref_cent_coord[4].astype(int) - 50 : self.act_ref_cent_coord[4].astype(int) + 50])
 
-                if i == 0:
-                    self.SB_layer_2D[int(act_ref_cent_offset_top_x[self.index_count]) : int(act_ref_cent_offset_top_x[self.index_count + \
-                        column_left_counts[i] - 1] + self.SB_diam), int(act_ref_column_left_outline[i])] = self.outline_int
-                else:
-                    self.index_count += column_left_counts[i - 1] 
-                    self.SB_layer_2D[int(act_ref_cent_offset_top_x[self.index_count]) : int(act_ref_cent_offset_top_x[self.index_count + \
-                        column_left_counts[i] - 1] + self.SB_diam), int(act_ref_column_left_outline[i])] = self.outline_int
-
-            for i in range(columns // 2, columns):
-
-                if i == columns // 2:
-                    self.SB_layer_2D[int(act_ref_cent_offset_right_x[self.index_count] - self.SB_diam) : int(act_ref_cent_offset_right_x[self.index_count \
-                        + column_right_counts[i] - 1]), int(act_ref_column_right_outline[i])] = self.outline_int
-                else:
-                    self.index_count += column_left_counts[i - 1] 
-                    self.SB_layer_2D[int(act_ref_cent_offset_right_x[self.index_count] - self.SB_diam) : int(act_ref_cent_offset_right_x[self.index_count \
-                        + column_right_counts[i] - 1]), int(act_ref_column_right_outline[i])] = self.outline_int
-            
             # Draw pupil circle on search block layer
             plot_point_num = int(self.pupil_rad * 2 // self.pixel_size * 10)
 
@@ -249,16 +232,18 @@ class Setup_SB(QObject):
             """
             Returns search block information
             """
-            self.SB_info['pixel_size'] = self.pixel_size
-            self.SB_info['sensor_width'] = self.sensor_width
-            self.SB_info['sensor_height'] = self.sensor_height
-            self.SB_info['SB_rad'] = self.SB_rad
-            self.SB_info['SB_diam'] = self.SB_diam  
-            self.SB_info['SB_across_width'] = self.SB_across_width
-            self.SB_info['SB_across_height'] = self.SB_across_height
-            self.SB_info['act_ref_cent_coord'] = self.act_ref_cent_coord - self.sensor_width // 2
-            self.SB_info['act_ref_cent_num'] = self.act_ref_cent_num
-            self.SB_info['act_SB_coord'] = self.act_SB_coord
+            self.SB_info['pixel_size'] = self.pixel_size  # float
+            self.SB_info['sensor_width'] = self.sensor_width  # int after binning
+            self.SB_info['sensor_height'] = self.sensor_height  # int after binning
+            self.SB_info['SB_rad'] = self.SB_rad  # float
+            self.SB_info['SB_diam'] = self.SB_diam  # int
+            self.SB_info['SB_across_width'] = self.SB_across_width  # int
+            self.SB_info['SB_across_height'] = self.SB_across_height  # int
+            self.SB_info['act_ref_cent_coord'] = self.act_ref_cent_coord  # int - for displaying
+            self.SB_info['act_ref_cent_coord_x'] = self.act_ref_cent_coord_x  # float - actual reference centroid positions, not whole pixels
+            self.SB_info['act_ref_cent_coord_y'] = self.act_ref_cent_coord_y  # float - actual reference centroid positions, not whole pixels
+            self.SB_info['act_ref_cent_num'] = self.act_ref_cent_num   
+            self.SB_info['act_SB_coord'] = self.act_SB_coord  # int - for displaying
 
             self.info.emit(self.SB_info)
 
