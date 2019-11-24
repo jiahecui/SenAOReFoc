@@ -40,7 +40,7 @@ DM:
 search_block:
   div_elem: 4  # Number of elements in each dimension
   outline_int: 255  # uint8
-  pupil_diam: 7.5  # mm
+  pupil_diam: 7.7  # mm
 
 image:
   normalise: 1  # 0-normalise off, 1-normalise on

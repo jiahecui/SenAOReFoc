@@ -18,6 +18,7 @@ from ximea import xiapi
 import log
 from config import config
 from sensor import SENSOR
+from spot_sim import SpotSim
 
 logger = log.get_logger(__name__)
 
@@ -41,13 +42,16 @@ class Centroiding(QObject):
         self.sensor = device
 
         # Get camera parameters
-        self.pixel_size = config['camera']['pixel_size'] * config['camera']['bin_factor']
-        self.sensor_width = config['camera']['sensor_width'] // config['camera']['bin_factor']
-        self.sensor_height = config['camera']['sensor_height'] // config['camera']['bin_factor']
+        self.sensor_width = self.SB_settings['sensor_width']
+        self.sensor_height = self.SB_settings['sensor_height']
         self.bin_factor = config['camera']['bin_factor']
 
-        # Get search block parameter
+        # Get search block outline parameter
         self.outline_int = config['search_block']['outline_int']
+
+        # Get information of search blocks
+        self.SB_diam = self.SB_settings['SB_diam']
+        self.SB_rad = self.SB_settings['SB_rad']
 
         super().__init__()
 
@@ -151,18 +155,24 @@ class Centroiding(QObject):
             """
             Acquires image and allows user to reposition search blocks
             """
-            # Initialise search block layer
+            # Initialise search block layer and display initial search blocks
             self.SB_layer_2D = np.zeros([self.sensor_width, self.sensor_height], dtype='uint8')
+            self.SB_layer_2D_temp = self.SB_layer_2D.copy()
+            self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
+            self.layer.emit(self.SB_layer_2D_temp)
 
             # Acquire S-H spot image
-            self._image = self.acq_image(acq_mode = 0)
+            # self._image = self.acq_image(acq_mode = 0)
+            spot_img = SpotSim(self.SB_settings)
+            self._image, self.spot_cent = spot_img.SH_spot_sim()
+            self.image.emit(self._image)
 
             # Get input from keyboard to reposition search block
             click.echo('Press arrow keys to centre S-H spots in search blocks.\nPress Enter to finish.', nl = False)
             c = click.getchar()
 
             # Update act_ref_cent_coord according to keyboard input
-            while c is not '\x00d': 
+            while True: 
                 if c == '\xe0H' or c == '\x00H':
                     self.SB_settings['act_ref_cent_coord'] -= self.sensor_width
                     self.SB_settings['act_SB_coord'] -= self.sensor_width
@@ -175,6 +185,8 @@ class Centroiding(QObject):
                 elif c == '\xe0M' or c == '\x00M':
                     self.SB_settings['act_ref_cent_coord'] += 1
                     self.SB_settings['act_SB_coord'] += 1
+                else:
+                    break
 
                 # Display actual search blocks as they move
                 self.SB_layer_2D_temp = self.SB_layer_2D.copy()
@@ -182,6 +194,60 @@ class Centroiding(QObject):
                 self.layer.emit(self.SB_layer_2D_temp)
 
                 c = click.getchar()
+
+            """
+            Calculate actual S-H spot centroid coordinates
+            """
+            # Get actual SB_layer_2D array
+            self.SB_layer_2D = self.SB_layer_2D_temp.copy()
+
+            # Get actual search block reference centroid coords
+            self.act_ref_cent_coord = self.SB_settings['act_ref_cent_coord']
+            self.act_ref_cent_coord_x = self.act_ref_cent_coord % self.sensor_width
+            self.act_ref_cent_coord_y = self.act_ref_cent_coord // self.sensor_width
+
+            # Initialise actual S-H spot centroid coords array
+            self.act_cent_coord = np.zeros(len(self.act_ref_cent_coord))
+            self.act_cent_coord_x = np.zeros(len(self.act_ref_cent_coord))
+            self.act_cent_coord_y = np.zeros(len(self.act_ref_cent_coord))
+
+            print(self.SB_layer_2D.ravel()[int(self.act_ref_cent_coord[1]) : int(self.act_ref_cent_coord[1] + self.SB_diam + 2)])
+
+            # Calculate actual S-H spot centroids for each search block
+            for i in range(len(self.act_ref_cent_coord)):
+
+                # Initialise temporary summing parameters
+                sum_x = 0
+                sum_y = 0
+                sum_pix = 0
+
+                # Get 2D coords of pixels in each search block that need to be summed
+                SB_pix_coord_x = np.arange(self.act_ref_cent_coord_x[i] - self.SB_rad + 1, \
+                    self.act_ref_cent_coord_x[i] + self.SB_rad - 1)
+                SB_pix_coord_y = np.arange(self.act_ref_cent_coord_y[i] - self.SB_rad + 1, \
+                    self.act_ref_cent_coord_y[i] + self.SB_rad - 1)
+
+                # Calculate centroid of element by doing weighted sum
+                for j in range(self.SB_diam - 2):
+                    for k in range(self.SB_diam - 2):
+                        sum_x += self._image[int(SB_pix_coord_x[k]), int(SB_pix_coord_y[j])] * SB_pix_coord_x[k]
+                        sum_y += self._image[int(SB_pix_coord_x[k]), int(SB_pix_coord_y[j])] * SB_pix_coord_y[j]
+                        sum_pix += self._image[int(SB_pix_coord_x[k]), int(SB_pix_coord_y[j])]
+                    
+                self.act_cent_coord_x[i] = sum_x / sum_pix
+                self.act_cent_coord_y[i] = sum_y / sum_pix
+                self.act_cent_coord[i] = self.act_cent_coord_y[i] * self.sensor_width + self.act_cent_coord_x[i]
+
+            print('Cent_x:', self.act_cent_coord_x)
+            print('Cent_y:', self.act_cent_coord_y)
+            # print('Calculated S-H spot cent:', self.act_cent_coord)
+            # print(self.act_cent_coord -  self.act_ref_cent_coord)
+            # print(self.spot_cent - self.act_cent_coord)
+
+            self.SB_layer_2D_temp_2 = self.SB_layer_2D.copy()
+            self.SB_layer_2D_temp_2.ravel()[self.act_cent_coord] = self.outline_int
+            self.layer.emit(self.SB_layer_2D_temp_2)
+
 
         except Exception as e:
             raise
