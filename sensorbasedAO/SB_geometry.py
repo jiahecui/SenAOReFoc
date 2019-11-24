@@ -170,6 +170,7 @@ class Setup_SB(QObject):
 
                 # If odd number of pixels in a search block
                 if self.SB_diam % 2 == 1:
+                    self.odd_pix = 1
                     # Outline top
                     self.SB_layer_2D[int(self.act_ref_cent_coord_y[i] - self.SB_rad), \
                         int(self.act_ref_cent_coord_x[i] - self.SB_rad) : int(self.act_ref_cent_coord_x[i] + self.SB_rad)] = self.outline_int
@@ -185,6 +186,7 @@ class Setup_SB(QObject):
 
                 # If even number of pixels in a search block
                 elif self.SB_diam % 2 == 0:
+                    self.odd_pix = 0
                     # Outline top
                     self.SB_layer_2D[int(self.act_ref_cent_coord_y[i] - self.SB_rad + 1), \
                         int(self.act_ref_cent_coord_x[i] - self.SB_rad + 1) : int(self.act_ref_cent_coord_x[i] + self.SB_rad)] = self.outline_int
@@ -242,7 +244,8 @@ class Setup_SB(QObject):
             self.SB_info['act_ref_cent_coord'] = self.act_ref_cent_coord  # int - for displaying
             self.SB_info['act_ref_cent_coord_x'] = self.act_ref_cent_coord_x  # float - actual reference centroid positions, not whole pixels
             self.SB_info['act_ref_cent_coord_y'] = self.act_ref_cent_coord_y  # float - actual reference centroid positions, not whole pixels
-            self.SB_info['act_ref_cent_num'] = self.act_ref_cent_num   
+            self.SB_info['act_ref_cent_num'] = self.act_ref_cent_num
+            self.SB_info['odd_pix'] = self.odd_pix  # flag for whether odd number of pixels in one search block
             self.SB_info['act_SB_coord'] = self.act_SB_coord  # int - for displaying
 
             self.info.emit(self.SB_info)
