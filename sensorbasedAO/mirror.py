@@ -20,7 +20,7 @@ class MIRROR_ALPAO(asdk.DM):
 
         # Get number of actuators for Mirror instance
         nbAct = int(self.mirror.Get('NBOfActuator')) 
-        print('Number of actuators for ' + serialNumber + ':' + str(nbAct))
+        print('Number of actuators for ' + serialNumber + ': ' + str(nbAct))
     
         # Reset Mirror instance
         self.mirror.Reset()

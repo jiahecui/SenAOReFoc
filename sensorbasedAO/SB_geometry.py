@@ -25,7 +25,7 @@ class Setup_SB(QObject):
     layer = Signal(object)
     info = Signal(object)
 
-    def __init__(self, debug = False):
+    def __init__(self):
 
         # Get lenslet parameters
         self.lenslet_pitch = config['lenslet']['lenslet_pitch']

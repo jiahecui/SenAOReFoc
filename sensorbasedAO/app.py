@@ -24,9 +24,9 @@ from mirror import MIRROR
 from gui.main import Main
 from SB_geometry import Setup_SB
 from centroiding import Centroiding
+from calibration import Calibration
 
 logger = log.get_logger(__name__)
-
 
 class App(QApplication):
     """
@@ -150,6 +150,20 @@ class App(QApplication):
         # Start SB thread
         cent_thread.start()
 
+    def calibrate_DM(self, sensor, mirror, SB_info):
+        """
+        Calibrate deformable mirror
+        """
+        # Create calibration worker and thread
+        calib_thread = QThread()
+        calib_thread.setObjectName('calib_thread')
+        calib_worker = Calibration(mirror)
+        calib_worker.moveToThread(calib_thread)
+
+        # Connect to signals
+        calib_thread.started.connect(calib_worker.run)
+
+
     #========== Signal handlers ==========#
     def handle_layer_disp(self, obj):
         """
@@ -196,6 +210,12 @@ class App(QApplication):
         self.threads['cent_thread'].quit()
         self.threads['cent_thread'].wait()
         self.main.ui.centroidBtn.setChecked(False)
+
+    def handle_calib_start(self):
+        """
+        Handle start of deformable mirror calibration
+        """
+        self.calibrate_DM(self.devices['sensor'], self.devices['mirror'], self.SB_info)
 
 
 def debug():

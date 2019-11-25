@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Mon Nov 25 01:15:05 2019
+# Created: Mon Nov 25 15:56:48 2019
 #      by: pyside2-uic  running on PySide2 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -64,10 +64,28 @@ class Ui_MainWindow(object):
         self.centroidBtn.setObjectName("centroidBtn")
         self.horizontalLayout_1.addWidget(self.centroidBtn)
         self.mainContentLayout.addLayout(self.horizontalLayout_1)
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.calibrateBtn = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.calibrateBtn.sizePolicy().hasHeightForWidth())
+        self.calibrateBtn.setSizePolicy(sizePolicy)
+        self.calibrateBtn.setMinimumSize(QtCore.QSize(150, 50))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        font.setWeight(75)
+        font.setBold(True)
+        self.calibrateBtn.setFont(font)
+        self.calibrateBtn.setCheckable(True)
+        self.calibrateBtn.setObjectName("calibrateBtn")
+        self.horizontalLayout_2.addWidget(self.calibrateBtn)
+        self.mainContentLayout.addLayout(self.horizontalLayout_2)
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.mainContentLayout.addItem(spacerItem)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.verticalLayout_2.addItem(spacerItem)
         self.stopBtn = QtWidgets.QPushButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -117,6 +135,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QtWidgets.QApplication.translate("MainWindow", "SensorbasedAO", None, -1))
         self.initialiseBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Initialise", None, -1))
         self.centroidBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Centroid", None, -1))
+        self.calibrateBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Calibrate", None, -1))
         self.stopBtn.setText(QtWidgets.QApplication.translate("MainWindow", "STOP", None, -1))
         self.quitBtn.setText(QtWidgets.QApplication.translate("MainWindow", "QUIT", None, -1))
 
