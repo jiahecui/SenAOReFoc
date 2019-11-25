@@ -59,6 +59,9 @@ class App(QApplication):
         # Initialise search block info dictionary
         self.SB_info = {}
 
+        # Initialise deformable mirror info dictionary
+        self.mirror_info = {}
+
         # Initialise workers and threads
         self.workers = {}
         self.threads = {}
@@ -147,7 +150,7 @@ class App(QApplication):
         self.workers['cent_worker'] = cent_worker
         self.threads['cent_thread'] = cent_thread
 
-        # Start SB thread
+        # Start centroiding thread
         cent_thread.start()
 
     def calibrate_DM(self, sensor, mirror, SB_info):
@@ -162,7 +165,17 @@ class App(QApplication):
 
         # Connect to signals
         calib_thread.started.connect(calib_worker.run)
+        calib_worker.image.connect(lambda obj: self.handle_image_disp(obj))
+        calib_worker.info.connect(lambda obj: self.handle_mirror_info(obj))
+        calib_worker.error.connect(lambda obj: self.handle_error(obj))
+        calib_worker.done.connect(self.handle_calib_done)
 
+        # Store calibration worker and thread
+        self.workers['calib_worker'] = calib_worker
+        self.threads['calib_thread'] = calib_thread
+
+        # Start calibration thread
+        calib_thread.start()
 
     #========== Signal handlers ==========#
     def handle_layer_disp(self, obj):
@@ -179,7 +192,7 @@ class App(QApplication):
 
     def handle_SB_info(self, obj):
         """
-        Handle search block geometry and reference centroid information
+        Handle search block geometry and centroiding information
         """
         self.SB_info.update(obj)
 
@@ -205,7 +218,7 @@ class App(QApplication):
 
     def handle_cent_done(self):
         """
-        Handle end of centroiding process
+        Handle end of S-H spot centroid calculation
         """
         self.threads['cent_thread'].quit()
         self.threads['cent_thread'].wait()
@@ -216,6 +229,20 @@ class App(QApplication):
         Handle start of deformable mirror calibration
         """
         self.calibrate_DM(self.devices['sensor'], self.devices['mirror'], self.SB_info)
+
+    def handle_mirror_info(self, obj):
+        """
+        Handle deformable mirror information
+        """
+        self.mirror_info.update(obj)
+
+    def handle_calib_done(self):
+        """
+        Handle end of deformable mirror calibration
+        """
+        self.threads['calib_thread'].quit()
+        self.threads['calib_thread'].wait()
+        self.main.ui.calibrateBtn.setChecked(False)
 
 
 def debug():

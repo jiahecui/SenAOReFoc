@@ -37,6 +37,7 @@ DM:
   vol_max: 1
   vol_bias: 0
   vol_step: 1
+  settling_time: 0.05
 
 search_block:
   div_elem: 4  # Number of elements in each dimension

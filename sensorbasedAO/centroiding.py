@@ -204,7 +204,7 @@ class Centroiding(QObject):
             # print('Slope along x axis:', self.slope_x)
             # print('Slope along y axis:', self.slope_y)
 
-            # Draw actual S-H spot centroids on image layer
+            # Draw actual S-H spot centroids on search block layer
             self.SB_layer_2D.ravel()[self.act_cent_coord.astype(int)] = 0
             self.layer.emit(self.SB_layer_2D)
 
