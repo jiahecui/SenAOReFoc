@@ -29,6 +29,7 @@ class Main(QMainWindow):
 
         # Main handlers
         self.ui.initialiseBtn.clicked.connect(self.on_initialise)
+        self.ui.centroidBtn.clicked.connect(self.on_centroid)
         # self.ui.stopBtn.clicked.connect(self.on_stop)
         self.ui.quitBtn.clicked.connect(self.on_quit)
 
@@ -47,7 +48,7 @@ class Main(QMainWindow):
     #========== GUI event handlers ==========#
     def on_initialise(self, checked):
         """
-        Search block initialise button handler
+        Search block initialisation button handler
         """
         btn = self.sender()
 
@@ -56,6 +57,19 @@ class Main(QMainWindow):
             btn.setChecked(False)
         else:
             self.app.setup_SB()
+            btn.setChecked(True)
+
+    def on_centroid(self, checked):
+        """
+        S-H spot centroid calculation handler
+        """
+        btn = self.sender()
+
+        # Start calculating S-H spot centroids if pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            self.app.handle_cent_start()
             btn.setChecked(True)
             
     def on_quit(self):

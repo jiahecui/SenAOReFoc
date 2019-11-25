@@ -27,7 +27,7 @@ class Centroiding(QObject):
     Calculates centroids of S-H spots on camera sensor
     """
     start = Signal()
-    done = Signal(object)
+    done = Signal()
     error = Signal(object)
     image = Signal(object)
     layer = Signal(object)
@@ -51,6 +51,9 @@ class Centroiding(QObject):
         # Get information of search blocks
         self.SB_diam = self.SB_settings['SB_diam']
         self.SB_rad = self.SB_settings['SB_rad']
+
+        # Initialise dictionary for centroid information
+        self.cent_info = {}
 
         super().__init__()
 
@@ -212,6 +215,7 @@ class Centroiding(QObject):
             self.act_ref_cent_coord = self.SB_settings['act_ref_cent_coord']
             self.act_ref_cent_coord_x = self.SB_settings['act_ref_cent_coord_x']
             self.act_ref_cent_coord_y = self.SB_settings['act_ref_cent_coord_y']
+            self.act_SB_coord = self.SB_settings['act_SB_coord']
 
             # print('Act_ref_cent_coord_x:', self.act_ref_cent_coord_x)
             # print('Act_ref_cent_coord_y:', self.act_ref_cent_coord_y)
@@ -301,20 +305,20 @@ class Centroiding(QObject):
             self.layer.emit(self.SB_layer_2D)
 
             """
-            Returns centroid information into self.SB_settings
-            """
-            self.SB_settings['act_ref_cent_coord_x'] = self.act_ref_cent_coord_x
-            self.SB_settings['act_ref_cent_coord_y'] = self.act_ref_cent_coord_y
-            self.SB_settings['act_ref_cent_coord'] = self.act_ref_cent_coord
-            self.SB_settings['act_SB_coord'] = self.act_SB_coord
-            self.SB_settings['act_cent_coord_x'] = self.act_cent_coord_x
-            self.SB_settings['act_cent_coord_y'] = self.act_cent_coord_y
-            self.SB_settings['act_cent_coord'] = self.act_cent_coord
-            self.SB_settings['slope_x'] = self.slope_x
-            self.SB_settings['slope_y'] = self.slope_y
+            Returns centroid information into self.cent_info
+            """            
+            self.cent_info['act_ref_cent_coord_x'] = self.act_ref_cent_coord_x
+            self.cent_info['act_ref_cent_coord_y'] = self.act_ref_cent_coord_y
+            self.cent_info['act_ref_cent_coord'] = self.act_ref_cent_coord
+            self.cent_info['act_SB_coord'] = self.act_SB_coord
+            self.cent_info['act_cent_coord_x'] = self.act_cent_coord_x
+            self.cent_info['act_cent_coord_y'] = self.act_cent_coord_y
+            self.cent_info['act_cent_coord'] = self.act_cent_coord
+            self.cent_info['slope_x'] = self.slope_x
+            self.cent_info['slope_y'] = self.slope_y
 
-            self.info.emit(self.SB_settings)
-
+            self.info.emit(self.cent_info)
+       
             # Finished calculating centroids of S-H spots
             self.done.emit()
 

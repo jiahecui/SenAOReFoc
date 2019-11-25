@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Mon Nov 18 23:22:07 2019
+# Created: Mon Nov 25 01:15:05 2019
 #      by: pyside2-uic  running on PySide2 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -31,8 +31,8 @@ class Ui_MainWindow(object):
         self.mainLayout.setObjectName("mainLayout")
         self.mainContentLayout = QtWidgets.QVBoxLayout()
         self.mainContentLayout.setObjectName("mainContentLayout")
-        self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
+        self.horizontalLayout_1 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_1.setObjectName("horizontalLayout_1")
         self.initialiseBtn = QtWidgets.QPushButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -47,12 +47,27 @@ class Ui_MainWindow(object):
         self.initialiseBtn.setFont(font)
         self.initialiseBtn.setCheckable(True)
         self.initialiseBtn.setObjectName("initialiseBtn")
-        self.horizontalLayout_4.addWidget(self.initialiseBtn)
-        self.mainContentLayout.addLayout(self.horizontalLayout_4)
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.mainContentLayout.addItem(spacerItem)
+        self.horizontalLayout_1.addWidget(self.initialiseBtn)
+        self.centroidBtn = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.centroidBtn.sizePolicy().hasHeightForWidth())
+        self.centroidBtn.setSizePolicy(sizePolicy)
+        self.centroidBtn.setMinimumSize(QtCore.QSize(150, 50))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        font.setWeight(75)
+        font.setBold(True)
+        self.centroidBtn.setFont(font)
+        self.centroidBtn.setCheckable(True)
+        self.centroidBtn.setObjectName("centroidBtn")
+        self.horizontalLayout_1.addWidget(self.centroidBtn)
+        self.mainContentLayout.addLayout(self.horizontalLayout_1)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setObjectName("verticalLayout_2")
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayout_2.addItem(spacerItem)
         self.stopBtn = QtWidgets.QPushButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -101,6 +116,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QtWidgets.QApplication.translate("MainWindow", "SensorbasedAO", None, -1))
         self.initialiseBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Initialise", None, -1))
+        self.centroidBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Centroid", None, -1))
         self.stopBtn.setText(QtWidgets.QApplication.translate("MainWindow", "STOP", None, -1))
         self.quitBtn.setText(QtWidgets.QApplication.translate("MainWindow", "QUIT", None, -1))
 

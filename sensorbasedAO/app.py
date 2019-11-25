@@ -167,6 +167,11 @@ class App(QApplication):
         self.threads['SB_thread'].quit()
         self.threads['SB_thread'].wait()
         self.main.ui.initialiseBtn.setChecked(False)
+
+    def handle_cent_start(self):
+        """
+        Handle start of S-H spot centroid calculation
+        """
         self.get_centroids(self.devices['sensor'], self.SB_info)
 
     def handle_cent_done(self):
@@ -175,7 +180,7 @@ class App(QApplication):
         """
         self.threads['cent_thread'].quit()
         self.threads['cent_thread'].wait()
-        
+        self.main.ui.centroidBtn.setChecked(False)
 
 
 def debug():
