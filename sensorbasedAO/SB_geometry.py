@@ -1,11 +1,9 @@
 from PySide2.QtCore import QThread, QObject, Signal, Slot
 from PySide2.QtWidgets import QApplication
 
-import logging
 import sys
 import os
 import argparse
-import math
 import time
 import PIL.Image
 import numpy as np

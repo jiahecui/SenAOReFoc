@@ -2,8 +2,6 @@ from PySide2.QtWidgets import QApplication, QStyleFactory, QMainWindow, QFileDia
 from PySide2.QtCore import QThread, QObject, Slot, Signal, QSize, QTimer
 
 import qtawesome as qta
-
-import os
 import numpy as np
 
 from sensorbasedAO.gui.ui.main import Ui_MainWindow

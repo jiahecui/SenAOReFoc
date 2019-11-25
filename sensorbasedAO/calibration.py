@@ -5,13 +5,13 @@ import logging
 import sys
 import os
 import argparse
-import math
 import time
 import PIL.Image
 import numpy as np
 
 import log
 from config import config
+from image_acquisition import acq_image
 
 logger = log.get_logger(__name__)
 
@@ -41,13 +41,13 @@ class Calibration(QObject):
         self.inf_matrix = np.zeros([2 * self.SB_settings['act_ref_cent_num'], config['DM']['actuator_num']])
 
 
-    @Slot(object)
-    def run(self):
-        try:
-            self.start.emit()
+    # @Slot(object)
+    # def run(self):
+    #     try:
+    #         self.start.emit()
 
-            """
-            Apply highest and lowest voltage to each actuator individually and retrieve raw slopes of each S-H spot correspondingly
-            """
-            for i in range(config['DM']['actuator_num']):
+    #         """
+    #         Apply highest and lowest voltage to each actuator individually and retrieve raw slopes of each S-H spot correspondingly
+    #         """
+    #         for i in range(config['DM']['actuator_num']):
                 
