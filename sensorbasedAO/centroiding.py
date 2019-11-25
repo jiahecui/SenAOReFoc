@@ -292,13 +292,31 @@ class Centroiding(QObject):
             # print('Act_cent_coord:', self.act_cent_coord)
             # print('Error along x axis:', error_x)
             # print('Error along y axis:', error_y)
-            print('Average position error:', error_tot)
+            # print('Average position error:', error_tot)
             # print('Slope along x axis:', self.slope_x)
             # print('Slope along y axis:', self.slope_y)
 
             # Draw actual S-H spot centroids on image layer
             self.SB_layer_2D.ravel()[self.act_cent_coord.astype(int)] = self.outline_int
             self.layer.emit(self.SB_layer_2D)
+
+            """
+            Returns centroid information into self.SB_settings
+            """
+            self.SB_settings['act_ref_cent_coord_x'] = self.act_ref_cent_coord_x
+            self.SB_settings['act_ref_cent_coord_y'] = self.act_ref_cent_coord_y
+            self.SB_settings['act_ref_cent_coord'] = self.act_ref_cent_coord
+            self.SB_settings['act_SB_coord'] = self.act_SB_coord
+            self.SB_settings['act_cent_coord_x'] = self.act_cent_coord_x
+            self.SB_settings['act_cent_coord_y'] = self.act_cent_coord_y
+            self.SB_settings['act_cent_coord'] = self.act_cent_coord
+            self.SB_settings['slope_x'] = self.slope_x
+            self.SB_settings['slope_y'] = self.slope_y
+
+            self.info.emit(self.SB_settings)
+
+            # Finished calculating centroids of S-H spots
+            self.done.emit()
 
         except Exception as e:
             raise

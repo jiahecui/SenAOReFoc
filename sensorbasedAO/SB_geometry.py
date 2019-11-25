@@ -241,11 +241,11 @@ class Setup_SB(QObject):
             self.SB_info['SB_diam'] = self.SB_diam  # int
             self.SB_info['SB_across_width'] = self.SB_across_width  # int
             self.SB_info['SB_across_height'] = self.SB_across_height  # int
+            self.SB_info['act_ref_cent_num'] = self.act_ref_cent_num
+            self.SB_info['odd_pix'] = self.odd_pix  # flag for whether odd number of pixels in one search block
             self.SB_info['act_ref_cent_coord'] = self.act_ref_cent_coord  # int - for displaying
             self.SB_info['act_ref_cent_coord_x'] = self.act_ref_cent_coord_x  # float - actual reference centroid positions, not whole pixels
             self.SB_info['act_ref_cent_coord_y'] = self.act_ref_cent_coord_y  # float - actual reference centroid positions, not whole pixels
-            self.SB_info['act_ref_cent_num'] = self.act_ref_cent_num
-            self.SB_info['odd_pix'] = self.odd_pix  # flag for whether odd number of pixels in one search block
             self.SB_info['act_SB_coord'] = self.act_SB_coord  # int - for displaying
 
             self.info.emit(self.SB_info)

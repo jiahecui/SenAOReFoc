@@ -54,6 +54,9 @@ class App(QApplication):
         # Initialise instance variables
         self.image_temp = np.zeros([100, 100])
 
+        # Initialise search block info dictionary
+        self.SB_info = {}
+
         # Initialise workers and threads
         self.workers = {}
         self.threads = {}
@@ -121,9 +124,9 @@ class App(QApplication):
         cent_thread.started.connect(cent_worker.run)
         cent_worker.layer.connect(lambda obj: self.handle_layer_disp(obj))
         cent_worker.image.connect(lambda obj: self.handle_image_disp(obj))
+        cent_worker.info.connect(lambda obj: self.handle_SB_info(obj))
         cent_worker.error.connect(lambda obj: self.handle_error(obj))
-        # cent_worker.done.connect()
-        # cent_worker.info.connect()
+        cent_worker.done.connect(self.handle_cent_done)
 
         # Store centroiding worker and thread
         self.workers['cent_worker'] = cent_worker
@@ -149,7 +152,7 @@ class App(QApplication):
         """
         Handle search block geometry and reference centroid information
         """
-        self.SB_info = obj
+        self.SB_info.update(obj)
 
     def handle_error(self, error):
         """
@@ -165,6 +168,14 @@ class App(QApplication):
         self.threads['SB_thread'].wait()
         self.main.ui.initialiseBtn.setChecked(False)
         self.get_centroids(self.devices['sensor'], self.SB_info)
+
+    def handle_cent_done(self):
+        """
+        Handle end of centroiding process
+        """
+        self.threads['cent_thread'].quit()
+        self.threads['cent_thread'].wait()
+        
 
 
 def debug():
