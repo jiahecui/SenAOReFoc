@@ -14,17 +14,19 @@ import numpy as np
 
 from datetime import datetime
 
-# from alpao import asdk
+from alpao.Lib import asdk  # Use alpao.Lib64 for 64-bit applications
 from ximea import xiapi
 
 import log
 from config import config
 from sensor import SENSOR
+from mirror import MIRROR
 from gui.main import Main
 from SB_geometry import Setup_SB
 from centroiding import Centroiding
 
 logger = log.get_logger(__name__)
+
 
 class App(QApplication):
     """
@@ -85,6 +87,19 @@ class App(QApplication):
                 sensor = None
 
         self.devices['sensor'] = sensor
+
+        # Add deformable mirror
+        if self.debug:
+            mirror = MIRROR.get('debug')
+        else:
+            try:
+                mirror = MIRROR.get(config['DM']['SN'])
+                print('Mirror load success')
+            except Exception as e:
+                logger.warning('Mirror load error', e)
+                mirror = None
+
+        self.devices['mirror'] = mirror
 
     def setup_SB(self):
         """

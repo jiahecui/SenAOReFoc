@@ -31,6 +31,7 @@ camera:
   frame_ave_num: 5
   
 DM:
+  SN: "HSDM69-15-014"
   actuator_num: 69
   vol_min: -1  # V
   vol_max: 1
