@@ -1,9 +1,11 @@
 from PySide2.QtCore import QThread, QObject, Signal, Slot
 from PySide2.QtWidgets import QApplication
 
+import logging
 import sys
 import os
 import argparse
+import math
 import time
 import PIL.Image
 import numpy as np
@@ -139,8 +141,8 @@ class Setup_SB(QObject):
 
                 for j in self.ref_cent_y:
                     for i in self.ref_cent_x:
-                        if ((np.sqrt(((abs((i + 1 - self.sensor_width // 2)) + self.SB_rad) * self.pixel_size) ** 2 + \
-                            ((abs((j + 1 - self.sensor_height // 2)) + self.SB_rad) * self.pixel_size) ** 2)) < self.pupil_rad):
+                        if ((np.sqrt(((abs((i - self.sensor_width // 2)) + self.SB_rad) * self.pixel_size) ** 2 + \
+                            ((abs((j - self.sensor_height // 2)) + self.SB_rad) * self.pixel_size) ** 2)) <= self.pupil_rad):
                             self.act_ref_cent_coord.append(int(j) * self.sensor_width + int(i))
                             self.act_ref_cent_coord_x.append(i)
                             self.act_ref_cent_coord_y.append(j)
@@ -149,8 +151,8 @@ class Setup_SB(QObject):
 
                 for j in self.ref_cent_y:
                     for i in self.ref_cent_x:
-                        if ((np.sqrt(((abs((i + 1 - (self.sensor_width // 2 - self.SB_rad))) + self.SB_rad) * self.pixel_size) ** 2 + \
-                            ((abs((j + 1 - (self.sensor_height // 2 - self.SB_rad))) + self.SB_rad) * self.pixel_size) ** 2)) < self.pupil_rad):
+                        if ((np.sqrt(((abs((i - (self.sensor_width // 2 - self.SB_rad))) + self.SB_rad) * self.pixel_size) ** 2 + \
+                            ((abs((j - (self.sensor_height // 2 - self.SB_rad))) + self.SB_rad) * self.pixel_size) ** 2)) <= self.pupil_rad):
                             self.act_ref_cent_coord.append(int(j) * self.sensor_width + int(i))
                             self.act_ref_cent_coord_x.append(i)
                             self.act_ref_cent_coord_y.append(j)
@@ -161,7 +163,7 @@ class Setup_SB(QObject):
             self.act_ref_cent_num = len(self.act_ref_cent_coord)
             self.SB_layer_2D.ravel()[self.act_ref_cent_coord.astype(int)] = self.outline_int
 
-            # print("Number of search blocks within pupil is: {}".format(self.act_ref_cent_num))
+            print("Number of search blocks within pupil is: {}".format(self.act_ref_cent_num))
            
             # Draw actual search blocks on search block layer
             for i in range(self.act_ref_cent_num):

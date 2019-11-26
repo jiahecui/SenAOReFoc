@@ -42,7 +42,7 @@ DM:
 search_block:
   div_elem: 4  # Number of elements in each dimension
   outline_int: 255  # uint8
-  pupil_diam: 9  # mm
+  pupil_diam: 8  # mm
 
 image:
   threshold: 0  # Percentage of maximum pixel used for thresholding an image
