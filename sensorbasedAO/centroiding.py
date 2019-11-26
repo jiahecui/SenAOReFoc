@@ -175,8 +175,8 @@ class Centroiding(QObject):
                     # Calculate actual S-H spot centroids by doing weighted sum
                     for j in range(len(SB_pix_coord_y)):
                         for k in range(len(SB_pix_coord_x)):
-                            sum_x += self._image[int(SB_pix_coord_y[j]), int(SB_pix_coord_x[k])] * SB_pix_coord_x[k]
-                            sum_y += self._image[int(SB_pix_coord_y[j]), int(SB_pix_coord_x[k])] * SB_pix_coord_y[j]
+                            sum_x += self._image[int(SB_pix_coord_y[j]), int(SB_pix_coord_x[k])] * int(SB_pix_coord_x[k])
+                            sum_y += self._image[int(SB_pix_coord_y[j]), int(SB_pix_coord_x[k])] * int(SB_pix_coord_y[j])
                             sum_pix += self._image[int(SB_pix_coord_y[j]), int(SB_pix_coord_x[k])]
 
                     self.act_cent_coord_x[i] = sum_x / sum_pix
@@ -198,15 +198,15 @@ class Centroiding(QObject):
             # print('Act_cent_coord_x:', self.act_cent_coord_x)
             # print('Act_cent_coord_y:', self.act_cent_coord_y)
             # print('Act_cent_coord:', self.act_cent_coord)
-            # print('Error along x axis:', error_x)
-            # print('Error along y axis:', error_y)
-            # print('Average position error:', error_tot)
+            print('Error along x axis:', error_x)
+            print('Error along y axis:', error_y)
+            print('Average position error:', error_tot)
             # print('Slope along x axis:', self.slope_x)
             # print('Slope along y axis:', self.slope_y)
 
             # Draw actual S-H spot centroids on search block layer
-            self.SB_layer_2D.ravel()[self.act_cent_coord.astype(int)] = 0
-            self.layer.emit(self.SB_layer_2D)
+            self._image.ravel()[self.act_cent_coord.astype(int)] = 0
+            self.image.emit(self._image)
 
             """
             Returns centroid information into self.cent_info

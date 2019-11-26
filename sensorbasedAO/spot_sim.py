@@ -27,10 +27,10 @@ class SpotSim():
         self.spot_cent_y = np.zeros(len(offset_coord))
 
         # Get other non-variable parameters for generation of a Gaussian profile S-H spot
-        sigma = 0.1
+        sigma = 3
         array_size = self.settings['SB_diam']
-        x = np.linspace(-1, 1, array_size)
-        y = np.linspace(-1, 1, array_size)
+        x = np.linspace(-int(self.settings['SB_rad']), int(self.settings['SB_rad']), array_size)
+        y = np.linspace(-int(self.settings['SB_rad']), int(self.settings['SB_rad']), array_size)
 
         # print('x: {}, y: {}, length: {}'.format(x, y, len(x)))
 
@@ -38,17 +38,21 @@ class SpotSim():
         for i in range(len(offset_coord)):
   
             # Generate random positions for centre of each S-H spot
-            xc = round(random.uniform(-0.1, 0.1), 2)
-            yc = round(random.uniform(-0.1, 0.1), 2)
-            # xc = round(random.uniform(-0.2, 0.2), 2)
-            # yc = round(random.uniform(-0.2, 0.2), 2)
+            # xc = random.randrange(-5, 6, 1)
+            # yc = random.randrange(-5, 6, 1)
+            xc = round(random.uniform(-5, 6), 1)
+            yc = round(random.uniform(-5, 6), 1)
+            # xc = 0
+            # yc = 0
+
+            print('xc: {}, yc: {}'.format(xc, yc))
 
             # Generate a Gaussian profile S-H spot
             Gaus_spot = self.dirac_function(x, y, xc, yc, sigma, array_size)
 
             # Calculate centre of S-H spot
-            self.spot_cent_x[i] = offset_coord_x[i] + self.settings['SB_rad'] + xc * array_size
-            self.spot_cent_y[i] = offset_coord_y[i] + self.settings['SB_rad'] + yc * array_size
+            self.spot_cent_x[i] = int(offset_coord_x[i]) + int(self.settings['SB_rad'] + xc)
+            self.spot_cent_y[i] = int(offset_coord_y[i]) + int(self.settings['SB_rad'] + yc)
             self.spot_cent[i] = int(self.spot_cent_y[i]) * self.settings['sensor_width'] + int(self.spot_cent_x[i])
 
             # Integrate it to pre-initialised spot image array
