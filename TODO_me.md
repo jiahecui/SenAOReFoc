@@ -1,6 +1,3 @@
-# SB_geometry.py: 
-	- check why some geometries aren't symmetrical
-
 # centroiding.py: 
 	- check centroiding with single bright pixel
 	- change dynamic range algorithm to shift + shrink and how it improves accuracy for single bright pixel
@@ -11,5 +8,6 @@
 	   image layer is continuosly updated), could think about setting different handles in app.py
 
 # calibration.py:
-	- check what parameters are needed for centroiding here
+	- check what parameters are needed for centroiding and finish centroiding function here
 	- check whether image needs to be continuosly displayed for each voltage
+	- write algorithm for acquiring influence function using Zernikes
