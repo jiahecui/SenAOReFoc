@@ -91,14 +91,14 @@ class Calibration(QObject):
                 # Set actuator back to bias voltage
                 voltages[i] = config['DM']['vol_bias']
 
-                # Send values vector to mirror
-                self.mirror.Send(voltages)
-
                 # Fill influence function matrix with acquired slopes
                 self.inf_matrix_slopes[:self.SB_settings['act_ref_cent_num'] - 1, i] = \
                     (slope_x_max - slope_x_min) / (config['DM']['vol_max'] - config['DM']['vol_min'])
                 self.inf_matrix_slopes[self.SB_settings['act_ref_cent_num']:, i] = \
                     (slope_y_max - slope_y_min) / (config['DM']['vol_max'] - config['DM']['vol_min'])
+
+            # Reset mirror
+            self.mirror.Reset()
 
             """
             Returns deformable mirror calibration information into self.mirror_info
