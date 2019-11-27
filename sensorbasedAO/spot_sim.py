@@ -2,6 +2,8 @@ import numpy as np
 import PIL.Image
 import random
 
+from config import config
+
 class SpotSim():
     """
     Generates a simulated S-H spot image
@@ -45,14 +47,14 @@ class SpotSim():
             # xc = 0
             # yc = 0
 
-            print('xc: {}, yc: {}'.format(xc, yc))
+            # print('xc: {}, yc: {}'.format(xc, yc))
 
             # Generate a Gaussian profile S-H spot
             Gaus_spot = self.dirac_function(x, y, xc, yc, sigma, array_size)
 
             # Calculate centre of S-H spot
-            self.spot_cent_x[i] = int(offset_coord_x[i]) + int(self.settings['SB_rad'] + xc)
-            self.spot_cent_y[i] = int(offset_coord_y[i]) + int(self.settings['SB_rad'] + yc)
+            self.spot_cent_x[i] = int(offset_coord_x[i]) + int(self.settings['SB_rad']) + xc
+            self.spot_cent_y[i] = int(offset_coord_y[i]) + int(self.settings['SB_rad']) + yc
             self.spot_cent[i] = int(self.spot_cent_y[i]) * self.settings['sensor_width'] + int(self.spot_cent_x[i])
 
             # Integrate it to pre-initialised spot image array
@@ -61,6 +63,9 @@ class SpotSim():
             B_end = [int(offset_coord_y[i] + array_size), int(offset_coord_x[i] + array_size)]
 
             self.SH_spot_img = self.array_integrate(Gaus_spot, self.SH_spot_img, A_start, B_start, B_end)
+
+        # Add noise to S-H spot image
+        self.SH_spot_img = self.add_noise(self.SH_spot_img, noise_type = 'uniform')
             
         # print('Theoretical S-H spot cent:', self.spot_cent)
         # print('Theoretical S-H spot cent x:', self.spot_cent_x)
@@ -120,3 +125,53 @@ class SpotSim():
         B[B_slices] = A[A_slices]
 
         return B
+
+    def add_noise(self, image, noise_type = 'uniform'):
+        """
+        Adds a particular type of noise to image
+
+        Types of noise:
+            'uniform'   Uniform noise across the whole image
+            'gauss'     Gaussian-distributed additive noise.
+            'poisson'   Poisson-distributed noise generated from the data.
+            'speckle'   Multiplicative noise using out = image + n * image,where
+                        n is uniform noise with specified mean & variance.
+        """
+        # 1) Add uniform noise across the whole image
+        if noise_type == 'uniform':
+
+            noisy = image + config['image']['noise']
+
+            return noisy
+
+        # 2) Add Gaussian-distributed additive noise
+        elif noise_type == 'gauss':
+
+            shape = image.shape
+            mean = 0
+            var = 0.1
+            sigma = var ** 0.5
+            gauss = np.random.normal(mean, sigma, shape)
+            gauss = gauss.reshape(shape[0], shape[1])
+            noisy = image + gauss
+
+            return noisy
+        
+        # 3) Add Poisson-distributed noise generated from the data
+        elif noise_type == 'poisson':
+
+            vals = len(np.unique(image))
+            vals = 2 ** np.ceil(np.log2(vals))
+            noisy = np.random.poisson(image * vals) / float(vals)
+
+            return noisy
+
+        # 4) Add multiplicative speckle noise
+        elif noise_type == "speckle":
+
+            shape = image.shape
+            gauss = np.random.randn(shape[0], shape[1])
+            gauss = gauss.reshape(shape[0], shape[1])        
+            noisy = image + image * gauss
+ 
+            return noisy
