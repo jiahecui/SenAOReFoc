@@ -151,20 +151,37 @@ class Centroiding(QObject):
                             SB_pix_coord_y = np.arange(self.act_ref_cent_coord_y[i] - self.SB_rad + 2, \
                                 self.act_ref_cent_coord_y[i] + self.SB_rad - 1)
                     else:
-                        # Judge the position of S-H spot centroid relative to centre of search block and decrease dynamic range
-                        if self.act_cent_coord_x[i] > self.act_ref_cent_coord_x[i]:
-                            SB_pix_coord_x = SB_pix_coord_x[1:]
-                        elif self.act_cent_coord_x[i] < self.act_ref_cent_coord_x[i]:
-                            SB_pix_coord_x = SB_pix_coord_x[:-1]
-                        else:
-                            SB_pix_coord_x = SB_pix_coord_x[1:-1]
+                        """
+                        Two methods for setting the dynamic range
 
-                        if self.act_cent_coord_y[i] > self.act_ref_cent_coord_y[i]:
-                            SB_pix_coord_y = SB_pix_coord_y[1:]
-                        elif self.act_cent_coord_y[i] < self.act_ref_cent_coord_y[i]:
-                            SB_pix_coord_y = SB_pix_coord_y[:-1]
-                        else:
-                            SB_pix_coord_y = SB_pix_coord_y[1:-1]
+                        Notes:
+                            1) Without thresholding and both doing 5 cycles, Method 2 is 2 - 3 times more effective for uniform noise below 5 
+                                (low noise level) and slightly (1 - 2 times) more effective for uniform noise above 7.
+                            2) Without thresholding and both doing 5 cycles, Method 2 is 2 times more effective for Gaussian, Method 1 is slightly 
+                                more effective for speckle, both are equally effective for Poisson.
+                            3) Method 2 is much more stable than Method 1 (error level using Method 1 sometimes double with the same parameters).
+                            4) Using Method 2, error is below 1 (0.87) for uniform noise below 7
+                        """
+                        # Method 1: Judge the position of S-H spot centroid relative to centre of search block and decrease dynamic range
+                        # if self.act_cent_coord_x[i] > self.act_ref_cent_coord_x[i]:
+                        #     SB_pix_coord_x = SB_pix_coord_x[1:]
+                        # elif self.act_cent_coord_x[i] < self.act_ref_cent_coord_x[i]:
+                        #     SB_pix_coord_x = SB_pix_coord_x[:-1]
+                        # else:
+                        #     SB_pix_coord_x = SB_pix_coord_x[1:-1]
+
+                        # if self.act_cent_coord_y[i] > self.act_ref_cent_coord_y[i]:
+                        #     SB_pix_coord_y = SB_pix_coord_y[1:]
+                        # elif self.act_cent_coord_y[i] < self.act_ref_cent_coord_y[i]:
+                        #     SB_pix_coord_y = SB_pix_coord_y[:-1]
+                        # else:
+                        #     SB_pix_coord_y = SB_pix_coord_y[1:-1]
+
+                        # Method 2: Centre new search area on centroid calculated during previous cycle while shrinking search area at the same time
+                        SB_pix_coord_x = np.arange(self.act_cent_coord_x[i] - self.SB_rad + 1 + n, \
+                            self.act_cent_coord_x[i] + self.SB_rad - 1 - n)
+                        SB_pix_coord_y = np.arange(self.act_cent_coord_y[i] - self.SB_rad + 1 + n, \
+                            self.act_cent_coord_y[i] + self.SB_rad - 1 - n)
 
                     # if i == 0:
                     #     print('SB_pixel_coord_x_{}_{}: {}'.format(i, n, SB_pix_coord_x))
@@ -198,8 +215,8 @@ class Centroiding(QObject):
             # print('Act_cent_coord_x:', self.act_cent_coord_x)
             # print('Act_cent_coord_y:', self.act_cent_coord_y)
             # print('Act_cent_coord:', self.act_cent_coord)
-            print('Error along x axis:', error_x)
-            print('Error along y axis:', error_y)
+            # print('Error along x axis:', error_x)
+            # print('Error along y axis:', error_y)
             print('Average position error:', error_tot)
             # print('Slope along x axis:', self.slope_x)
             # print('Slope along y axis:', self.slope_y)

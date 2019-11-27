@@ -134,7 +134,7 @@ class SpotSim():
             'uniform'   Uniform noise across the whole image
             'gauss'     Gaussian-distributed additive noise.
             'poisson'   Poisson-distributed noise generated from the data.
-            'speckle'   Multiplicative noise using out = image + n * image,where
+            'speckle'   Multiplicative noise using out = image + n * image, where
                         n is uniform noise with specified mean & variance.
         """
         # 1) Add uniform noise across the whole image
