@@ -37,7 +37,7 @@ DM:
   vol_max: 1
   vol_bias: 0
   vol_step: 1
-  settling_time: 0.05
+  settling_time: 0.1
 
 search_block:
   div_elem: 4  # Number of elements in each dimension
@@ -45,7 +45,7 @@ search_block:
   pupil_diam: 8  # mm
 
 image:
-  noise: 7
+  noise: 5
   threshold: 0  # Percentage of maximum pixel used for thresholding an image
   dynamic_num: 5  # Number of cycles to use for centroiding with a dynamic range
   normalise: 1  # 0-normalise off, 1-normalise on

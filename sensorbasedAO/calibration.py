@@ -41,6 +41,8 @@ class Calibration(QObject):
 
         # Initialise influence function matrix
         self.inf_matrix_slopes = np.zeros([2 * self.SB_settings['act_ref_cent_num'], config['DM']['actuator_num']])
+        
+        super().__init__()
 
     def calib_centroid(self):
 
@@ -53,24 +55,31 @@ class Calibration(QObject):
 
             """
             Apply highest and lowest voltage to each actuator individually and retrieve raw slopes of each S-H spot
+
+            Time for one calibration cycle for all actuators with image acquisition, but without centroiding: 56.686575999
             """
+            # Initialise deformable mirror voltage array
+            voltages = np.zeros(config['DM']['actuator_num'])
+            
+            prev1 = time.perf_counter()
+
             for i in range(config['DM']['actuator_num']):
 
                 # Apply highest voltage
                 voltages[i] = config['DM']['vol_max']
-
+                
                 # Send values vector to mirror
                 self.mirror.Send(voltages)
-
+                
                 # Wait for DM to settle
                 time.sleep(config['DM']['settling_time'])
-
+                
                 # Acquire S-H spot image and display
                 image_max = acq_image(self.sensor, self.SB_settings['sensor_width'], self.SB_settings['sensor_height'], acq_mode = 0)
                 self.image.emit(image_max)
 
                 # Calculate S-H spot centroid coordinates to get slopes
-                slope_x_max, slope_y_max = calib_centroid()
+                # slope_x_max, slope_y_max = calib_centroid()
 
                 # Apply lowest voltage
                 voltages[i] = config['DM']['vol_min']
@@ -84,21 +93,26 @@ class Calibration(QObject):
                 # Acquire S-H spot image and display
                 image_min = acq_image(self.sensor, self.SB_settings['sensor_width'], self.SB_settings['sensor_height'], acq_mode = 0)
                 self.image.emit(image_min)
-
+                
                 # Calculate S-H spot centroid coordinates to get slopes
-                slope_x_min, slope_y_min = calib_centroid()
+                # slope_x_min, slope_y_min = calib_centroid()
 
                 # Set actuator back to bias voltage
                 voltages[i] = config['DM']['vol_bias']
 
                 # Fill influence function matrix with acquired slopes
-                self.inf_matrix_slopes[:self.SB_settings['act_ref_cent_num'] - 1, i] = \
-                    (slope_x_max - slope_x_min) / (config['DM']['vol_max'] - config['DM']['vol_min'])
-                self.inf_matrix_slopes[self.SB_settings['act_ref_cent_num']:, i] = \
-                    (slope_y_max - slope_y_min) / (config['DM']['vol_max'] - config['DM']['vol_min'])
+                # self.inf_matrix_slopes[:self.SB_settings['act_ref_cent_num'] - 1, i] = \
+                #     (slope_x_max - slope_x_min) / (config['DM']['vol_max'] - config['DM']['vol_min'])
+                # self.inf_matrix_slopes[self.SB_settings['act_ref_cent_num']:, i] = \
+                #     (slope_y_max - slope_y_min) / (config['DM']['vol_max'] - config['DM']['vol_min'])
+
+            prev2 = time.perf_counter()
+            print('Time for calibration process is:', (prev2 - prev1))
 
             # Reset mirror
             self.mirror.Reset()
+
+            print('Influence function is:', self.inf_matrix_slopes)
 
             """
             Returns deformable mirror calibration information into self.mirror_info

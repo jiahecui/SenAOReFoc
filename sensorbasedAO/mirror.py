@@ -2,7 +2,7 @@ import os
 import sys
 import time
 
-# from alpao.Lib import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
+from alpao.Lib import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
 
 import log
 from config import config

@@ -29,7 +29,7 @@ class SpotSim():
         self.spot_cent_y = np.zeros(len(offset_coord))
 
         # Get other non-variable parameters for generation of a Gaussian profile S-H spot
-        sigma = 3
+        sigma = 4
         array_size = self.settings['SB_diam']
         x = np.linspace(-int(self.settings['SB_rad']), int(self.settings['SB_rad']), array_size)
         y = np.linspace(-int(self.settings['SB_rad']), int(self.settings['SB_rad']), array_size)
