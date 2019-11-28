@@ -22,9 +22,6 @@ def acq_image(sensor, width, height, acq_mode = 0):
     # Create instance of Ximea Image to store image data and metadata
     img = xiapi.Image()
 
-    # Open device for centroiding instance 
-    sensor.open_device_by_SN(config['camera']['SN'])
-
     # Start data acquisition for each frame
     print('Starting image acquisition...')
     sensor.start_acquisition()
@@ -51,11 +48,13 @@ def acq_image(sensor, width, height, acq_mode = 0):
     elif acq_mode == 1:
         # Acquire a sequence of images and append to data list
         for i in range(config['camera']['frame_ave_num']):
+
             prev1 = time.perf_counter()
 
             try:
                 # Get data and pass them from camera to img
                 sensor.get_image(img, timeout = 25)
+
                 prev2 = time.perf_counter()
                 print('Time for acquisition of frame {} is: {}'.format((i + 1), (prev2 - prev1)))
 

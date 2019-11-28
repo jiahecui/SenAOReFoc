@@ -14,13 +14,13 @@ import numpy as np
 
 from datetime import datetime
 
-# from alpao.Lib import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
+from alpao.Lib import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
 from ximea import xiapi
 
 import log
 from config import config
 from sensor import SENSOR
-# from mirror import MIRROR
+from mirror import MIRROR
 from gui.main import Main
 from SB_geometry import Setup_SB
 from centroiding import Centroiding
@@ -91,6 +91,9 @@ class App(QApplication):
 
         self.devices['sensor'] = sensor
 
+        # Open sensor and leave it open for the whole process 
+        sensor.open_device_by_SN(config['camera']['SN'])
+
         # Add deformable mirror
         if self.debug:
             mirror = MIRROR.get('debug')
@@ -160,7 +163,7 @@ class App(QApplication):
         # Create calibration worker and thread
         calib_thread = QThread()
         calib_thread.setObjectName('calib_thread')
-        calib_worker = Calibration(mirror)
+        calib_worker = Calibration(sensor, mirror, SB_info)
         calib_worker.moveToThread(calib_thread)
 
         # Connect to signals
