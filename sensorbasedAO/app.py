@@ -92,7 +92,7 @@ class App(QApplication):
         self.devices['sensor'] = sensor
 
         # Open sensor and leave it open for the whole process 
-        sensor.open_device_by_SN(config['camera']['SN'])
+        # self.devices['sensor'].open_device_by_SN(config['camera']['SN'])
 
         # Add deformable mirror
         if self.debug:
@@ -246,6 +246,62 @@ class App(QApplication):
         self.threads['calib_thread'].quit()
         self.threads['calib_thread'].wait()
         self.main.ui.calibrateBtn.setChecked(False)
+
+    def stop(self):
+        """
+        Stop all workers, threads, and devices
+        """
+        # Stop workers and threads
+        for worker in self.workers:
+            self.workers[worker].stop()
+
+        for thread in self.threads:
+            self.threads[thread].quit()
+            self.threads[thread].wait()
+
+        # Stop and reset mirror instance
+        try:
+           self.devices['mirror'].Stop()
+           self.devices['mirror'].Reset()
+        except Exception as e:
+            logger.warning("Error on mirror stop: {}".format(e))
+
+        # Stop sensor instance
+        try:
+            self.devices['sensor'].stop_acquisition()
+        except Exception as e:
+            logger.warning("Error on sensor stop: {}".format(e))
+
+    def quit(self):
+        """ 
+        Quit application. 
+        
+        Clean up application, including shutting down workers, threads, and hardware devices.
+        """
+        # Stop workers and threads
+        for worker in self.workers:
+            self.workers[worker].stop()
+
+        for thread in self.threads:
+            self.threads[thread].quit()
+            self.threads[thread].wait()
+
+        # Stop and reset mirror instance
+        try:
+           self.devices['mirror'].Stop()
+           self.devices['mirror'].Reset()
+        except Exception as e:
+            logger.warning("Error on mirror quit: {}".format(e))
+
+        # Stop and close sensor instance
+        try:
+            self.devices['sensor'].stop_acquisition()
+            self.devices['sensor'].close_device()
+        except Exception as e:
+            logger.warning("Error on sensor quit: {}".format(e))
+
+        # Close other windows
+        self.main.close()
 
 
 def debug():

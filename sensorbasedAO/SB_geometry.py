@@ -53,11 +53,14 @@ class Setup_SB(QObject):
     @Slot(object)
     def run(self):
         try:
+            # Set process flags
+            self.register = True
+            self.calculate = True
+            self.log = True
+
+            # Start thread
             self.start.emit()
 
-            """
-            Registers initial search block geometry
-            """
             # Get search block radius and diameter
             self.SB_diam = int(self.lenslet_pitch // self.pixel_size)
             self.SB_rad = self.SB_diam / 2
@@ -118,10 +121,15 @@ class Setup_SB(QObject):
             # print(self.SB_layer_2D.ravel()[self.ref_cent_coord[1].astype(int) - 25 : self.ref_cent_coord[1].astype(int) + 25])
 
             # Display search blocks and reference centroids
-            # im = PIL.Image.fromarray(self.SB_layer_2D, 'L')
-            # im.show()
-            self.layer.emit(self.SB_layer_2D)
-            time.sleep(1)
+            if self.register:
+
+                # im = PIL.Image.fromarray(self.SB_layer_2D, 'L')
+                # im.show()
+                self.layer.emit(self.SB_layer_2D)
+                time.sleep(1)
+            else:
+
+                self.done.emit()
 
             """
             Calculates search block geometry from given number of spots across diameter
@@ -156,7 +164,7 @@ class Setup_SB(QObject):
                             self.act_ref_cent_coord.append(int(j) * self.sensor_width + int(i))
                             self.act_ref_cent_coord_x.append(i)
                             self.act_ref_cent_coord_y.append(j)
-                      
+
             # Draw actual search block reference centroids
             (self.act_ref_cent_coord, self.act_ref_cent_coord_x, self.act_ref_cent_coord_y) = \
                 map(np.array, (self.act_ref_cent_coord, self.act_ref_cent_coord_x, self.act_ref_cent_coord_y))
@@ -164,7 +172,7 @@ class Setup_SB(QObject):
             self.SB_layer_2D.ravel()[self.act_ref_cent_coord.astype(int)] = self.outline_int
 
             print("Number of search blocks within pupil is: {}".format(self.act_ref_cent_num))
-           
+        
             # Draw actual search blocks on search block layer
             for i in range(self.act_ref_cent_num):
 
@@ -222,10 +230,15 @@ class Setup_SB(QObject):
             self.SB_layer_2D[x, y] = self.outline_int
 
             # Display actual search blocks and reference centroids
-            # im = PIL.Image.fromarray(self.SB_layer_2D, 'L')
-            # im.show()
-            self.layer.emit(self.SB_layer_2D)
-            time.sleep(1)
+            if self.calculate:
+
+                # im = PIL.Image.fromarray(self.SB_layer_2D, 'L')
+                # im.show()
+                self.layer.emit(self.SB_layer_2D)
+                time.sleep(1)
+            else:
+
+                self.done.emit()
 
             # Get actual search block coordinates
             self.act_SB_coord = np.nonzero(np.ravel(self.SB_layer_2D))
@@ -234,21 +247,26 @@ class Setup_SB(QObject):
             """
             Returns search block information
             """
-            self.SB_info['pixel_size'] = self.pixel_size  # float
-            self.SB_info['sensor_width'] = self.sensor_width  # int after binning
-            self.SB_info['sensor_height'] = self.sensor_height  # int after binning
-            self.SB_info['SB_rad'] = self.SB_rad  # float
-            self.SB_info['SB_diam'] = self.SB_diam  # int
-            self.SB_info['SB_across_width'] = self.SB_across_width  # int
-            self.SB_info['SB_across_height'] = self.SB_across_height  # int
-            self.SB_info['act_ref_cent_num'] = self.act_ref_cent_num
-            self.SB_info['odd_pix'] = self.odd_pix  # flag for whether odd number of pixels in one search block
-            self.SB_info['act_ref_cent_coord'] = self.act_ref_cent_coord  # int - for displaying
-            self.SB_info['act_ref_cent_coord_x'] = self.act_ref_cent_coord_x  # float - actual reference centroid positions, not whole pixels
-            self.SB_info['act_ref_cent_coord_y'] = self.act_ref_cent_coord_y  # float - actual reference centroid positions, not whole pixels
-            self.SB_info['act_SB_coord'] = self.act_SB_coord  # int - for displaying
+            if self.log:
 
-            self.info.emit(self.SB_info)
+                self.SB_info['pixel_size'] = self.pixel_size  # float
+                self.SB_info['sensor_width'] = self.sensor_width  # int after binning
+                self.SB_info['sensor_height'] = self.sensor_height  # int after binning
+                self.SB_info['SB_rad'] = self.SB_rad  # float
+                self.SB_info['SB_diam'] = self.SB_diam  # int
+                self.SB_info['SB_across_width'] = self.SB_across_width  # int
+                self.SB_info['SB_across_height'] = self.SB_across_height  # int
+                self.SB_info['act_ref_cent_num'] = self.act_ref_cent_num
+                self.SB_info['odd_pix'] = self.odd_pix  # flag for whether odd number of pixels in one search block
+                self.SB_info['act_ref_cent_coord'] = self.act_ref_cent_coord  # int - for displaying
+                self.SB_info['act_ref_cent_coord_x'] = self.act_ref_cent_coord_x  # float - actual reference centroid positions, not whole pixels
+                self.SB_info['act_ref_cent_coord_y'] = self.act_ref_cent_coord_y  # float - actual reference centroid positions, not whole pixels
+                self.SB_info['act_SB_coord'] = self.act_SB_coord  # int - for displaying
+
+                self.info.emit(self.SB_info)
+            else:
+
+                self.done.emit()
 
             # Finished setting up search block geometry
             self.done.emit()
@@ -256,3 +274,9 @@ class Setup_SB(QObject):
         except Exception as e:
             raise
             self.error.emit(e)
+
+    @Slot()
+    def stop(self):
+        self.register = False
+        self.calculate = False
+        self.log = False

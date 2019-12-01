@@ -13,15 +13,22 @@ class SpotSim():
         # Get sensor and search block parameters
         self.settings = settings
 
-    def SH_spot_sim(self):
+    def SH_spot_sim(self, centred = 1):
         """
         Integrates the same number and geometry of Gaussian profile S-H spots as search blocks into one image
         """
-        # Use actual search block reference centroid coords as upper left corner position for tiling of individual S-H spots
-        offset_coord = self.settings['act_ref_cent_coord']
-        offset_coord_x = self.settings['act_ref_cent_coord_x']
-        offset_coord_y = self.settings['act_ref_cent_coord_y']
-
+        if centred:
+            # Use actual search block reference centroid coords centre position for tiling of individual S-H spots
+            offset_coord = self.settings['act_ref_cent_coord'] - int(self.settings['SB_rad']) * \
+                self.settings['sensor_width'] - int(self.settings['SB_rad'])
+            offset_coord_x = self.settings['act_ref_cent_coord_x'] - self.settings['SB_rad']
+            offset_coord_y = self.settings['act_ref_cent_coord_y'] - self.settings['SB_rad']
+        else:
+            # Use actual search block reference centroid coords as upper left corner position for tiling of individual S-H spots
+            offset_coord = self.settings['act_ref_cent_coord']
+            offset_coord_x = self.settings['act_ref_cent_coord_x']
+            offset_coord_y = self.settings['act_ref_cent_coord_y']
+    
         # Initialise spot image array and S-H spot centre coords array
         self.SH_spot_img = np.zeros([self.settings['sensor_width'], self.settings['sensor_height']])
         self.spot_cent = np.zeros(len(offset_coord))

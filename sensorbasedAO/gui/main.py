@@ -29,7 +29,7 @@ class Main(QMainWindow):
         self.ui.initialiseBtn.clicked.connect(self.on_initialise)
         self.ui.centroidBtn.clicked.connect(self.on_centroid)
         self.ui.calibrateBtn.clicked.connect(self.on_calibrate)
-        # self.ui.stopBtn.clicked.connect(self.on_stop)
+        self.ui.stopBtn.clicked.connect(self.on_stop)
         self.ui.quitBtn.clicked.connect(self.on_quit)
 
     def update_image(self, image, flag):
@@ -83,9 +83,18 @@ class Main(QMainWindow):
         else:
             self.app.handle_calib_start()
             btn.setChecked(True)
+
+    def on_stop(self):
+        """
+        Stop threads and devices handler
+        """
+        self.app.stop()
             
     def on_quit(self):
-        self.close()
+        """
+        Quit application handler
+        """
+        self.app.quit()
 
 
         
