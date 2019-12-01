@@ -26,7 +26,8 @@ class SHViewer(QWidget):
         # Initialise image array and datatype
         self.sensor_width = config['camera']['sensor_width'] // config['camera']['bin_factor']
         self.sensor_height = config['camera']['sensor_height'] // config['camera']['bin_factor']
-        self.array_raw = Image(np.zeros(shape = (self.sensor_width, self.sensor_height)))
+        self.array_raw_img = Image(np.zeros(shape = (self.sensor_width, self.sensor_height)))
+        self.array_raw_SB = Image(np.zeros(shape = (self.sensor_width, self.sensor_height)))
         self.array = Image(np.zeros(shape = (self.sensor_width, self.sensor_height)))
         self.img_array = Image(np.zeros(shape = (self.sensor_width, self.sensor_height)))
         self.dtype = dtype
@@ -52,16 +53,25 @@ class SHViewer(QWidget):
     def set_image(self, array, flag = 0):
         """
         Conditions the image for display on S-H viewer
+
+        Args: 
+            array as numpy array
+            flag = 0 for search block layer display
+            flag = 1 for S-H spot image display
         """
         # Set raw data array
-        self.array_raw = array
+        if flag:
+            self.array_raw_img = array.copy()
+        else:
+            self.array_raw_SB = array.copy()
 
         # Update image display settings
         if flag:
             self.update()
-            self.img_array = self.array
+            self.img_array = self.array.copy()
+            self.array += self.array_raw_SB.copy()
         else:
-            self.array = self.img_array.copy() + self.array_raw.copy()
+            self.array = self.img_array.copy() + self.array_raw_SB.copy()
 
         # Display image on image viewer
         self.ui.graphicsView.setImage(array2qimage(self.array))
@@ -70,7 +80,7 @@ class SHViewer(QWidget):
         """
         Normalises and rescales image
         """
-        self.array = self.array_raw.copy()
+        self.array = self.array_raw_img.copy()
 
         # Get image display settings
         settings = self.get_settings()
