@@ -149,6 +149,8 @@ class Centroiding(QObject):
 
             # Calculate actual S-H spot centroids for each search block using a dynamic range
             if self.calculate:
+                
+                prev1 = time.perf_counter()
 
                 for i in range(len(self.act_ref_cent_coord)):
 
@@ -181,7 +183,21 @@ class Centroiding(QObject):
                                 2) Without thresholding and both doing 5 cycles, Method 2 is 2 times more effective for Gaussian, Method 1 is slightly 
                                     more effective for speckle, both are equally effective for Poisson.
                                 3) Method 2 is much more stable than Method 1 (error level using Method 1 sometimes double with the same parameters).
-                                4) Using Method 2, error is below 1 (0.87) for uniform noise below 7
+                                4) The size of each S-H spot affects centroiding accuracy, the smaller the spot (smaller sigma), the less accurate the
+                                    centroiding is with all other parameters the same.
+                                5) Using Method 2, without thresholding and doing 5 cycles, the average positioning error is around 0.5 for a 
+                                    uniform noise level of 7 and sigma of 4.                                    
+                                6) Using Method 2, without dynamic range and using thresholding value of 0.1, the average positioning error is around 
+                                    0.002 for a uniform noise level below 28 and sigma of 2 - 4, around 0.3 for a uniform noise level of 29 and sigma
+                                    of 4, and around 0.6 for a uniform noise level of 30 and sigma of 4. However, the average positioning error increases 
+                                    rapidly to 0.8 for a uniform noise level of 29 and sigma of 2, and 1.5 for a uniform noise level of 30 and sigma of 2.
+                                7) Using Method 2, without dynamic range and using thresholding value of 0.1, the positions (randomness) of each S-H spot 
+                                    WITHIN the search block does not affect centroiding accuracy, but being on the lines has substantial affect. Using 2 
+                                    cycles of dynamic range alleviates this affect greatly (to the same accuracy as when all spots are WITHIN the search
+                                    blocks). In this case, also using thresholding value of 0.1, the average positioning error is around 0.17 for a uniform
+                                    noise level of 30 and sigma of 4 when all spots are WITHIN the search blocks.                                
+                                8) With 180 spots, the time for one centroiding process is around 1.3 s for 1 cycle, 2.5 s for 2 cycles, and 5.5 s for 
+                                    5 cycles of dynamic range.                                 
                             """
                             # Method 1: Judge the position of S-H spot centroid relative to centre of search block and decrease dynamic range
                             # if self.act_cent_coord_x[i] > self.act_ref_cent_coord_x[i]:
@@ -232,6 +248,9 @@ class Centroiding(QObject):
                 # Calculate raw slopes in each dimension
                 self.slope_x = self.act_cent_coord_x - self.act_ref_cent_coord_x
                 self.slope_y = self.act_cent_coord_y - self.act_ref_cent_coord_y
+
+                prev2 = time.perf_counter()
+                print('Time for one centroiding process is:', (prev2 - prev1))
 
                 # print('Act_cent_coord_x:', self.act_cent_coord_x)
                 # print('Act_cent_coord_y:', self.act_cent_coord_y)

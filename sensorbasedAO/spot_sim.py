@@ -47,10 +47,12 @@ class SpotSim():
         for i in range(len(offset_coord)):
   
             # Generate random positions for centre of each S-H spot
-            # xc = random.randrange(-5, 6, 1)
-            # yc = random.randrange(-5, 6, 1)
-            xc = round(random.uniform(-5, 6), 1)
-            yc = round(random.uniform(-5, 6), 1)
+            # xc = random.randrange(-5, 5, 1)
+            # yc = random.randrange(-5, 5, 1)
+            # xc = round(random.uniform(-5, 5), 1)
+            # yc = round(random.uniform(-5, 5), 1)
+            xc = round(random.uniform(-10, 10), 1)
+            yc = round(random.uniform(-10, 10), 1)
             # xc = 0
             # yc = 0
 
