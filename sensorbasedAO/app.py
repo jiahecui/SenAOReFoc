@@ -251,7 +251,7 @@ class App(QApplication):
         """
         self.threads['pos_thread'].quit()
         self.threads['pos_thread'].wait()
-        self.main.ui.postionBtn.setChecked(False)
+        self.main.ui.positionBtn.setChecked(False)
 
     def handle_cent_start(self):
         """

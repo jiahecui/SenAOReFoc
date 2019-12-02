@@ -18,7 +18,7 @@ from spot_sim import SpotSim
 
 logger = log.get_logger(__name__)
 
-class Positioning(Qobject):
+class Positioning(QObject):
     """
     Positions search blocks either through keyboard argument or import from YAML file
     """
@@ -77,7 +77,6 @@ class Positioning(Qobject):
 
             # Acquire S-H spot image or use simulated Gaussian profile S-H spot image
             if self.acquire:
-
                 # Acquire image
                 # self._image = acq_image(self.sensor, self.sensor_width, self.sensor_height, acq_mode = 0)
                 spot_img = SpotSim(self.SB_settings)
@@ -88,13 +87,12 @@ class Positioning(Qobject):
                 self._image[self._image < 0] = 0
                 self.image.emit(self._image)
             else:
-
                 self.done.emit()
 
             # Ask user whether DM needs calibrating, if 'y' reposition search block using keyboard, if 'n' load search block position from YAML file
             if self.inquire:
 
-                click.echo('Need to calibrate DM? [y/n]', nl = False)
+                click.echo('Need to calibrate DM? [y/n]\n', nl = False)
                 c = click.getchar()
 
                 while True:
@@ -118,7 +116,7 @@ class Positioning(Qobject):
             if self.move:
 
                 # Get input from keyboard to reposition search block
-                click.echo('Press arrow keys to centre S-H spots in search blocks. Press Enter to finish.', nl = False)
+                click.echo('Press arrow keys to centre S-H spots in search blocks. Press Enter to finish.\n', nl = False)
                 c = click.getchar()
 
                 # Update act_ref_cent_coord according to keyboard input
@@ -140,6 +138,7 @@ class Positioning(Qobject):
                         self.SB_settings['act_SB_coord'] += 1
                         self.SB_settings['act_ref_cent_coord_x'] += 1
                     else:
+                        click.echo('Position confirmed.')
                         break
 
                     # Display actual search blocks as they move
@@ -159,18 +158,11 @@ class Positioning(Qobject):
             # if self.load:
 
             """
-            Returns position information into self.pos_info if search block repositioned using keyboard
+            Returns position information if search block repositioned using keyboard
             """ 
-            if self.move and self.log:
-
-                self.pos_info['act_ref_cent_coord_x'] = self.act_ref_cent_coord_x
-                self.pos_info['act_ref_cent_coord_y'] = self.act_ref_cent_coord_y
-                self.pos_info['act_ref_cent_coord'] = self.act_ref_cent_coord
-                self.pos_info['act_SB_coord'] = self.act_SB_coord
-
-                self.info.emit(self.pos_info)
+            if self.log and self.move:
+                self.info.emit(self.SB_settings)
             else:
-
                 self.done.emit()
 
             # Finished positioning search blocks

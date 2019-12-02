@@ -24,6 +24,7 @@ class Calibration(QObject):
     done = Signal()
     error = Signal(object)
     image = Signal(object)
+    cent = Signal(object)
     info = Signal(object)
 
     def __init__(self, sensor, mirror, settings):
@@ -145,7 +146,7 @@ class Calibration(QObject):
             self.mirror.Reset()
 
             # Calculate centroids for each image in data list
-
+            self.cent.emit(self.data)
 
             print('Influence function is:', self.inf_matrix_slopes)
 
@@ -154,6 +155,7 @@ class Calibration(QObject):
             """ 
             if self.log:
 
+                self.mirror_info['calib_spots'] = self.data
                 self.mirror_info['inf_matrix_slopes'] = self.inf_matrix_slopes
 
                 self.info.emit(self.mirror_info)
