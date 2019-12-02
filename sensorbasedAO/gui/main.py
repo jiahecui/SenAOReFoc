@@ -27,6 +27,7 @@ class Main(QMainWindow):
 
         # Main handlers
         self.ui.initialiseBtn.clicked.connect(self.on_initialise)
+        self.ui.positionBtn.clicked.connect(self.on_position)
         self.ui.centroidBtn.clicked.connect(self.on_centroid)
         self.ui.calibrateBtn.clicked.connect(self.on_calibrate)
         self.ui.stopBtn.clicked.connect(self.on_stop)
@@ -47,7 +48,7 @@ class Main(QMainWindow):
     #========== GUI event handlers ==========#
     def on_initialise(self, checked):
         """
-        Search block initialisation button handler
+        Search block initialisation handler
         """
         btn = self.sender()
 
@@ -56,6 +57,19 @@ class Main(QMainWindow):
             btn.setChecked(False)
         else:
             self.app.setup_SB()
+            btn.setChecked(True)
+
+    def on_position(self, checked):
+        """
+        Search block positioning handler
+        """
+        btn = self.sender()
+
+        # Start positioning search blocks if pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            self.app.handle_pos_start()
             btn.setChecked(True)
 
     def on_centroid(self, checked):
@@ -86,13 +100,13 @@ class Main(QMainWindow):
 
     def on_stop(self):
         """
-        Stop threads and devices handler
+        Stop threads and devices
         """
         self.app.stop()
             
     def on_quit(self):
         """
-        Quit application handler
+        Quit application
         """
         self.app.quit()
 

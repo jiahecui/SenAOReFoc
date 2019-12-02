@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Mon Nov 25 15:56:48 2019
+# Created: Mon Dec  2 01:15:17 2019
 #      by: pyside2-uic  running on PySide2 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -48,6 +48,24 @@ class Ui_MainWindow(object):
         self.initialiseBtn.setCheckable(True)
         self.initialiseBtn.setObjectName("initialiseBtn")
         self.horizontalLayout_1.addWidget(self.initialiseBtn)
+        self.positionBtn = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.positionBtn.sizePolicy().hasHeightForWidth())
+        self.positionBtn.setSizePolicy(sizePolicy)
+        self.positionBtn.setMinimumSize(QtCore.QSize(150, 50))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        font.setWeight(75)
+        font.setBold(True)
+        self.positionBtn.setFont(font)
+        self.positionBtn.setCheckable(True)
+        self.positionBtn.setObjectName("positionBtn")
+        self.horizontalLayout_1.addWidget(self.positionBtn)
+        self.mainContentLayout.addLayout(self.horizontalLayout_1)
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.centroidBtn = QtWidgets.QPushButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -62,10 +80,7 @@ class Ui_MainWindow(object):
         self.centroidBtn.setFont(font)
         self.centroidBtn.setCheckable(True)
         self.centroidBtn.setObjectName("centroidBtn")
-        self.horizontalLayout_1.addWidget(self.centroidBtn)
-        self.mainContentLayout.addLayout(self.horizontalLayout_1)
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.horizontalLayout_2.addWidget(self.centroidBtn)
         self.calibrateBtn = QtWidgets.QPushButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -134,6 +149,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QtWidgets.QApplication.translate("MainWindow", "SensorbasedAO", None, -1))
         self.initialiseBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Initialise", None, -1))
+        self.positionBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Position SB", None, -1))
         self.centroidBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Centroid", None, -1))
         self.calibrateBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Calibrate", None, -1))
         self.stopBtn.setText(QtWidgets.QApplication.translate("MainWindow", "STOP", None, -1))

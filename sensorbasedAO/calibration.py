@@ -37,6 +37,9 @@ class Calibration(QObject):
         # Get mirror instance
         self.mirror = mirror
 
+        # Initialise list for storing S-H spot images
+        self.data = []
+
         # Initialise deformable mirror information parameter
         self.mirror_info = {}
 
@@ -45,7 +48,7 @@ class Calibration(QObject):
         
         super().__init__()
 
-    def calib_centroid(self):
+    def calib_centroid(self, data):
 
         return slope_x, slope_y
 
@@ -92,6 +95,9 @@ class Calibration(QObject):
                     image_max[image_max < 0] = 0
                     self.image.emit(image_max)
 
+                    # Append image to list
+                    self.data.append(image_max)
+
                     # Calculate S-H spot centroid coordinates to get slopes
                     # slope_x_max, slope_y_max = calib_centroid()
 
@@ -113,6 +119,9 @@ class Calibration(QObject):
                     image_min = image_min - config['image']['threshold'] * np.amax(image_min)
                     image_min[image_min < 0] = 0
                     self.image.emit(image_min)
+
+                    # Append image to list
+                    self.data.append(image_min)
                     
                     # Calculate S-H spot centroid coordinates to get slopes
                     # slope_x_min, slope_y_min = calib_centroid()
@@ -130,10 +139,13 @@ class Calibration(QObject):
                     self.done.emit()
 
             prev2 = time.perf_counter()
-            print('Time for calibration process is:', (prev2 - prev1))
+            print('Time for image acquisition process is:', (prev2 - prev1))
 
             # Reset mirror
             self.mirror.Reset()
+
+            # Calculate centroids for each image in data list
+
 
             print('Influence function is:', self.inf_matrix_slopes)
 

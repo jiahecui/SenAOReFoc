@@ -23,6 +23,7 @@ from sensor import SENSOR
 from mirror import MIRROR
 from gui.main import Main
 from SB_geometry import Setup_SB
+from SB_position import Positioning
 from centroiding import Centroiding
 from calibration import Calibration
 
@@ -131,6 +132,31 @@ class App(QApplication):
         # Start SB thread
         SB_thread.start()
 
+    def position_SB(self, sensor, SB_info):
+        """
+        Position search blocks to appropriate position
+        """
+        # Create positioning worker and thread
+        pos_thread = QThread()
+        pos_thread.setObjectName('pos_thread')
+        pos_worker = Positioning(sensor, SB_info)
+        pos_worker.moveToThread(pos_thread)
+
+        # Connect to signals
+        pos_thread.started.connect(pos_worker.run)
+        pos_worker.layer.connect(lambda obj: self.handle_layer_disp(obj))
+        pos_worker.image.connect(lambda obj: self.handle_image_disp(obj))
+        pos_worker.info.connect(lambda obj: self.handle_SB_info(obj))
+        pos_worker.error.connect(lambda obj: self.handle_error(obj))
+        pos_worker.done.connect(self.handle_pos_done)
+
+        # Store positioning worker and thread
+        self.workers['pos_worker'] = pos_worker
+        self.threads['pos_thread'] = pos_thread
+
+        # Start positioning thread
+        pos_thread.start()
+
     def get_centroids(self, sensor, SB_info):
         """
         Get actual centroids of S-H spots
@@ -212,6 +238,20 @@ class App(QApplication):
         self.threads['SB_thread'].quit()
         self.threads['SB_thread'].wait()
         self.main.ui.initialiseBtn.setChecked(False)
+
+    def handle_pos_start(self):
+        """
+        Handle start of search block posiioning
+        """
+        self.position_SB(self.devices['sensor'], self.SB_info)
+
+    def handle_pos_done(self):
+        """
+        Handle end of search block posiioning
+        """
+        self.threads['pos_thread'].quit()
+        self.threads['pos_thread'].wait()
+        self.main.ui.postionBtn.setChecked(False)
 
     def handle_cent_start(self):
         """
