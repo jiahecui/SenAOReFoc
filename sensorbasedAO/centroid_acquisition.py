@@ -35,6 +35,7 @@ def acq_centroid(settings, spot_cent_x, spot_cent_y, data = None):
 
     # Initialise list for storing S-H spot centroid information for all images in data
     act_cent_coord_list, act_cent_coord_x_list, act_cent_coord_y_list, slope_x_list, slope_y_list = ([] for i in range(5))
+
     prev1 = time.perf_counter()
 
     # Calculate actual S-H spot centroids for each search block using a dynamic range
@@ -129,8 +130,8 @@ def acq_centroid(settings, spot_cent_x, spot_cent_y, data = None):
 
         # Calculate average centroid error 
         error_temp = 0
-        error_x = act_cent_coord_x - spot_cent_x
-        error_y = act_cent_coord_y - spot_cent_y
+        error_x = act_cent_coord_x - spot_cent_x[l]
+        error_y = act_cent_coord_y - spot_cent_y[l]
         for i in range(len(error_x)):
             error_temp += np.sqrt(error_x[i] ** 2 + error_y[i] ** 2)
         error_tot = error_temp / len(error_x)
@@ -138,6 +139,7 @@ def acq_centroid(settings, spot_cent_x, spot_cent_y, data = None):
         # Calculate raw slopes in each dimension
         slope_x = act_cent_coord_x - act_ref_cent_coord_x
         slope_y = act_cent_coord_y - act_ref_cent_coord_y
+
         # Append relevent parameters to list
         act_cent_coord_list.append(act_cent_coord)
         act_cent_coord_x_list.append(act_cent_coord_x)
@@ -150,11 +152,11 @@ def acq_centroid(settings, spot_cent_x, spot_cent_y, data = None):
         # print('Act_cent_coord:', act_cent_coord)
         # print('Error along x axis:', error_x)
         # print('Error along y axis:', error_y)
-        print('Average position error:', error_tot)
+        # print('Average position error {}: {}'.format(l + 1, error_tot))
         # print('Slope along x axis:', slope_x)
         # print('Slope along y axis:', slope_y)
 
     prev2 = time.perf_counter()
-    print('Time for one centroiding process is:', (prev2 - prev1))
+    print('Time for centroid calculation process is:', (prev2 - prev1))
 
     return act_cent_coord_list, act_cent_coord_x_list, act_cent_coord_y_list, slope_x_list, slope_y_list

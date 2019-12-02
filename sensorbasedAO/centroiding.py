@@ -49,8 +49,8 @@ class Centroiding(QObject):
         self.SB_diam = self.SB_settings['SB_diam']
         self.SB_rad = self.SB_settings['SB_rad']
 
-        # Initialise data list to pass into centroid_acquisition.py
-        self.data = []
+        # Initialise data lists to pass into centroid_acquisition.py
+        self.data, self.cent_x, self.cent_y = ([] for i in range(3))
 
         # Initialise actual S-H spot centroid coords array
         self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y = (np.zeros(self.SB_settings['act_ref_cent_num']) for i in range(3))
@@ -64,7 +64,7 @@ class Centroiding(QObject):
     def run(self):
         try:
             # Set process flags
-            self.calculate = True
+            self.calc_cent = True
             self.log = True
 
             # Start thread
@@ -89,23 +89,23 @@ class Centroiding(QObject):
             self._image[self._image < 0] = 0
             self.image.emit(self._image)
             
-            # Append image to data list
+            # Append data to data list
             self.data.append(self._image)
+            self.cent_x.append(self.spot_cent_x)
+            self.cent_y.append(self.spot_cent_y)
 
             # Calculate centroids for S-H spots
-            if self.calculate:
-        
+            if self.calc_cent:
+                
                 # Acquire centroid information
                 self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y, self.slope_x, self.slope_y = \
-                    acq_centroid(self.SB_settings, self.spot_cent_x, self.spot_cent_y, self.data)
+                    acq_centroid(self.SB_settings, self.cent_x, self.cent_y, self.data)
                 self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y, self.slope_x, self.slope_y = \
                     map(np.asarray, [self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y, self.slope_x, self.slope_y])
-                try:
-                    # Draw actual S-H spot centroids on image layer
-                    self._image.ravel()[self.act_cent_coord.astype(int)] = 0
-                    self.image.emit(self._image)
-                except Exception as e:
-                    print(e)
+
+                # Draw actual S-H spot centroids on image layer
+                self._image.ravel()[self.act_cent_coord.astype(int)] = 0
+                self.image.emit(self._image)
             else:
 
                 self.done.emit()
@@ -135,7 +135,7 @@ class Centroiding(QObject):
 
     @Slot()
     def stop(self):
-        self.calculate = False
+        self.calc_cent = False
         self.log = False
 
 

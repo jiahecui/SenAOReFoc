@@ -12,6 +12,7 @@ import numpy as np
 import log
 from config import config
 from image_acquisition import acq_image
+from centroid_acquisition import acq_centroid
 from spot_sim import SpotSim
 
 logger = log.get_logger(__name__)
@@ -38,8 +39,8 @@ class Calibration(QObject):
         # Get mirror instance
         self.mirror = mirror
 
-        # Initialise list for storing S-H spot images
-        self.data = []
+        # Initialise data lists to pass into centroid_acquisition.py
+        self.data, self.cent_x, self.cent_y = ([] for i in range(3))
 
         # Initialise deformable mirror information parameter
         self.mirror_info = {}
@@ -49,15 +50,13 @@ class Calibration(QObject):
         
         super().__init__()
 
-    def calib_centroid(self, data):
-
-        return slope_x, slope_y
-
     @Slot(object)
     def run(self):
         try:
             # Set process flags
             self.calibrate = True
+            self.calc_cent = True
+            self.calc_inf = True
             self.log = True
 
             # Start thread
@@ -73,6 +72,7 @@ class Calibration(QObject):
             
             prev1 = time.perf_counter()
 
+            print('Actuator calibration process started...')
             for i in range(config['DM']['actuator_num']):
 
                 if self.calibrate:
@@ -98,9 +98,8 @@ class Calibration(QObject):
 
                     # Append image to list
                     self.data.append(image_max)
-
-                    # Calculate S-H spot centroid coordinates to get slopes
-                    # slope_x_max, slope_y_max = calib_centroid()
+                    self.cent_x.append(self.spot_cent_x)
+                    self.cent_y.append(self.spot_cent_y)
 
                     # Apply lowest voltage
                     voltages[i] = config['DM']['vol_min']
@@ -123,31 +122,51 @@ class Calibration(QObject):
 
                     # Append image to list
                     self.data.append(image_min)
-                    
-                    # Calculate S-H spot centroid coordinates to get slopes
-                    # slope_x_min, slope_y_min = calib_centroid()
+                    self.cent_x.append(self.spot_cent_x)
+                    self.cent_y.append(self.spot_cent_y)
 
                     # Set actuator back to bias voltage
                     voltages[i] = config['DM']['vol_bias']
-
-                    # Fill influence function matrix with acquired slopes
-                    # self.inf_matrix_slopes[:self.SB_settings['act_ref_cent_num'] - 1, i] = \
-                    #     (slope_x_max - slope_x_min) / (config['DM']['vol_max'] - config['DM']['vol_min'])
-                    # self.inf_matrix_slopes[self.SB_settings['act_ref_cent_num']:, i] = \
-                    #     (slope_y_max - slope_y_min) / (config['DM']['vol_max'] - config['DM']['vol_min'])
                 else:
 
                     self.done.emit()
+            print('Actuator calibration process finished...')
 
             prev2 = time.perf_counter()
-            print('Time for image acquisition process is:', (prev2 - prev1))
+            print('Time for calibration image acquisition process is:', (prev2 - prev1))
 
             # Reset mirror
             self.mirror.Reset()
 
-            # Calculate centroids for each image in data list
-            self.cent.emit(self.data)
+            # Calculate S-H spot centroids for each image in data list to get slopes
+            if self.calc_cent:
 
+                print('Centroid calculation process started...')
+                self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y, self.slope_x, self.slope_y = \
+                    acq_centroid(self.SB_settings, self.cent_x, self.cent_y, self.data)
+                print('Centroid calculation process finished...')
+            else:
+
+                self.done.emit()
+
+            # Fill influence function matrix with acquired slopes
+            if self.calc_inf:
+                
+                print('Influence function calculation process started...')
+                for i in range(config['DM']['actuator_num']):
+
+                    self.inf_matrix_slopes[:self.SB_settings['act_ref_cent_num'], i] = \
+                        (self.slope_x[2 * i] - self.slope_x[2 * i + 1]) / (config['DM']['vol_max'] - config['DM']['vol_min'])
+                    self.inf_matrix_slopes[self.SB_settings['act_ref_cent_num']:, i] = \
+                        (self.slope_y[2 * i] - self.slope_y[2 * i + 1]) / (config['DM']['vol_max'] - config['DM']['vol_min'])
+                print('Influence function calculation process finished...')  
+            else:
+
+                self.done.emit()
+
+            prev3 = time.perf_counter()
+            print('Time for entire calibration process is:', (prev3 - prev1))
+            
             print('Influence function is:', self.inf_matrix_slopes)
 
             """
@@ -173,4 +192,6 @@ class Calibration(QObject):
     @Slot(object)
     def stop(self):
         self.calibrate = False
+        self.calc_cent = False
+        self.calc_inf = False
         self.log = False
