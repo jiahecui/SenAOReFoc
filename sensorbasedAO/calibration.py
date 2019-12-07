@@ -72,10 +72,11 @@ class Calibration(QObject):
             
             prev1 = time.perf_counter()
 
-            print('Actuator calibration process started...')
             for i in range(config['DM']['actuator_num']):
 
                 if self.calibrate:
+
+                    # print('On actuator', i)
 
                     # Apply highest voltage
                     voltages[i] = config['DM']['vol_max']
@@ -130,7 +131,6 @@ class Calibration(QObject):
                 else:
 
                     self.done.emit()
-            print('Actuator calibration process finished...')
 
             prev2 = time.perf_counter()
             print('Time for calibration image acquisition process is:', (prev2 - prev1))
@@ -142,9 +142,10 @@ class Calibration(QObject):
             if self.calc_cent:
 
                 print('Centroid calculation process started...')
+                # self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y, self.slope_x, self.slope_y = \
+                #     acq_centroid(self.SB_settings, self.data)
                 self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y, self.slope_x, self.slope_y = \
                     acq_centroid(self.SB_settings, self.cent_x, self.cent_y, self.data)
-                print('Centroid calculation process finished...')
             else:
 
                 self.done.emit()
@@ -152,22 +153,32 @@ class Calibration(QObject):
             # Fill influence function matrix with acquired slopes
             if self.calc_inf:
                 
-                print('Influence function calculation process started...')
                 for i in range(config['DM']['actuator_num']):
 
                     self.inf_matrix_slopes[:self.SB_settings['act_ref_cent_num'], i] = \
                         (self.slope_x[2 * i] - self.slope_x[2 * i + 1]) / (config['DM']['vol_max'] - config['DM']['vol_min'])
                     self.inf_matrix_slopes[self.SB_settings['act_ref_cent_num']:, i] = \
-                        (self.slope_y[2 * i] - self.slope_y[2 * i + 1]) / (config['DM']['vol_max'] - config['DM']['vol_min'])
-                print('Influence function calculation process finished...')  
+                        (self.slope_y[2 * i] - self.slope_y[2 * i + 1]) / (config['DM']['vol_max'] - config['DM']['vol_min'])             
+
+                # print('Influence function is:', self.inf_matrix_slopes)
+
+                # Calculate singular value decomposition of influence function matrix
+                u, s, vh = np.linalg.svd(self.inf_matrix_slopes, full_matrices = False)
+
+                print('u: {}, s: {}, vh: {}'.format(u, s, vh))
+                print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
+
+                # Calculate pseudo inverse of influence function matrix to get final control matrix
+                self.control_matrix = np.linalg.pinv(self.inf_matrix_slopes)
+
+                print('Control matrix is:', self.control_matrix)
+                print('Shape of control matrix is:', np.shape(self.control_matrix))
             else:
 
                 self.done.emit()
 
             prev3 = time.perf_counter()
-            print('Time for entire calibration process is:', (prev3 - prev1))
-            
-            print('Influence function is:', self.inf_matrix_slopes)
+            print('Time for entire calibration process is:', (prev3 - prev1))      
 
             """
             Returns deformable mirror calibration information into self.mirror_info
@@ -176,6 +187,7 @@ class Calibration(QObject):
 
                 self.mirror_info['calib_spots'] = self.data
                 self.mirror_info['inf_matrix_slopes'] = self.inf_matrix_slopes
+                self.mirror_info['control_matrix'] = self.control_matrix
 
                 self.info.emit(self.mirror_info)
             else:

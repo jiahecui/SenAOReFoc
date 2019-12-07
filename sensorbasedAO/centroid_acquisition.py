@@ -9,6 +9,7 @@ from config import config
 
 logger = log.get_logger(__name__)
 
+# def acq_centroid(settings, data = None):
 def acq_centroid(settings, spot_cent_x, spot_cent_y, data = None):
     """
     Calculates S-H spot centroids for each image in data list
