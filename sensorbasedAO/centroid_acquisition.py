@@ -158,6 +158,6 @@ def acq_centroid(settings, spot_cent_x, spot_cent_y, data = None):
         # print('Slope along y axis:', slope_y)
 
     prev2 = time.perf_counter()
-    print('Time for centroid calculation process is:', (prev2 - prev1))
+    # print('Time for centroid calculation process is:', (prev2 - prev1))
 
     return act_cent_coord_list, act_cent_coord_x_list, act_cent_coord_y_list, slope_x_list, slope_y_list

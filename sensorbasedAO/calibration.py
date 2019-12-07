@@ -19,7 +19,7 @@ logger = log.get_logger(__name__)
 
 class Calibration(QObject):
     """
-    Calibrates deformable mirror and retrieves influence function
+    Calibrates deformable mirror and retrieves influence function + control matrix
     """
     start = Signal()
     done = Signal()
@@ -72,6 +72,7 @@ class Calibration(QObject):
             
             prev1 = time.perf_counter()
 
+            print('DM calibration process started...')
             for i in range(config['DM']['actuator_num']):
 
                 if self.calibrate:
@@ -133,7 +134,7 @@ class Calibration(QObject):
                     self.done.emit()
 
             prev2 = time.perf_counter()
-            print('Time for calibration image acquisition process is:', (prev2 - prev1))
+            # print('Time for calibration image acquisition process is:', (prev2 - prev1))
 
             # Reset mirror
             self.mirror.Reset()
@@ -146,6 +147,7 @@ class Calibration(QObject):
                 #     acq_centroid(self.SB_settings, self.data)
                 self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y, self.slope_x, self.slope_y = \
                     acq_centroid(self.SB_settings, self.cent_x, self.cent_y, self.data)
+                print('Centroid calculation process finished.')
             else:
 
                 self.done.emit()
@@ -165,14 +167,15 @@ class Calibration(QObject):
                 # Calculate singular value decomposition of influence function matrix
                 u, s, vh = np.linalg.svd(self.inf_matrix_slopes, full_matrices = False)
 
-                print('u: {}, s: {}, vh: {}'.format(u, s, vh))
-                print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
+                # print('u: {}, s: {}, vh: {}'.format(u, s, vh))
+                # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
 
                 # Calculate pseudo inverse of influence function matrix to get final control matrix
-                self.control_matrix = np.linalg.pinv(self.inf_matrix_slopes)
+                self.control_matrix_slopes = np.linalg.pinv(self.inf_matrix_slopes)
 
-                print('Control matrix is:', self.control_matrix)
-                print('Shape of control matrix is:', np.shape(self.control_matrix))
+                print('DM calibration process finished.')
+                # print('Control matrix is:', self.control_matrix_slopes)
+                # print('Shape of control matrix is:', np.shape(self.control_matrix_slopes))
             else:
 
                 self.done.emit()
@@ -186,8 +189,11 @@ class Calibration(QObject):
             if self.log:
 
                 self.mirror_info['calib_spots'] = self.data
+                self.mirror_info['calib_slope_x'] = self.slope_x
+                self.mirror_info['calib_slope_y'] = self.slope_y
+                self.mirror_info['inf_matrix_slopes_SV'] = s
                 self.mirror_info['inf_matrix_slopes'] = self.inf_matrix_slopes
-                self.mirror_info['control_matrix'] = self.control_matrix
+                self.mirror_info['control_matrix_slopes'] = self.control_matrix_slopes
 
                 self.info.emit(self.mirror_info)
             else:

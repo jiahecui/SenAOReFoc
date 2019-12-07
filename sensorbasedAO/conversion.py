@@ -84,8 +84,8 @@ class Conversion(QObject):
                     self.norm_ref_cent_coord_x = (self.act_ref_cent_coord_x - (self.sensor_width // 2 - self.SB_rad)) * self.rescale
                     self.norm_ref_cent_coord_y = (self.act_ref_cent_coord_y - (self.sensor_width // 2 - self.SB_rad)) * self.rescale              
 
-                print('Norm_ref_cent_coord_x:', self.norm_ref_cent_coord_x)
-                print('Norm_ref_cent_coord_y:', self.norm_ref_cent_coord_y)
+                # print('Norm_ref_cent_coord_x:', self.norm_ref_cent_coord_x)
+                # print('Norm_ref_cent_coord_y:', self.norm_ref_cent_coord_y)
             else:
 
                 self.done.emit()
@@ -95,7 +95,7 @@ class Conversion(QObject):
             """
             if self.calculate:
 
-                print('Retrieving conversion matrix...')
+                print('Retrieving slope - zernike conversion matrix...')
                 for i in range(self.SB_settings['act_ref_cent_num']):
 
                     # Get reference centroid coords of each element
@@ -122,6 +122,7 @@ class Conversion(QObject):
                 # Calculate pseudo inverse of zernike derivative matrix to get final conversion matrix
                 self.conv_matrix = np.linalg.pinv(self.conv_matrix, rcond = 1e-6)
 
+                print('Slope - zernike conversion matrix retrieved.')
                 # print('Conversion matrix is:', self.conv_matrix)
                 # print('Shape of conversion matrix is:', np.shape(self.conv_matrix))
             else:

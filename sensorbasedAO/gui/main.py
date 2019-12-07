@@ -105,7 +105,7 @@ class Main(QMainWindow):
         Slope - Zernike conversion matrix generating button handler
         """
         btn = self.sender()
-        
+
         # Generate slope - zernike conversion matrix if pressed
         if not btn.isChecked():
             btn.setChecked(False)
@@ -119,7 +119,12 @@ class Main(QMainWindow):
         """
         btn = self.sender()
 
-        
+        # Generate control matrix via Zernikes if pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            self.app.handle_calib2_start()
+            btn.setChecked(True)        
 
     def on_stop(self):
         """

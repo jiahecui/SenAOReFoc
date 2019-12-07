@@ -27,6 +27,7 @@ from SB_position import Positioning
 from centroiding import Centroiding
 from calibration import Calibration
 from conversion import Conversion
+from calibration_zern import Calibration_Zern
 
 logger = log.get_logger(__name__)
 
@@ -185,7 +186,7 @@ class App(QApplication):
 
     def calibrate_DM(self, sensor, mirror, SB_info):
         """
-        Calibrate deformable mirror
+        Calibrate deformable mirror and get control matrix via slopes
         """
         # Create calibration worker and thread
         calib_thread = QThread()
@@ -229,6 +230,29 @@ class App(QApplication):
 
         # Start conversion thread
         conv_thread.start()
+
+    def calibrate_DM_zern(self, SB_info, mirror_info):
+        """
+        Get deformable mirror control matrix via zernikes
+        """
+        # Create calibration worker and thread
+        calib2_thread = QThread()
+        calib2_thread.setObjectName('calib2_thread')
+        calib2_worker = Calibration_Zern(SB_info, mirror_info)
+        calib2_worker.moveToThread(calib2_thread)
+
+        # Connect to signals
+        calib2_thread.started.connect(calib2_worker.run)
+        calib2_worker.info.connect(lambda obj: self.handle_mirror_info(obj))
+        calib2_worker.error.connect(lambda obj: self.handle_error(obj))
+        calib2_worker.done.connect(self.handle_calib2_done)
+
+        # Store calibration worker and thread
+        self.workers['calib2_worker'] = calib2_worker
+        self.threads['calib2_thread'] = calib2_thread
+
+        # Start calibration thread
+        calib2_thread.start()
 
     #========== Signal handlers ==========#
     def handle_layer_disp(self, obj):
@@ -324,6 +348,20 @@ class App(QApplication):
         self.threads['conv_thread'].quit()
         self.threads['conv_thread'].wait()
         self.main.ui.conversionBtn.setChecked(False)
+
+    def handle_calib2_start(self):
+        """
+        Handle start of deformable mirror calibration via zernikes
+        """
+        self.calibrate_DM_zern(self.SB_info, self.mirror_info)
+
+    def handle_calib2_done(self):
+        """
+        Handle end of deformable mirror calibration via zernikes
+        """
+        self.threads['calib2_thread'].quit()
+        self.threads['calib2_thread'].wait()
+        self.main.ui.calibrateBtn_2.setChecked(False)
 
     def stop(self):
         """
