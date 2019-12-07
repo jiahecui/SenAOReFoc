@@ -135,6 +135,7 @@ class Conversion(QObject):
 
                 self.conv_info['norm_ref_cent_coord_x'] = self.norm_ref_cent_coord_x
                 self.conv_info['norm_ref_cent_coord_y'] = self.norm_ref_cent_coord_y
+                self.conv_info['conv_matrix_SV'] = s
                 self.conv_info['conv_matrix'] = self.conv_matrix
 
                 self.info.emit(self.conv_info)

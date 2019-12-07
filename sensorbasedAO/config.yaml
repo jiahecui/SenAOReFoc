@@ -32,7 +32,7 @@ camera:
   
 DM:
   SN: "HSDM69-15-014"
-  actuator_num: 69
+  actuator_num: 3
   vol_min: -1  # V
   vol_max: 1
   vol_bias: 0
@@ -40,9 +40,9 @@ DM:
   settling_time: 0.1
 
 search_block:
-  div_elem: 4  # Number of elements in each dimension
+  div_elem: 5  # Number of elements in each dimension of a search block
   outline_int: 255  # uint8
-  pupil_diam: 7.5  # mm
+  pupil_diam: 7.7  # mm
 
 image:
   noise: 30

@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Mon Dec  2 01:15:17 2019
+# Created: Sat Dec  7 09:57:30 2019
 #      by: pyside2-uic  running on PySide2 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -97,6 +97,39 @@ class Ui_MainWindow(object):
         self.calibrateBtn.setObjectName("calibrateBtn")
         self.horizontalLayout_2.addWidget(self.calibrateBtn)
         self.mainContentLayout.addLayout(self.horizontalLayout_2)
+        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
+        self.conversionBtn = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.conversionBtn.sizePolicy().hasHeightForWidth())
+        self.conversionBtn.setSizePolicy(sizePolicy)
+        self.conversionBtn.setMinimumSize(QtCore.QSize(150, 50))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        font.setWeight(75)
+        font.setBold(True)
+        self.conversionBtn.setFont(font)
+        self.conversionBtn.setCheckable(True)
+        self.conversionBtn.setObjectName("conversionBtn")
+        self.horizontalLayout_3.addWidget(self.conversionBtn)
+        self.calibrateBtn_2 = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.calibrateBtn_2.sizePolicy().hasHeightForWidth())
+        self.calibrateBtn_2.setSizePolicy(sizePolicy)
+        self.calibrateBtn_2.setMinimumSize(QtCore.QSize(150, 50))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        font.setWeight(75)
+        font.setBold(True)
+        self.calibrateBtn_2.setFont(font)
+        self.calibrateBtn_2.setCheckable(True)
+        self.calibrateBtn_2.setObjectName("calibrateBtn_2")
+        self.horizontalLayout_3.addWidget(self.calibrateBtn_2)
+        self.mainContentLayout.addLayout(self.horizontalLayout_3)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.mainContentLayout.addItem(spacerItem)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
@@ -151,7 +184,9 @@ class Ui_MainWindow(object):
         self.initialiseBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Initialise", None, -1))
         self.positionBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Position SB", None, -1))
         self.centroidBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Centroid", None, -1))
-        self.calibrateBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Calibrate", None, -1))
+        self.calibrateBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Calibrate - Slopes", None, -1))
+        self.conversionBtn.setText(QtWidgets.QApplication.translate("MainWindow", "S-Z Conversion Matrix", None, -1))
+        self.calibrateBtn_2.setText(QtWidgets.QApplication.translate("MainWindow", "Calibrate - Zernikes", None, -1))
         self.stopBtn.setText(QtWidgets.QApplication.translate("MainWindow", "STOP", None, -1))
         self.quitBtn.setText(QtWidgets.QApplication.translate("MainWindow", "QUIT", None, -1))
 

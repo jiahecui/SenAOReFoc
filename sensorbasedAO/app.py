@@ -26,6 +26,7 @@ from SB_geometry import Setup_SB
 from SB_position import Positioning
 from centroiding import Centroiding
 from calibration import Calibration
+from conversion import Conversion
 
 logger = log.get_logger(__name__)
 
@@ -206,6 +207,29 @@ class App(QApplication):
         # Start calibration thread
         calib_thread.start()
 
+    def get_conv_matrix(self, SB_info):
+        """
+        Generate slope - zernike conversion matrix
+        """
+        # Create conversion worker and thread
+        conv_thread = QThread()
+        conv_thread.setObjectName('conv_thread')
+        conv_worker = Conversion(SB_info)
+        conv_worker.moveToThread(conv_thread)
+
+        # Connect to signals
+        conv_thread.started.connect(conv_worker.run)
+        conv_worker.info.connect(lambda obj: self.handle_mirror_info(obj))
+        conv_worker.error.connect(lambda obj: self.handle_error(obj))
+        conv_worker.done.connect(self.handle_conv_done)
+
+        # Store conversion worker and thread
+        self.workers['conv_worker'] = conv_worker
+        self.threads['conv_thread'] = conv_thread
+
+        # Start conversion thread
+        conv_thread.start()
+
     #========== Signal handlers ==========#
     def handle_layer_disp(self, obj):
         """
@@ -287,6 +311,20 @@ class App(QApplication):
         self.threads['calib_thread'].wait()
         self.main.ui.calibrateBtn.setChecked(False)
 
+    def handle_conv_matrix(self):
+        """
+        Handle slope - zernike conversion matrix generation
+        """
+        self.get_conv_matrix(self.SB_info)
+
+    def handle_conv_done(self):
+        """
+        Handle end of slope - zernike conversion matrix generation
+        """
+        self.threads['conv_thread'].quit()
+        self.threads['conv_thread'].wait()
+        self.main.ui.conversionBtn.setChecked(False)
+
     def stop(self):
         """
         Stop all workers, threads, and devices
@@ -300,17 +338,17 @@ class App(QApplication):
             self.threads[thread].wait()
 
         # Stop and reset mirror instance
-        try:
-           self.devices['mirror'].Stop()
-           self.devices['mirror'].Reset()
-        except Exception as e:
-            logger.warning("Error on mirror stop: {}".format(e))
+        # try:
+        #    self.devices['mirror'].Stop()
+        #    self.devices['mirror'].Reset()
+        # except Exception as e:
+        #     logger.warning("Error on mirror stop: {}".format(e))
 
-        # Stop sensor instance
-        try:
-            self.devices['sensor'].stop_acquisition()
-        except Exception as e:
-            logger.warning("Error on sensor stop: {}".format(e))
+        # # Stop sensor instance
+        # try:
+        #     self.devices['sensor'].stop_acquisition()
+        # except Exception as e:
+        #     logger.warning("Error on sensor stop: {}".format(e))
 
     def quit(self):
         """ 

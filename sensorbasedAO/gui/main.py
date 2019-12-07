@@ -30,6 +30,8 @@ class Main(QMainWindow):
         self.ui.positionBtn.clicked.connect(self.on_position)
         self.ui.centroidBtn.clicked.connect(self.on_centroid)
         self.ui.calibrateBtn.clicked.connect(self.on_calibrate)
+        self.ui.conversionBtn.clicked.connect(self.on_conversion)
+        self.ui.calibrateBtn_2.clicked.connect(self.on_calibrate_zern)
         self.ui.stopBtn.clicked.connect(self.on_stop)
         self.ui.quitBtn.clicked.connect(self.on_quit)
 
@@ -87,7 +89,7 @@ class Main(QMainWindow):
 
     def on_calibrate(self, checked):
         """
-        Deformable mirror calibration handler
+        Deformable mirror calibration handler via slopes
         """
         btn = self.sender()
 
@@ -97,6 +99,27 @@ class Main(QMainWindow):
         else:
             self.app.handle_calib_start()
             btn.setChecked(True)
+
+    def on_conversion(self, checked):
+        """
+        Slope - Zernike conversion matrix generating button handler
+        """
+        btn = self.sender()
+        
+        # Generate slope - zernike conversion matrix if pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            self.app.handle_conv_matrix()
+            btn.setChecked(True)
+
+    def on_calibrate_zern(self, checked):
+        """
+        Deformable mirror calibration handler via zernikes
+        """
+        btn = self.sender()
+
+        
 
     def on_stop(self):
         """
