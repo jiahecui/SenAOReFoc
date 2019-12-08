@@ -20,6 +20,7 @@ class Conversion(QObject):
     """
     start = Signal()
     done = Signal()
+    message = Signal(object)
     error = Signal(object)
     info = Signal(object)
 
@@ -95,7 +96,7 @@ class Conversion(QObject):
             """
             if self.calculate:
 
-                print('Retrieving slope - zernike conversion matrix...')
+                self.message.emit('Retrieving slope - zernike conversion matrix...')
                 for i in range(self.SB_settings['act_ref_cent_num']):
 
                     # Get reference centroid coords of each element
@@ -122,7 +123,7 @@ class Conversion(QObject):
                 # Calculate pseudo inverse of zernike derivative matrix to get final conversion matrix
                 self.conv_matrix = np.linalg.pinv(self.conv_matrix, rcond = 1e-6)
 
-                print('Slope - zernike conversion matrix retrieved.')
+                self.message.emit('Slope - zernike conversion matrix retrieved.')
                 # print('Conversion matrix is:', self.conv_matrix)
                 # print('Shape of conversion matrix is:', np.shape(self.conv_matrix))
             else:

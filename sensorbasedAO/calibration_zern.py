@@ -19,6 +19,7 @@ class Calibration_Zern(QObject):
     """
     start = Signal()
     done = Signal()
+    message = Signal(object)
     error = Signal(object)
     info = Signal(object)
 
@@ -80,7 +81,7 @@ class Calibration_Zern(QObject):
                 # Calculate pseudo inverse of influence function matrix to get final control matrix
                 self.control_matrix_zern = np.linalg.pinv(self.inf_matrix_zern, rcond = 1e-6)
 
-                print('Zernike control matrix retrieved.')
+                self.message.emit('Zernike control matrix retrieved.')
                 # print('Control matrix is:', self.control_matrix_zern)
                 # print('Shape of control matrix is:', np.shape(self.control_matrix_zern))
             else:

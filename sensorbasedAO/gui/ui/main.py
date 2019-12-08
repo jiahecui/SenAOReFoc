@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Sat Dec  7 09:57:30 2019
+# Created: Sat Dec  7 22:51:20 2019
 #      by: pyside2-uic  running on PySide2 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -132,6 +132,24 @@ class Ui_MainWindow(object):
         self.mainContentLayout.addLayout(self.horizontalLayout_3)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.mainContentLayout.addItem(spacerItem)
+        self.verticalLayout = QtWidgets.QVBoxLayout()
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.displayBox = QtWidgets.QPlainTextEdit(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.displayBox.sizePolicy().hasHeightForWidth())
+        self.displayBox.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        font.setWeight(75)
+        font.setBold(True)
+        self.displayBox.setFont(font)
+        self.displayBox.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.displayBox.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.displayBox.setObjectName("displayBox")
+        self.verticalLayout.addWidget(self.displayBox)
+        self.mainContentLayout.addLayout(self.verticalLayout)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.stopBtn = QtWidgets.QPushButton(self.centralwidget)
@@ -187,6 +205,7 @@ class Ui_MainWindow(object):
         self.calibrateBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Calibrate - Slopes", None, -1))
         self.conversionBtn.setText(QtWidgets.QApplication.translate("MainWindow", "S-Z Conversion Matrix", None, -1))
         self.calibrateBtn_2.setText(QtWidgets.QApplication.translate("MainWindow", "Calibrate - Zernikes", None, -1))
+        self.displayBox.setPlaceholderText(QtWidgets.QApplication.translate("MainWindow", "Sensorbased AO Software", None, -1))
         self.stopBtn.setText(QtWidgets.QApplication.translate("MainWindow", "STOP", None, -1))
         self.quitBtn.setText(QtWidgets.QApplication.translate("MainWindow", "QUIT", None, -1))
 

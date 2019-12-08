@@ -45,7 +45,12 @@ class Main(QMainWindow):
             flag = 1 for S-H spot image display
         """
         self.ui.SHViewer.set_image(image, flag)       
-        self.image_temp = image
+
+    def update_message(self, text):
+        """
+        Update message info in display box
+        """
+        self.ui.displayBox.appendPlainText(text)
 
     #========== GUI event handlers ==========#
     def on_initialise(self, checked):

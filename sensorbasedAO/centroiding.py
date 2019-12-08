@@ -28,6 +28,7 @@ class Centroiding(QObject):
     error = Signal(object)
     image = Signal(object)
     layer = Signal(object)
+    message = Signal(object)
     info = Signal(object)
     
     def __init__(self, device, settings):
@@ -106,6 +107,7 @@ class Centroiding(QObject):
                 # Draw actual S-H spot centroids on image layer
                 self._image.ravel()[self.act_cent_coord.astype(int)] = 0
                 self.image.emit(self._image)
+                self.message.emit('S-H spot centroid positions confirmed.')
             else:
 
                 self.done.emit()

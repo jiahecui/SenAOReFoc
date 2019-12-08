@@ -87,7 +87,7 @@ class App(QApplication):
         else:
             try:
                 sensor = SENSOR.get(config['camera']['SN'])
-                print('Sensor load success')
+                # self.handle_message_disp('Sensor load success.')
             except Exception as e:
                 logger.warning('Sensor load error', e)
                 sensor = None
@@ -103,7 +103,7 @@ class App(QApplication):
         else:
             try:
                 mirror = MIRROR.get(config['DM']['SN'])
-                print('Mirror load success')
+                # self.handle_message_disp('Mirror load success.')
             except Exception as e:
                 logger.warning('Mirror load error', e)
                 mirror = None
@@ -123,6 +123,7 @@ class App(QApplication):
         # Connect to signals
         SB_thread.started.connect(SB_worker.run)
         SB_worker.layer.connect(lambda obj: self.handle_layer_disp(obj))
+        SB_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         SB_worker.info.connect(lambda obj: self.handle_SB_info(obj))
         SB_worker.error.connect(lambda obj: self.handle_error(obj))
         SB_worker.done.connect(self.handle_SB_done)
@@ -148,6 +149,7 @@ class App(QApplication):
         pos_thread.started.connect(pos_worker.run)
         pos_worker.layer.connect(lambda obj: self.handle_layer_disp(obj))
         pos_worker.image.connect(lambda obj: self.handle_image_disp(obj))
+        pos_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         pos_worker.info.connect(lambda obj: self.handle_SB_info(obj))
         pos_worker.error.connect(lambda obj: self.handle_error(obj))
         pos_worker.done.connect(self.handle_pos_done)
@@ -173,6 +175,7 @@ class App(QApplication):
         cent_thread.started.connect(cent_worker.run)
         cent_worker.layer.connect(lambda obj: self.handle_layer_disp(obj))
         cent_worker.image.connect(lambda obj: self.handle_image_disp(obj))
+        cent_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         cent_worker.info.connect(lambda obj: self.handle_SB_info(obj))
         cent_worker.error.connect(lambda obj: self.handle_error(obj))
         cent_worker.done.connect(self.handle_cent_done)
@@ -197,6 +200,7 @@ class App(QApplication):
         # Connect to signals
         calib_thread.started.connect(calib_worker.run)
         calib_worker.image.connect(lambda obj: self.handle_image_disp(obj))
+        calib_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         calib_worker.info.connect(lambda obj: self.handle_mirror_info(obj))
         calib_worker.error.connect(lambda obj: self.handle_error(obj))
         calib_worker.done.connect(self.handle_calib_done)
@@ -220,6 +224,7 @@ class App(QApplication):
 
         # Connect to signals
         conv_thread.started.connect(conv_worker.run)
+        conv_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         conv_worker.info.connect(lambda obj: self.handle_mirror_info(obj))
         conv_worker.error.connect(lambda obj: self.handle_error(obj))
         conv_worker.done.connect(self.handle_conv_done)
@@ -243,6 +248,7 @@ class App(QApplication):
 
         # Connect to signals
         calib2_thread.started.connect(calib2_worker.run)
+        calib2_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         calib2_worker.info.connect(lambda obj: self.handle_mirror_info(obj))
         calib2_worker.error.connect(lambda obj: self.handle_error(obj))
         calib2_worker.done.connect(self.handle_calib2_done)
@@ -266,6 +272,12 @@ class App(QApplication):
         Handle display of S-H spot images
         """
         self.main.update_image(obj, flag = 1)
+
+    def handle_message_disp(self, obj):
+        """"
+        Handle display of message info
+        """
+        self.main.update_message(obj)
 
     def handle_SB_info(self, obj):
         """

@@ -23,6 +23,7 @@ class Setup_SB(QObject):
     done = Signal()
     error = Signal(object)
     layer = Signal(object)
+    message = Signal(object)
     info = Signal(object)
 
     def __init__(self):
@@ -235,6 +236,7 @@ class Setup_SB(QObject):
                 # im = PIL.Image.fromarray(self.SB_layer_2D, 'L')
                 # im.show()
                 self.layer.emit(self.SB_layer_2D)
+                self.message.emit('Search block geometry initialised.')
                 time.sleep(1)
             else:
 

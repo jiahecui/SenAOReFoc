@@ -25,6 +25,7 @@ class Calibration(QObject):
     done = Signal()
     error = Signal(object)
     image = Signal(object)
+    message = Signal(object)
     cent = Signal(object)
     info = Signal(object)
 
@@ -72,7 +73,7 @@ class Calibration(QObject):
             
             prev1 = time.perf_counter()
 
-            print('DM calibration process started...')
+            self.message.emit('DM calibration process started...')
             for i in range(config['DM']['actuator_num']):
 
                 if self.calibrate:
@@ -142,12 +143,12 @@ class Calibration(QObject):
             # Calculate S-H spot centroids for each image in data list to get slopes
             if self.calc_cent:
 
-                print('Centroid calculation process started...')
+                self.message.emit('Centroid calculation process started...')
                 # self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y, self.slope_x, self.slope_y = \
                 #     acq_centroid(self.SB_settings, self.data)
                 self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y, self.slope_x, self.slope_y = \
                     acq_centroid(self.SB_settings, self.cent_x, self.cent_y, self.data)
-                print('Centroid calculation process finished.')
+                self.message.emit('Centroid calculation process finished.')
             else:
 
                 self.done.emit()
@@ -173,7 +174,7 @@ class Calibration(QObject):
                 # Calculate pseudo inverse of influence function matrix to get final control matrix
                 self.control_matrix_slopes = np.linalg.pinv(self.inf_matrix_slopes)
 
-                print('DM calibration process finished.')
+                self.message.emit('DM calibration process finished.')
                 # print('Control matrix is:', self.control_matrix_slopes)
                 # print('Shape of control matrix is:', np.shape(self.control_matrix_slopes))
             else:

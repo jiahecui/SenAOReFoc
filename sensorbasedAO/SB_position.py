@@ -27,6 +27,7 @@ class Positioning(QObject):
     error = Signal(object)
     image = Signal(object)
     layer = Signal(object)
+    message = Signal(object)
     info = Signal(object)
     
     def __init__(self, device, settings):
@@ -92,20 +93,20 @@ class Positioning(QObject):
             # Ask user whether DM needs calibrating, if 'y' reposition search block using keyboard, if 'n' load search block position from YAML file
             if self.inquire:
 
-                click.echo('Need to calibrate DM? [y/n]\n', nl = False)
+                self.message.emit('Need to calibrate DM? [y/n]')
                 c = click.getchar()
 
                 while True:
                     if c == 'y':
                         self.load = False
-                        click.echo('Reposition search block using keyboard.')
+                        self.message.emit('Reposition search block using keyboard.')
                         break
                     elif c == 'n':
                         self.move = False
-                        click.echo('Load search block position from YAML file.')
+                        self.message.emit('Load search block position from YAML file.')
                         break
                     else:
-                        click.echo('Invalid input. Try again.')
+                        self.message.emit('Invalid input. Try again.')
 
                     c = click.getchar()
             else:
@@ -116,7 +117,7 @@ class Positioning(QObject):
             if self.move:
 
                 # Get input from keyboard to reposition search block
-                click.echo('Press arrow keys to centre S-H spots in search blocks. Press Enter to finish.\n', nl = False)
+                self.message.emit('Press arrow keys to centre S-H spots in search blocks. Press Enter to finish.')
                 c = click.getchar()
 
                 # Update act_ref_cent_coord according to keyboard input
@@ -138,7 +139,7 @@ class Positioning(QObject):
                         self.SB_settings['act_SB_coord'] += 1
                         self.SB_settings['act_ref_cent_coord_x'] += 1
                     else:
-                        click.echo('Position confirmed.')
+                        self.message.emit('Search block position confirmed.')
                         break
 
                     # Display actual search blocks as they move
