@@ -4,12 +4,9 @@ from PySide2.QtCore import QThread, QObject, Slot, Signal, QSize, QTimer
 import logging
 import sys
 import os
-import imageio
 import argparse
-import math
 import time
-import click
-import PIL.Image
+import h5py
 import numpy as np
 
 from datetime import datetime
@@ -59,11 +56,15 @@ class App(QApplication):
         # Initialise instance variables
         self.image_temp = np.zeros([100, 100])
 
-        # Initialise search block info dictionary
-        self.SB_info = {}
+        # Initialise dictionary for storing data info throughout processing of software
+        self.data_info = {'SB_info': {}, 'mirror_info': {}}
 
-        # Initialise deformable mirror info dictionary
-        self.mirror_info = {}
+        # # Initialise output HDF5 file
+        # self.output_data = h5py.File('data_info.h5', 'a')
+        # keys = list(self.data_info.keys())
+        # grp1 = self.output_data.create_group(keys[0])
+        # grp2 = self.output_data.create_group(keys[1])
+        # self.output_data.close()
 
         # Initialise workers and threads
         self.workers = {}
@@ -151,6 +152,7 @@ class App(QApplication):
         pos_worker.image.connect(lambda obj: self.handle_image_disp(obj))
         pos_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         pos_worker.info.connect(lambda obj: self.handle_SB_info(obj))
+        pos_worker.write.connect(self.write_SB_info)
         pos_worker.error.connect(lambda obj: self.handle_error(obj))
         pos_worker.done.connect(self.handle_pos_done)
 
@@ -202,6 +204,7 @@ class App(QApplication):
         calib_worker.image.connect(lambda obj: self.handle_image_disp(obj))
         calib_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         calib_worker.info.connect(lambda obj: self.handle_mirror_info(obj))
+        calib_worker.write.connect(self.write_mirror_info)
         calib_worker.error.connect(lambda obj: self.handle_error(obj))
         calib_worker.done.connect(self.handle_calib_done)
 
@@ -226,6 +229,7 @@ class App(QApplication):
         conv_thread.started.connect(conv_worker.run)
         conv_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         conv_worker.info.connect(lambda obj: self.handle_mirror_info(obj))
+        conv_worker.write.connect(self.write_mirror_info)
         conv_worker.error.connect(lambda obj: self.handle_error(obj))
         conv_worker.done.connect(self.handle_conv_done)
 
@@ -236,20 +240,21 @@ class App(QApplication):
         # Start conversion thread
         conv_thread.start()
 
-    def calibrate_DM_zern(self, SB_info, mirror_info):
+    def calibrate_DM_zern(self, data_info):
         """
         Get deformable mirror control matrix via zernikes
         """
         # Create calibration worker and thread
         calib2_thread = QThread()
         calib2_thread.setObjectName('calib2_thread')
-        calib2_worker = Calibration_Zern(SB_info, mirror_info)
+        calib2_worker = Calibration_Zern(data_info)
         calib2_worker.moveToThread(calib2_thread)
 
         # Connect to signals
         calib2_thread.started.connect(calib2_worker.run)
         calib2_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         calib2_worker.info.connect(lambda obj: self.handle_mirror_info(obj))
+        calib2_worker.write.connect(self.write_mirror_info)
         calib2_worker.error.connect(lambda obj: self.handle_error(obj))
         calib2_worker.done.connect(self.handle_calib2_done)
 
@@ -283,7 +288,37 @@ class App(QApplication):
         """
         Handle search block geometry and centroiding information
         """
-        self.SB_info.update(obj)
+        self.data_info['SB_info'].update(obj)
+
+    def write_SB_info(self):
+        """
+        Writes search block info to HDF5 file
+        """
+        self.output_data = h5py.File('data_info.h5', 'r+')
+        grp1 = self.output_data['SB_info']
+        for k, v in self.data_info['SB_info'].items():
+            if k in grp1:
+                del grp1[k]
+            grp1.create_dataset(k, data = v)           
+        self.output_data.close()
+    
+    def handle_mirror_info(self, obj):
+        """
+        Handle deformable mirror information
+        """
+        self.data_info['mirror_info'].update(obj)
+
+    def write_mirror_info(self):
+        """
+        Writes mirror info to HDF5 file
+        """
+        self.output_data = h5py.File('data_info.h5', 'r+')
+        grp2 = self.output_data['mirror_info']
+        for k, v in self.data_info['mirror_info'].items():
+            if k in grp2:
+               del grp2[k]
+            grp2.create_dataset(k, data = v)
+        self.output_data.close()
 
     def handle_error(self, error):
         """
@@ -303,7 +338,7 @@ class App(QApplication):
         """
         Handle start of search block posiioning
         """
-        self.position_SB(self.devices['sensor'], self.SB_info)
+        self.position_SB(self.devices['sensor'], self.data_info['SB_info'])
 
     def handle_pos_done(self):
         """
@@ -317,7 +352,7 @@ class App(QApplication):
         """
         Handle start of S-H spot centroid calculation
         """
-        self.get_centroids(self.devices['sensor'], self.SB_info)
+        self.get_centroids(self.devices['sensor'], self.data_info['SB_info'])
 
     def handle_cent_done(self):
         """
@@ -331,13 +366,7 @@ class App(QApplication):
         """
         Handle start of deformable mirror calibration
         """
-        self.calibrate_DM(self.devices['sensor'], self.devices['mirror'], self.SB_info)
-
-    def handle_mirror_info(self, obj):
-        """
-        Handle deformable mirror information
-        """
-        self.mirror_info.update(obj)
+        self.calibrate_DM(self.devices['sensor'], self.devices['mirror'], self.data_info['SB_info'])
 
     def handle_calib_done(self):
         """
@@ -351,7 +380,7 @@ class App(QApplication):
         """
         Handle slope - zernike conversion matrix generation
         """
-        self.get_conv_matrix(self.SB_info)
+        self.get_conv_matrix(self.data_info['SB_info'])
 
     def handle_conv_done(self):
         """
@@ -365,7 +394,7 @@ class App(QApplication):
         """
         Handle start of deformable mirror calibration via zernikes
         """
-        self.calibrate_DM_zern(self.SB_info, self.mirror_info)
+        self.calibrate_DM_zern(self.data_info)
 
     def handle_calib2_done(self):
         """

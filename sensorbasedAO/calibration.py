@@ -22,6 +22,7 @@ class Calibration(QObject):
     Calibrates deformable mirror and retrieves influence function + control matrix
     """
     start = Signal()
+    write = Signal()
     done = Signal()
     error = Signal(object)
     image = Signal(object)
@@ -197,6 +198,7 @@ class Calibration(QObject):
                 self.mirror_info['control_matrix_slopes'] = self.control_matrix_slopes
 
                 self.info.emit(self.mirror_info)
+                self.write.emit()
             else:
 
                 self.done.emit()

@@ -18,18 +18,19 @@ class Calibration_Zern(QObject):
     Retrieves control matrix via zernikes using slopes acquired during calibration via slopes
     """
     start = Signal()
+    write = Signal()
     done = Signal()
     message = Signal(object)
     error = Signal(object)
     info = Signal(object)
 
-    def __init__(self, settings_SB, settings_mirror):
+    def __init__(self, settings):
 
         # Get search block settings
-        self.SB_settings = settings_SB
+        self.SB_settings = settings['SB_info']
 
         # Get mirror settings
-        self.mirror_settings = settings_mirror
+        self.mirror_settings = settings['mirror_info']
 
         # Initialise deformable mirror information parameter
         self.mirror_info = {}
@@ -44,7 +45,7 @@ class Calibration_Zern(QObject):
         try:
             # Set process flags
             self.calc_inf = True
-            self.log = False
+            self.log = True
 
             # Start thread
             self.start.emit()
@@ -98,11 +99,12 @@ class Calibration_Zern(QObject):
                 self.mirror_info['control_matrix_zern'] = self.control_matrix_zern
 
                 self.info.emit(self.mirror_info)
+                self.write.emit()
             else:
 
                 self.done.emit()
 
-            # Finished calibrating deformable conv and retrieving influence functions
+            # Finished retrieving zernike influence function and control matrix
             self.done.emit()
 
         except Exception as e:

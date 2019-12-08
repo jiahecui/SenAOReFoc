@@ -19,6 +19,7 @@ class Conversion(QObject):
     Generates slope - zernike conversion matrix
     """
     start = Signal()
+    write = Signal()
     done = Signal()
     message = Signal(object)
     error = Signal(object)
@@ -149,11 +150,12 @@ class Conversion(QObject):
                 self.conv_info['conv_matrix'] = self.conv_matrix
 
                 self.info.emit(self.conv_info)
+                self.write.emit()
             else:
 
                 self.done.emit()
 
-            # Finished calibrating deformable conv and retrieving influence functions
+            # Finished retrieving slope - zernike conversion matrix
             self.done.emit()
 
         except Exception as e:

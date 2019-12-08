@@ -6,6 +6,7 @@ import os
 import argparse
 import time
 import click
+import h5py
 import numpy as np
 
 from ximea import xiapi
@@ -23,6 +24,7 @@ class Positioning(QObject):
     Positions search blocks either through keyboard argument or import from YAML file
     """
     start = Signal()
+    write = Signal()
     done = Signal()
     error = Signal(object)
     image = Signal(object)
@@ -68,7 +70,7 @@ class Positioning(QObject):
             self.start.emit()
 
             """
-            Acquires image and allows user to reposition search blocks by keyboard or YAML file
+            Acquires image and allows user to reposition search blocks by keyboard or HDF5 file
             """
             # Initialise search block layer and display initial search blocks
             self.SB_layer_2D = np.zeros([self.sensor_width, self.sensor_height], dtype='uint8')
@@ -90,7 +92,7 @@ class Positioning(QObject):
             else:
                 self.done.emit()
 
-            # Ask user whether DM needs calibrating, if 'y' reposition search block using keyboard, if 'n' load search block position from YAML file
+            # Ask user whether DM needs calibrating, if 'y' reposition search block using keyboard, if 'n' load search block position from HDF5 file
             if self.inquire:
 
                 self.message.emit('Need to calibrate DM? [y/n]')
@@ -103,7 +105,7 @@ class Positioning(QObject):
                         break
                     elif c == 'n':
                         self.move = False
-                        self.message.emit('Load search block position from YAML file.')
+                        self.message.emit('Load search block position from HDF5 file.')
                         break
                     else:
                         self.message.emit('Invalid input. Try again.')
@@ -150,20 +152,34 @@ class Positioning(QObject):
                     c = click.getchar()
             elif self.load:
 
-                pass           
+                # Load search block position from HDF5 file
+                data_file = h5py.File('data_info.h5', 'r+')
+                data = data_file['SB_info']
+                self.SB_settings['act_ref_cent_coord'] = data.get('act_ref_cent_coord')[()]
+                self.SB_settings['act_ref_cent_coord_x'] = data.get('act_ref_cent_coord_x')[()]
+                self.SB_settings['act_ref_cent_coord_y'] = data.get('act_ref_cent_coord_y')[()]
+                self.SB_settings['act_SB_coord'] = data.get('act_SB_coord')[()]
+                data_file.close()
+
+                self.message.emit('Search block position loaded.') 
+
+                # Display original search block positions from previous calibration
+                self.SB_layer_2D_temp = self.SB_layer_2D.copy()
+                self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
+                self.layer.emit(self.SB_layer_2D_temp)
             else:
 
                 self.done.emit()
-
-            # Load search block position from YAML file
-            # if self.load:
 
             """
             Returns position information if search block repositioned using keyboard
             """ 
             if self.log and self.move:
+
                 self.info.emit(self.SB_settings)
+                self.write.emit()
             else:
+
                 self.done.emit()
 
             # Finished positioning search blocks
