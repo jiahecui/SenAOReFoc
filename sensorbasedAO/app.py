@@ -87,7 +87,7 @@ class App(QApplication):
         else:
             try:
                 sensor = SENSOR.get(config['camera']['SN'])
-                # self.handle_message_disp('Sensor load success.')
+                print('Sensor load success.')
             except Exception as e:
                 logger.warning('Sensor load error', e)
                 sensor = None
@@ -103,7 +103,7 @@ class App(QApplication):
         else:
             try:
                 mirror = MIRROR.get(config['DM']['SN'])
-                # self.handle_message_disp('Mirror load success.')
+                print('Mirror load success.')
             except Exception as e:
                 logger.warning('Mirror load error', e)
                 mirror = None

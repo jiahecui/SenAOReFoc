@@ -83,7 +83,15 @@ class Conversion(QObject):
                 else:
 
                     self.norm_ref_cent_coord_x = (self.act_ref_cent_coord_x - (self.sensor_width // 2 - self.SB_rad)) * self.rescale
-                    self.norm_ref_cent_coord_y = (self.act_ref_cent_coord_y - (self.sensor_width // 2 - self.SB_rad)) * self.rescale              
+                    self.norm_ref_cent_coord_y = (self.act_ref_cent_coord_y - (self.sensor_width // 2 - self.SB_rad)) * self.rescale
+
+                # Take account of odd number of relays and mirrors between DM and lenslet
+                if config['relay']['mirror_odd']:
+                    self.norm_ref_cent_coord_x = -self.norm_ref_cent_coord_x
+
+                if config['relay']['relay_odd']:
+                    self.norm_ref_cent_coord_x = -self.norm_ref_cent_coord_x
+                    self.norm_ref_cent_coord_y = -self.norm_ref_cent_coord_y
 
                 # print('Norm_ref_cent_coord_x:', self.norm_ref_cent_coord_x)
                 # print('Norm_ref_cent_coord_y:', self.norm_ref_cent_coord_y)

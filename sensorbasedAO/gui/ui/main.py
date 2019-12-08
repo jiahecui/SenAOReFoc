@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Sat Dec  7 22:51:20 2019
+# Created: Sun Dec  8 08:49:52 2019
 #      by: pyside2-uic  running on PySide2 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -147,6 +147,8 @@ class Ui_MainWindow(object):
         self.displayBox.setFont(font)
         self.displayBox.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.displayBox.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.displayBox.setLineWidth(2)
+        self.displayBox.setCenterOnScroll(False)
         self.displayBox.setObjectName("displayBox")
         self.verticalLayout.addWidget(self.displayBox)
         self.mainContentLayout.addLayout(self.verticalLayout)

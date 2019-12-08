@@ -257,6 +257,12 @@
             <property name="frameShadow">
              <enum>QFrame::Sunken</enum>
             </property>
+            <property name="lineWidth">
+             <number>2</number>
+            </property>
+            <property name="centerOnScroll">
+             <bool>false</bool>
+            </property>
             <property name="placeholderText">
              <string>Sensorbased AO Software</string>
             </property>

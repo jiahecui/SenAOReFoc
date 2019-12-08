@@ -7,10 +7,6 @@ fpga:
   AO_max: 10  
   IO_datatype: "FXP"
 
-lenslet:
-  lenslet_pitch: 500  # um
-  lenslet_focal_length: 45  # mm
-
 camera:
   SN: "26883050"
   dataformat: "XI_MONO16"
@@ -29,7 +25,7 @@ camera:
   bin_factor: 2
   pixel_size: 5.5  # um
   frame_ave_num: 5
-  
+    
 DM:
   SN: "HSDM69-15-014"
   actuator_num: 3
@@ -38,6 +34,14 @@ DM:
   vol_bias: 0
   vol_step: 1
   settling_time: 0.1
+
+relay:
+  mirror_odd: 0  # Flag for whether there is an odd number of mirrors in between DM and lenslet
+  relay_odd: 0  # Flag for whether there is an odd number of relays in between DM and lenslet
+
+lenslet:
+  lenslet_pitch: 500  # um
+  lenslet_focal_length: 45  # mm
 
 search_block:
   div_elem: 5  # Number of elements in each dimension of a search block
