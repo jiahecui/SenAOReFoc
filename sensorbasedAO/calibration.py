@@ -6,11 +6,13 @@ import sys
 import os
 import argparse
 import time
+import h5py
 import PIL.Image
 import numpy as np
 
 import log
 from config import config
+from HDF5_dset import make_dset, dset_append
 from image_acquisition import acq_image
 from centroid_acquisition import acq_centroid
 from spot_sim import SpotSim
@@ -40,9 +42,6 @@ class Calibration(QObject):
 
         # Get mirror instance
         self.mirror = mirror
-
-        # Initialise data lists to pass into centroid_acquisition.py
-        self.data, self.cent_x, self.cent_y = ([] for i in range(3))
 
         # Initialise deformable mirror information parameter
         self.mirror_info = {}
@@ -74,66 +73,105 @@ class Calibration(QObject):
             
             prev1 = time.perf_counter()
 
+            # Open HDF5 file and create new dataset to store calibration data
+            data_set_img = np.zeros([self.SB_settings['sensor_width'], self.SB_settings['sensor_height']])
+            data_set_cent = np.zeros(self.SB_settings['act_ref_cent_num'])
+            self.output_file = h5py.File('data_info.h5', 'a')
+            data_set = self.output_file['calibration_img']
+            key_list_1 = ['dummy_calib_img', 'dummy_spot_cent_x', 'dummy_spot_cent_y']
+            key_list_2 = ['real_calib_img']
+            if config['dummy']:
+                for k in key_list_1:
+                    if k in data_set:
+                        del data_set[k]
+                    if k == 'dummy_calib_img':
+                        make_dset(data_set, k, data_set_img)
+                    elif k in {'dummy_spot_cent_x', 'dummy_spot_cent_y'}:
+                        make_dset(data_set, k, data_set_cent)
+            else:
+                for k in key_list_2:
+                    if k in data_set:
+                        del data_set[k]
+                    if k == 'real_calib_img':
+                        make_dset(data_set, k, data_set_img)
+            
+            # Poke each actuator first in to vol_max, then to vol_min
             self.message.emit('DM calibration process started...')
             for i in range(config['DM']['actuator_num']):
 
-                if self.calibrate:
+                if self.calibrate:                    
 
-                    # print('On actuator', i)
+                    try:
+                        # print('On actuator', i + 1)
 
-                    # Apply highest voltage
-                    voltages[i] = config['DM']['vol_max']
-                
-                    # Send values vector to mirror
-                    self.mirror.Send(voltages)
+                        # Apply highest voltage
+                        voltages[i] = config['DM']['vol_max']
                     
-                    # Wait for DM to settle
-                    time.sleep(config['DM']['settling_time'])
-                    
-                    # Acquire S-H spot image and display
-                    # image_max = acq_image(self.sensor, self.SB_settings['sensor_width'], self.SB_settings['sensor_height'], acq_mode = 0)
-                    spot_img = SpotSim(self.SB_settings)
-                    image_max, self.spot_cent_x, self.spot_cent_y = spot_img.SH_spot_sim(centred = 1)
+                        # Send values vector to mirror
+                        self.mirror.Send(voltages)
+                        
+                        # Wait for DM to settle
+                        time.sleep(config['DM']['settling_time'])
+                        
+                        # Acquire S-H spot image and display
+                        if config['dummy']:
+                            spot_img = SpotSim(self.SB_settings)
+                            image_max, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1)
+                        else:
+                            image_max = acq_image(self.sensor, self.SB_settings['sensor_width'], self.SB_settings['sensor_height'], acq_mode = 0)
 
-                    # Image thresholding to remove background
-                    image_max = image_max - config['image']['threshold'] * np.amax(image_max)
-                    image_max[image_max < 0] = 0
-                    self.image.emit(image_max)
+                        # Image thresholding to remove background
+                        image_max = image_max - config['image']['threshold'] * np.amax(image_max)
+                        image_max[image_max < 0] = 0
+                        self.image.emit(image_max)
 
-                    # Append image to list
-                    self.data.append(image_max)
-                    self.cent_x.append(self.spot_cent_x)
-                    self.cent_y.append(self.spot_cent_y)
+                        # Append image to list
+                        if config['dummy']:
+                            dset_append(data_set, 'dummy_calib_img', image_max)
+                            dset_append(data_set, 'dummy_spot_cent_x', spot_cent_x)
+                            dset_append(data_set, 'dummy_spot_cent_y', spot_cent_y)
+                        else:
+                            dset_append(data_set, 'real_calib_img', image_max)
 
-                    # Apply lowest voltage
-                    voltages[i] = config['DM']['vol_min']
+                        # Apply lowest voltage
+                        voltages[i] = config['DM']['vol_min']
 
-                    # Send values vector to mirror
-                    self.mirror.Send(voltages)
+                        # Send values vector to mirror
+                        self.mirror.Send(voltages)
 
-                    # Wait for DM to settle
-                    time.sleep(config['DM']['settling_time'])
+                        # Wait for DM to settle
+                        time.sleep(config['DM']['settling_time'])
 
-                    # Acquire S-H spot image and display
-                    # image_min = acq_image(self.sensor, self.SB_settings['sensor_width'], self.SB_settings['sensor_height'], acq_mode = 0)
-                    spot_img = SpotSim(self.SB_settings)
-                    image_min, self.spot_cent_x, self.spot_cent_y = spot_img.SH_spot_sim(centred = 1)
+                        # Acquire S-H spot image and display
+                        if config['dummy']:
+                            spot_img = SpotSim(self.SB_settings)
+                            image_min, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1)
+                        else:
+                            image_min = acq_image(self.sensor, self.SB_settings['sensor_width'], self.SB_settings['sensor_height'], acq_mode = 0)
 
-                    # Image thresholding to remove background
-                    image_min = image_min - config['image']['threshold'] * np.amax(image_min)
-                    image_min[image_min < 0] = 0
-                    self.image.emit(image_min)
+                        # Image thresholding to remove background
+                        image_min = image_min - config['image']['threshold'] * np.amax(image_min)
+                        image_min[image_min < 0] = 0
+                        self.image.emit(image_min)
 
-                    # Append image to list
-                    self.data.append(image_min)
-                    self.cent_x.append(self.spot_cent_x)
-                    self.cent_y.append(self.spot_cent_y)
+                        # Append image to list
+                        if config['dummy']:
+                            dset_append(data_set, 'dummy_calib_img', image_min)
+                            dset_append(data_set, 'dummy_spot_cent_x', spot_cent_x)
+                            dset_append(data_set, 'dummy_spot_cent_y', spot_cent_y)
+                        else:
+                            dset_append(data_set, 'real_calib_img', image_min)
 
-                    # Set actuator back to bias voltage
-                    voltages[i] = config['DM']['vol_bias']
+                        # Set actuator back to bias voltage
+                        voltages[i] = config['DM']['vol_bias']
+                    except Exception as e:
+                        print(e)
                 else:
 
                     self.done.emit()
+
+            # Close HDF5 file
+            self.output_file.close()
 
             prev2 = time.perf_counter()
             # print('Time for calibration image acquisition process is:', (prev2 - prev1))
@@ -145,10 +183,7 @@ class Calibration(QObject):
             if self.calc_cent:
 
                 self.message.emit('Centroid calculation process started...')
-                # self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y, self.slope_x, self.slope_y = \
-                #     acq_centroid(self.SB_settings, self.data)
-                self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y, self.slope_x, self.slope_y = \
-                    acq_centroid(self.SB_settings, self.cent_x, self.cent_y, self.data)
+                self.slope_x, self.slope_y = acq_centroid(self.SB_settings, flag = 1)
                 self.message.emit('Centroid calculation process finished.')
             else:
 
@@ -190,7 +225,6 @@ class Calibration(QObject):
             """ 
             if self.log:
 
-                self.mirror_info['calib_spots'] = self.data
                 self.mirror_info['calib_slope_x'] = self.slope_x
                 self.mirror_info['calib_slope_y'] = self.slope_y
                 self.mirror_info['inf_matrix_slopes_SV'] = s

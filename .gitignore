@@ -1,0 +1,23 @@
+# Camera error debugging files
+sensorbasedAO/error_camera_1.py
+sensorbasedAO/error_camera_2.py
+
+# python package
+*.egg-info
+*.egg
+
+# cpython
+*.pyc
+
+# HDF5
+*.h5
+
+# markdown
+*.md
+
+# virtualenv
+venv/
+
+# pyinstaller
+build/
+*.pyo

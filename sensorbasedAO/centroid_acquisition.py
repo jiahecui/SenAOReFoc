@@ -2,6 +2,7 @@ import sys
 import os
 import argparse
 import time
+import h5py
 import numpy as np
 
 import log
@@ -9,11 +10,23 @@ from config import config
 
 logger = log.get_logger(__name__)
 
-# def acq_centroid(settings, data = None):
-def acq_centroid(settings, spot_cent_x, spot_cent_y, data = None):
+def acq_centroid(settings, flag = 0):
     """
     Calculates S-H spot centroids for each image in data list
+
+    Args:
+        flag = 0 for one time centroiding process
+        flag = 1 for calibration process
+        flag = 2 for closed AO process
     """
+    # Open HDF5 file to retrieve calibration images
+    image_file = h5py.File('data_info.h5', 'a')
+
+    if flag == 0:
+        image_num = 1
+    elif flag == 1:
+        image_num = 2 * config['DM']['actuator_num']
+   
     # Get actual search block reference centroid coords
     act_ref_cent_coord = settings['act_ref_cent_coord']
     act_ref_cent_coord_x = settings['act_ref_cent_coord_x']
@@ -35,14 +48,28 @@ def acq_centroid(settings, spot_cent_x, spot_cent_y, data = None):
     act_cent_coord, act_cent_coord_x, act_cent_coord_y = (np.zeros(settings['act_ref_cent_num']) for i in range(3))
 
     # Initialise list for storing S-H spot centroid information for all images in data
-    act_cent_coord_list, act_cent_coord_x_list, act_cent_coord_y_list, slope_x_list, slope_y_list = ([] for i in range(5))
+    slope_x_list, slope_y_list = ([] for i in range(2))
 
     prev1 = time.perf_counter()
 
     # Calculate actual S-H spot centroids for each search block using a dynamic range
-    for l in range(len(data)):
+    for l in range(image_num):
 
-        image_temp = data[l]
+        if flag == 0:
+            
+            if config['dummy']:
+                image_temp = image_file['centroiding_img']['dummy_cent_img'][l, :, :]
+            else:
+                image_temp = image_file['centroiding_img']['real_cent_img'][l, :, :]
+
+        elif flag == 1:
+
+            if config['dummy']:
+                image_temp = image_file['calibration_img']['dummy_calib_img'][l, :, :]
+            else:
+                image_temp = image_file['calibration_img']['real_calib_img'][l, :, :]
+        
+        # print('Centroiding image {}'.format(l))
 
         for i in range(settings['act_ref_cent_num']):
 
@@ -129,22 +156,26 @@ def acq_centroid(settings, spot_cent_x, spot_cent_y, data = None):
                 act_cent_coord_y[i] = sum_y / sum_pix
                 act_cent_coord[i] = int(act_cent_coord_y[i]) * sensor_width + int(act_cent_coord_x[i])                          
 
-        # Calculate average centroid error 
-        error_temp = 0
-        error_x = act_cent_coord_x - spot_cent_x[l]
-        error_y = act_cent_coord_y - spot_cent_y[l]
-        for i in range(len(error_x)):
-            error_temp += np.sqrt(error_x[i] ** 2 + error_y[i] ** 2)
-        error_tot = error_temp / len(error_x)
+        if config['dummy']:
+            # Calculate average centroid error 
+            error_temp = 0
+
+            if flag == 0:
+                error_x = act_cent_coord_x - image_file['centroiding_img']['dummy_spot_cent_x'][l, :]
+                error_y = act_cent_coord_y - image_file['centroiding_img']['dummy_spot_cent_y'][l, :]
+            elif flag == 1:
+                error_x = act_cent_coord_x - image_file['calibration_img']['dummy_spot_cent_x'][l, :]
+                error_y = act_cent_coord_y - image_file['calibration_img']['dummy_spot_cent_y'][l, :]
+
+            for i in range(len(error_x)):
+                error_temp += np.sqrt(error_x[i] ** 2 + error_y[i] ** 2)
+            error_tot = error_temp / len(error_x)
 
         # Calculate raw slopes in each dimension
         slope_x = act_cent_coord_x - act_ref_cent_coord_x
         slope_y = act_cent_coord_y - act_ref_cent_coord_y
 
-        # Append relevent parameters to list
-        act_cent_coord_list.append(act_cent_coord)
-        act_cent_coord_x_list.append(act_cent_coord_x)
-        act_cent_coord_y_list.append(act_cent_coord_y)
+        # Append slopes to list
         slope_x_list.append(slope_x)
         slope_y_list.append(slope_y)
 
@@ -157,7 +188,12 @@ def acq_centroid(settings, spot_cent_x, spot_cent_y, data = None):
         # print('Slope along x axis:', slope_x)
         # print('Slope along y axis:', slope_y)
 
+    image_file.close()
+
     prev2 = time.perf_counter()
     # print('Time for centroid calculation process is:', (prev2 - prev1))
 
-    return act_cent_coord_list, act_cent_coord_x_list, act_cent_coord_y_list, slope_x_list, slope_y_list
+    if flag == 0:
+        return act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x_list, slope_y_list
+    elif flag == 1:
+        return slope_x_list, slope_y_list

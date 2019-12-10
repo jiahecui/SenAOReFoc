@@ -53,17 +53,20 @@ class App(QApplication):
 
         self.debug = debug
 
-        # Initialise instance variables
-        self.image_temp = np.zeros([100, 100])
-
         # Initialise dictionary for storing data info throughout processing of software
-        self.data_info = {'SB_info': {}, 'mirror_info': {}}
+        self.data_info = {'SB_info': {}, 'mirror_info': {}, 'centroiding_info': {}, 'AO_info': {}, 'centroiding_img': {}, \
+            'calibration_img': {}, 'AO_img': {}}
 
-        # # Initialise output HDF5 file
+        # Initialise output HDF5 file
         # self.output_data = h5py.File('data_info.h5', 'a')
         # keys = list(self.data_info.keys())
         # grp1 = self.output_data.create_group(keys[0])
         # grp2 = self.output_data.create_group(keys[1])
+        # grp3 = self.output_data.create_group(keys[2])
+        # grp4 = self.output_data.create_group(keys[3])
+        # grp5 = self.output_data.create_group(keys[4])
+        # grp6 = self.output_data.create_group(keys[5])
+        # grp7 = self.output_data.create_group(keys[6])
         # self.output_data.close()
 
         # Initialise workers and threads
@@ -83,31 +86,26 @@ class App(QApplication):
         Add hardware devices to a dictionary
         """
         # Add S-H sensor
-        if self.debug:
+        if config['dummy']:
             sensor = SENSOR.get('debug')
         else:
             try:
                 sensor = SENSOR.get(config['camera']['SN'])
+                sensor.open_device_by_SN(config['camera']['SN'])
                 print('Sensor load success.')
             except Exception as e:
                 logger.warning('Sensor load error', e)
                 sensor = None
 
         self.devices['sensor'] = sensor
-
-        # Open sensor and leave it open for the whole process 
-        # self.devices['sensor'].open_device_by_SN(config['camera']['SN'])
-
+        
         # Add deformable mirror
-        if self.debug:
-            mirror = MIRROR.get('debug')
-        else:
-            try:
-                mirror = MIRROR.get(config['DM']['SN'])
-                print('Mirror load success.')
-            except Exception as e:
-                logger.warning('Mirror load error', e)
-                mirror = None
+        try:
+            mirror = MIRROR.get(config['DM']['SN'])
+            print('Mirror load success.')
+        except Exception as e:
+            logger.warning('Mirror load error', e)
+            mirror = None
 
         self.devices['mirror'] = mirror
 
@@ -178,7 +176,8 @@ class App(QApplication):
         cent_worker.layer.connect(lambda obj: self.handle_layer_disp(obj))
         cent_worker.image.connect(lambda obj: self.handle_image_disp(obj))
         cent_worker.message.connect(lambda obj: self.handle_message_disp(obj))
-        cent_worker.info.connect(lambda obj: self.handle_SB_info(obj))
+        cent_worker.info.connect(lambda obj: self.handle_centroiding_info(obj))
+        cent_worker.write.connect(self.write_centroiding_info)
         cent_worker.error.connect(lambda obj: self.handle_error(obj))
         cent_worker.done.connect(self.handle_cent_done)
 
@@ -292,9 +291,9 @@ class App(QApplication):
 
     def write_SB_info(self):
         """
-        Writes search block info to HDF5 file
+        Write search block info to HDF5 file
         """
-        self.output_data = h5py.File('data_info.h5', 'r+')
+        self.output_data = h5py.File('data_info.h5', 'a')
         grp1 = self.output_data['SB_info']
         for k, v in self.data_info['SB_info'].items():
             if k in grp1:
@@ -310,14 +309,50 @@ class App(QApplication):
 
     def write_mirror_info(self):
         """
-        Writes mirror info to HDF5 file
+        Write mirror info to HDF5 file
         """
-        self.output_data = h5py.File('data_info.h5', 'r+')
+        self.output_data = h5py.File('data_info.h5', 'a')
         grp2 = self.output_data['mirror_info']
         for k, v in self.data_info['mirror_info'].items():
             if k in grp2:
                del grp2[k]
             grp2.create_dataset(k, data = v)
+        self.output_data.close()
+
+    def handle_centroiding_info(self, obj):
+        """
+        Handle centroiding information
+        """
+        self.data_info['centroiding_info'].update(obj)
+
+    def write_centroiding_info(self):
+        """
+        Write centroiding info to HDF5 file
+        """
+        self.output_data = h5py.File('data_info.h5', 'a')
+        grp3 = self.output_data['centroiding_info']
+        for k, v in self.data_info['centroiding_info'].items():
+            if k in grp3:
+               del grp3[k]
+            grp3.create_dataset(k, data = v)
+        self.output_data.close()
+
+    def handle_AO_info(self, obj):
+        """
+        Handle AO information
+        """
+        self.data_info['AO_info'].update(obj)
+
+    def write_AO_info(self):
+        """
+        Write AO info to HDF5 file
+        """
+        self.output_data = h5py.File('data_info.h5', 'a')
+        grp4 = self.output_data['AO_info']
+        for k, v in self.data_info['AO_info'].items():
+            if k in grp4:
+               del grp4[k]
+            grp4.create_dataset(k, data = v)
         self.output_data.close()
 
     def handle_error(self, error):

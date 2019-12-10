@@ -24,7 +24,6 @@ def acq_image(sensor, width, height, acq_mode = 0):
     dataimage = np.zeros((2048,2048))
 
     # Start data acquisition for each frame
-    # print('Starting image acquisition...')
     sensor.start_acquisition()
     
     if acq_mode == 0:
@@ -40,14 +39,11 @@ def acq_image(sensor, width, height, acq_mode = 0):
             shape = (width, dataimage.shape[0] // width, height, dataimage.shape[1] // height)
             dataimage = dataimage.reshape(shape).mean(-1).mean(1)
 
-        except Exception as e:
-            print(e)
-
-        # except xiapi.Xi_error as err:
-        #     if err.status == 10:
-        #         print('Timeout error occurred.')
-        #     else:
-        #         raise
+        except xiapi.Xi_error as err:
+            if err.status == 10:
+                print('Timeout error occurred.')
+            else:
+                raise
 
     elif acq_mode == 1:
         # Acquire a sequence of images and append to data list
@@ -84,7 +80,6 @@ def acq_image(sensor, width, height, acq_mode = 0):
         print('Length of data list is:', len(data))
 
     # Stop data acquisition
-    # print('Stopping image acquisition...')
     sensor.stop_acquisition()
 
     if acq_mode == 0:

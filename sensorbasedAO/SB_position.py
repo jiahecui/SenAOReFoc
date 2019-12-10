@@ -21,7 +21,7 @@ logger = log.get_logger(__name__)
 
 class Positioning(QObject):
     """
-    Positions search blocks either through keyboard argument or import from YAML file
+    Positions search blocks either through keyboard argument or import from HDF5 file
     """
     start = Signal()
     write = Signal()
@@ -101,7 +101,7 @@ class Positioning(QObject):
                 while True:
                     if c == 'y':
                         self.load = False
-                        self.message.emit('Reposition search block using keyboard.')
+                        self.message.emit('Reposition search blocks using keyboard.')
                         break
                     elif c == 'n':
                         self.move = False
@@ -122,7 +122,7 @@ class Positioning(QObject):
                 self.message.emit('Press arrow keys to centre S-H spots in search blocks. Press Enter to finish.')
                 c = click.getchar()
 
-                # Update act_ref_cent_coord according to keyboard input
+                # Update search block reference coordinates according to keyboard input
                 while True: 
                     if c == '\xe0H' or c == '\x00H':
                         self.SB_settings['act_ref_cent_coord'] -= self.sensor_width
