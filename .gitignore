@@ -18,6 +18,9 @@ sensorbasedAO/error_camera_2.py
 # virtualenv
 venv/
 
+# datafile
+data_text/
+
 # pyinstaller
 build/
 *.pyo
