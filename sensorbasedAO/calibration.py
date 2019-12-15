@@ -29,7 +29,6 @@ class Calibration(QObject):
     error = Signal(object)
     image = Signal(object)
     message = Signal(object)
-    cent = Signal(object)
     info = Signal(object)
 
     def __init__(self, sensor, mirror, settings):
@@ -76,8 +75,8 @@ class Calibration(QObject):
             # Open HDF5 file and create new dataset to store calibration data
             data_set_img = np.zeros([self.SB_settings['sensor_width'], self.SB_settings['sensor_height']])
             data_set_cent = np.zeros(self.SB_settings['act_ref_cent_num'])
-            self.output_file = h5py.File('data_info.h5', 'a')
-            data_set = self.output_file['calibration_img']
+            data_file = h5py.File('data_info.h5', 'a')
+            data_set = data_file['calibration_img']
             key_list_1 = ['dummy_calib_img', 'dummy_spot_cent_x', 'dummy_spot_cent_y']
             key_list_2 = ['real_calib_img']
             if config['dummy']:
@@ -171,7 +170,7 @@ class Calibration(QObject):
                     self.done.emit()
 
             # Close HDF5 file
-            self.output_file.close()
+            data_file.close()
 
             prev2 = time.perf_counter()
             # print('Time for calibration image acquisition process is:', (prev2 - prev1))

@@ -76,8 +76,8 @@ class Centroiding(QObject):
             # Open HDF5 file and create new dataset to store centroiding data
             data_set_img = np.zeros([self.SB_settings['sensor_width'], self.SB_settings['sensor_height']])
             data_set_cent = np.zeros(self.SB_settings['act_ref_cent_num'])
-            self.output_file = h5py.File('data_info.h5', 'a')
-            data_set = self.output_file['centroiding_img']
+            data_file = h5py.File('data_info.h5', 'a')
+            data_set = data_file['centroiding_img']
             key_list_1 = ['dummy_cent_img', 'dummy_spot_cent_x', 'dummy_spot_cent_y']
             key_list_2 = ['real_cent_img']
             if config['dummy']:
