@@ -30,7 +30,8 @@ class Positioning(QObject):
     image = Signal(object)
     layer = Signal(object)
     message = Signal(object)
-    info = Signal(object)
+    SB_info = Signal(object)
+    mirror_info = Signal(object)
     
     def __init__(self, device, settings):
 
@@ -108,7 +109,7 @@ class Positioning(QObject):
                         self.message.emit('Load search block position from HDF5 file.')
                         break
                     else:
-                        self.message.emit('Invalid input. Try again.')
+                        self.message.emit('Invalid input. Please try again.')
 
                     c = click.getchar()
             else:
@@ -152,21 +153,23 @@ class Positioning(QObject):
                     c = click.getchar()
             elif self.load:
 
-                # Load search block position from HDF5 file
+                # Load all search block and mirror info from HDF5 file into settings
                 data_file = h5py.File('data_info.h5', 'r+')
-                data = data_file['SB_info']
-                self.SB_settings['act_ref_cent_coord'] = data.get('act_ref_cent_coord')[()]
-                self.SB_settings['act_ref_cent_coord_x'] = data.get('act_ref_cent_coord_x')[()]
-                self.SB_settings['act_ref_cent_coord_y'] = data.get('act_ref_cent_coord_y')[()]
-                self.SB_settings['act_SB_coord'] = data.get('act_SB_coord')[()]
+                SB_data = data_file['SB_info']
+                for k in SB_data.keys():
+                    self.SB_settings[k] = SB_data.get(k)[()]
+                self.mirror_settings = {}
+                mirror_data = data_file['mirror_info']
+                for k in mirror_data.keys():
+                    self.mirror_settings[k] = mirror_data.get(k)[()]   
                 data_file.close()
 
-                self.message.emit('Search block position loaded.') 
+                self.message.emit('Search block position loaded.')
 
                 # Display original search block positions from previous calibration
                 self.SB_layer_2D_temp = self.SB_layer_2D.copy()
                 self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
-                self.layer.emit(self.SB_layer_2D_temp)
+                self.layer.emit(self.SB_layer_2D_temp)        
             else:
 
                 self.done.emit()
@@ -176,8 +179,13 @@ class Positioning(QObject):
             """ 
             if self.log and self.move:
 
-                self.info.emit(self.SB_settings)
+                self.SB_info.emit(self.SB_settings)
                 self.write.emit()
+
+            elif self.log and self.load:
+
+                self.SB_info.emit(self.SB_settings)
+                self.mirror_info.emit(self.mirror_settings)
             else:
 
                 self.done.emit()
