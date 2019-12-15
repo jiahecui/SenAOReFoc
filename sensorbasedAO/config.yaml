@@ -49,9 +49,9 @@ search_block:
   pupil_diam: 7.7  # mm
 
 image:
-  noise: 27
+  noise: 20
   threshold: 0.1  # Percentage of maximum pixel used for thresholding an image
-  dynamic_num: 1  # Number of cycles to use for centroiding with a dynamic range
+  dynamic_num: 3  # Number of cycles to use for centroiding with a dynamic range
   normalise: 1  # 0-normalise off, 1-normalise on
   norm_min: 7  # Below which will clip to 0, uint8
   norm_max: 255  # Above which will clip to 1, uint8
@@ -61,8 +61,9 @@ AO:
   recon_coeff_num: 69
   control_coeff_num: 69
   sys_mode_num: 69
-  loop_gain: 0.2  # Fixed loop gain for closed-loop control
-  loop_max: 10  # Maximum number of loops for closed-loop control
+  loop_gain: 0.1  # Fixed loop gain for closed-loop control
+  loop_max: 50  # Maximum number of loops for closed-loop control
+  tolerance_fact: 0.01  # RMS error tolerance factor
   momentum: 
 
 dummy: 1  # Flag for whether to run in dummy mode, 0-real mode, 1-dummy mode

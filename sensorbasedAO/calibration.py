@@ -163,6 +163,7 @@ class Calibration(QObject):
 
                         # Set actuator back to bias voltage
                         voltages[i] = config['DM']['vol_bias']
+                        
                     except Exception as e:
                         print(e)
                 else:

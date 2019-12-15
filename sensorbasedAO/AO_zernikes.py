@@ -69,8 +69,8 @@ class AO_Zernikes(QObject):
             """
             Set zernike coefficient array to user specified values and load corresponding control voltages to DM, acquire S-H spot 
             pattern and reconstruct wavefront (get zernike coefficients), then apply phase residual (zernike coefficient difference
-            between applied and detected) to DM and iterate the process WITH A FIXED GAIN until residual phase error is below a certain value or iteration
-            has reached maximum
+            between applied and detected) to DM and iterate the process WITH A FIXED GAIN until residual phase error is below a 
+            certain value or iteration has reached maximum
             """
             # Load user specified zernike coefficients
             self.zern_coeff.ravel()[:len(self.AO_settings['zernike_array_test'])] = self.AO_settings['zernike_array_test']
@@ -123,28 +123,22 @@ class AO_Zernikes(QObject):
             # Initialise array to record root mean square error after each iteration
             self.loop_rms = np.zeros(config['AO']['loop_max'])
 
+            self.message.emit('Process started for closed-loop AO via Zernikes...')
+
             # Run closed-loop control until residual phase error is below a certain value or iteration has reached specified maximum
             for i in range(config['AO']['loop_max']):
                 
                 if self.loop:
                     
                     try:
-                        if i == 0:
-                            voltages = np.dot(self.mirror_settings['control_matrix_zern'], self.zern_coeff)
-                        else:
-                            voltages += config['AO']['loop_gain'] * np.dot(self.mirror_settings['control_matrix_zern'], self.zern_coeff)
-
-                        # Send values vector to mirror
-                        self.mirror.Send(voltages)
-                        
-                        # Wait for DM to settle
-                        time.sleep(config['DM']['settling_time'])
-                        
-                        # Acquire S-H spot image and display
                         if config['dummy']:
 
                             # Translate zernike coefficients into slopes to use as theoretical centroids for simulation of S-H spots
-                            spot_cent_slope = np.dot(conv_matrix_inv, self.zern_coeff)
+                            if i == 0:
+                                spot_cent_slope = np.dot(conv_matrix_inv, self.zern_coeff)
+                            else:
+                                spot_cent_slope = np.dot(conv_matrix_inv, self.zern_coeff - config['AO']['loop_gain'] * zern_err)
+
                             spot_cent_slope_x, spot_cent_slope_y = (np.zeros([1, self.SB_settings['act_ref_cent_num']]) for i in range(2))
                             spot_cent_slope_x[0, :] = spot_cent_slope[:self.SB_settings['act_ref_cent_num'], 0]
                             spot_cent_slope_y[0, :] = spot_cent_slope[self.SB_settings['act_ref_cent_num']:, 0]
@@ -157,6 +151,18 @@ class AO_Zernikes(QObject):
                             dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
                             dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
                         else:
+
+                            # Update mirror control voltages
+                            if i == 0:
+                                voltages = np.dot(self.mirror_settings['control_matrix_zern'], self.zern_coeff)
+                            else:
+                                voltages -= config['AO']['loop_gain'] * np.dot(self.mirror_settings['control_matrix_zern'], zern_err)                        
+
+                            # Send values vector to mirror
+                            self.mirror.Send(voltages)
+                            
+                            # Wait for DM to settle
+                            time.sleep(config['DM']['settling_time'])
                         
                             # Acquire S-H spots using camera and append to list
                             AO_image = acq_image(self.sensor, self.SB_settings['sensor_width'], self.SB_settings['sensor_height'], acq_mode = 0)
@@ -168,42 +174,44 @@ class AO_Zernikes(QObject):
                         self.image.emit(AO_image)
 
                         # Calculate centroids of S-H spots
-                        self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y, self.slope_x, self.slope_y = \
+                        act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = \
                             acq_centroid(self.SB_settings, flag = 2)
-                        self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y = \
-                            map(np.asarray, [self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y])
+                        act_cent_coord, act_cent_coord_x, act_cent_coord_y = \
+                            map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
 
                         # Draw actual S-H spot centroids on image layer
-                        AO_image.ravel()[self.act_cent_coord.astype(int)] = 0
+                        AO_image.ravel()[act_cent_coord.astype(int)] = 0
                         self.image.emit(AO_image)
 
                         # Concatenate slopes into one slope matrix
-                        self.slope = (np.concatenate((self.slope_x, self.slope_y), axis = 1)).T
+                        slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
 
                         # Get detected zernike coefficients from slope matrix
-                        self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], self.slope)
+                        self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                        # Get phase residual and calculate root mean square error
-                        self.zern_coeff -= self.zern_coeff_detect
-                        rms = np.sqrt((self.zern_coeff ** 2).mean(axis = 0))[0]
+                        # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
+                        zern_err = self.zern_coeff_detect - self.zern_coeff
+                        rms = np.sqrt((zern_err ** 2).mean(axis = 0))[0]
                         self.loop_rms[i] = rms
+
+                        print('Root mean square error {} is {}'.format(i + 1, rms))                        
 
                         # Append data to list
                         if config['dummy']:
-                            dset_append(data_set_2, 'dummy_spot_slope_x', self.slope_x)
-                            dset_append(data_set_2, 'dummy_spot_slope_y', self.slope_y)
-                            dset_append(data_set_2, 'dummy_spot_slope', self.slope)
-                            dset_append(data_set_2, 'dummy_spot_zern_err', self.zern_coeff)
+                            dset_append(data_set_2, 'dummy_spot_slope_x', slope_x)
+                            dset_append(data_set_2, 'dummy_spot_slope_y', slope_y)
+                            dset_append(data_set_2, 'dummy_spot_slope', slope)
+                            dset_append(data_set_2, 'dummy_spot_zern_err', zern_err)
                         else:
-                            dset_append(data_set_2, 'real_spot_slope_x', self.slope_x)
-                            dset_append(data_set_2, 'real_spot_slope_y', self.slope_y)
-                            dset_append(data_set_2, 'real_spot_slope', self.slope)
-                            dset_append(data_set_2, 'real_spot_zern_err', self.zern_coeff)
+                            dset_append(data_set_2, 'real_spot_slope_x', slope_x)
+                            dset_append(data_set_2, 'real_spot_slope_y', slope_y)
+                            dset_append(data_set_2, 'real_spot_slope', slope)
+                            dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
-                        # Use the Marechal criterion to measure the magnitude of residual phase error
-                        # if rms <= np.pi / 7:
-                        if rms <= 0.1:
+                        # Compare rms error with tolerance factor and decide whether to break from loop
+                        if rms <= config['AO']['tolerance_fact']:
                             break
+
                     except Exception as e:
                         print(e)
                 else:
@@ -213,6 +221,7 @@ class AO_Zernikes(QObject):
             # Close HDF5 file
             data_file.close()
 
+            self.message.emit('Process complete.')
             print('Final root mean square error of detected wavefront is: {} radians'.format(rms))
 
             """
@@ -220,6 +229,7 @@ class AO_Zernikes(QObject):
             """             
             if self.log:
 
+                self.AO_info['loop_num'] = i
                 self.AO_info['residual_phase_err_1'] = self.loop_rms
 
                 self.info.emit(self.AO_info)

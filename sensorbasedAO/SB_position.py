@@ -85,7 +85,7 @@ class Positioning(QObject):
                 # self._image = acq_image(self.sensor, self.sensor_width, self.sensor_height, acq_mode = 0)
                 spot_img = SpotSim(self.SB_settings)
                 self._image, self.spot_cent_x, self.spot_cent_y = spot_img.SH_spot_sim(centred = 0)
-
+                               
                 # Image thresholding to remove background
                 self._image = self._image - config['image']['threshold'] * np.amax(self._image)
                 self._image[self._image < 0] = 0

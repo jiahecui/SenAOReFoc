@@ -153,17 +153,15 @@ def acq_centroid(settings, flag = 0):
                 #     print('Length of pixel coord along y axis for cycle {}: {}'.format(n, len(SB_pix_coord_y)))
 
                 # Calculate actual S-H spot centroids by doing weighted sum
-                try:
-                    for j in range(len(SB_pix_coord_y)):
-                        for k in range(len(SB_pix_coord_x)):
-                            sum_x += image_temp[int(round(SB_pix_coord_y[j])), int(round(SB_pix_coord_x[k]))] * int(round(SB_pix_coord_x[k]))
-                            sum_y += image_temp[int(round(SB_pix_coord_y[j])), int(round(SB_pix_coord_x[k]))] * int(round(SB_pix_coord_y[j]))
-                            sum_pix += image_temp[int(round(SB_pix_coord_y[j])), int(round(SB_pix_coord_x[k]))]
-                except Exception as e:
-                    print(e)
+                for j in range(len(SB_pix_coord_y)):
+                    for k in range(len(SB_pix_coord_x)):
+                        sum_x += image_temp[int(round(SB_pix_coord_y[j])), int(round(SB_pix_coord_x[k]))] * int(round(SB_pix_coord_x[k]))
+                        sum_y += image_temp[int(round(SB_pix_coord_y[j])), int(round(SB_pix_coord_x[k]))] * int(round(SB_pix_coord_y[j]))
+                        sum_pix += image_temp[int(round(SB_pix_coord_y[j])), int(round(SB_pix_coord_x[k]))]               
+
                 act_cent_coord_x[i] = sum_x / sum_pix
                 act_cent_coord_y[i] = sum_y / sum_pix
-                act_cent_coord[i] = int(round(act_cent_coord_y[i])) * sensor_width + int(round(act_cent_coord_x[i]))                          
+                act_cent_coord[i] = int(round(act_cent_coord_y[i])) * sensor_width + int(round(act_cent_coord_x[i]))
 
         if config['dummy']:
             # Calculate average centroid error 
@@ -196,7 +194,7 @@ def acq_centroid(settings, flag = 0):
         # print('Act_cent_coord:', act_cent_coord)
         # print('Error along x axis:', error_x)
         # print('Error along y axis:', error_y)
-        print('Average position error {}: {}'.format(l + 1, error_tot))
+        print('Average position error is {}'.format(error_tot))
         # print('Slope along x axis:', slope_x)
         # print('Slope along y axis:', slope_y)
 

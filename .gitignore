@@ -1,6 +1,7 @@
 # Camera error debugging files
 sensorbasedAO/error_camera_1.py
 sensorbasedAO/error_camera_2.py
+sensorbasedAO/jacopo_cent.py
 
 # python package
 *.egg-info
