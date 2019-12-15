@@ -63,7 +63,7 @@ class SpotSim():
             self.SH_spot_img = self.array_integrate(Gaus_spot, self.SH_spot_img, A_start, B_start, B_end)
 
         # Add noise to S-H spot image
-        self.SH_spot_img = self.add_noise(self.SH_spot_img, noise_type = 'uniform')
+        self.SH_spot_img = self.add_noise(self.SH_spot_img, noise_type = 'gauss')
             
         # print('Theoretical S-H spot cent:', self.spot_cent)
         # print('Theoretical S-H spot cent x:', self.spot_cent_x)
