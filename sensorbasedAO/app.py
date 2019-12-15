@@ -25,6 +25,7 @@ from centroiding import Centroiding
 from calibration import Calibration
 from conversion import Conversion
 from calibration_zern import Calibration_Zern
+from AO_zernikes import AO_Zernikes
 
 logger = log.get_logger(__name__)
 
@@ -149,7 +150,8 @@ class App(QApplication):
         pos_worker.layer.connect(lambda obj: self.handle_layer_disp(obj))
         pos_worker.image.connect(lambda obj: self.handle_image_disp(obj))
         pos_worker.message.connect(lambda obj: self.handle_message_disp(obj))
-        pos_worker.info.connect(lambda obj: self.handle_SB_info(obj))
+        pos_worker.SB_info.connect(lambda obj: self.handle_SB_info(obj))
+        pos_worker.mirror_info.connect(lambda obj: self.handle_mirror_info(obj))
         pos_worker.write.connect(self.write_SB_info)
         pos_worker.error.connect(lambda obj: self.handle_error(obj))
         pos_worker.done.connect(self.handle_pos_done)
@@ -263,6 +265,36 @@ class App(QApplication):
 
         # Start calibration thread
         calib2_thread.start()
+
+    def control_zern_test(self, sensor, mirror, data_info, mode = 1):
+        """
+        Closed-loop AO control via Zernikes test run
+
+        Args:
+            mode = 1 - evaluate reconstructed Zernike wavefront at S-H sensor
+        """
+        # Create Zernike AO worker and thread
+        zern_thread = QThread()
+        zern_thread.setObjectName('zern_thread')
+        zern_worker = AO_Zernikes(sensor, mirror, data_info, mode)
+        zern_worker.moveToThread(zern_thread)
+
+        # Connect to signals
+        if mode == 1:
+            zern_thread.started.connect(zern_worker.run1)
+        zern_worker.image.connect(lambda obj: self.handle_image_disp(obj))   
+        zern_worker.message.connect(lambda obj: self.handle_message_disp(obj))
+        zern_worker.info.connect(lambda obj: self.handle_AO_info(obj))
+        zern_worker.write.connect(self.write_AO_info)
+        zern_worker.error.connect(lambda obj: self.handle_error(obj))
+        zern_worker.done.connect(self.handle_zern_test_done)
+
+        # Store Zernike AO worker and thread
+        self.workers['zern_worker'] = zern_worker
+        self.threads['zern_thread'] = zern_thread
+
+        # Start Zernike AO thread
+        zern_thread.start()
 
     #========== Signal handlers ==========#
     def handle_layer_disp(self, obj):
@@ -438,6 +470,20 @@ class App(QApplication):
         self.threads['calib2_thread'].quit()
         self.threads['calib2_thread'].wait()
         self.main.ui.calibrateBtn_2.setChecked(False)
+
+    def handle_zern_test_start(self, mode = 1):
+        """
+        Handle start of closed-loop AO control test via Zernikes
+        """
+        self.control_zern_test(self.devices['sensor'], self.devices['mirror'], self.data_info, mode)
+
+    def handle_zern_test_done(self):
+        """
+        Handle end of closed-loop AO control test via Zernikes
+        """
+        self.threads['zern_thread'].quit()
+        self.threads['zern_thread'].wait()
+        self.main.ui.ZernikeTestBtn_1.setChecked(False)
 
     def stop(self):
         """

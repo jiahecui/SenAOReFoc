@@ -28,7 +28,7 @@ camera:
     
 DM:
   SN: "HSDM69-15-014"
-  actuator_num: 3
+  actuator_num: 69
   vol_min: -1  # V
   vol_max: 1
   vol_bias: 0
@@ -58,10 +58,11 @@ image:
   rescale: 1  # 0-rescale off, 1-rescale on
 
 AO:
-  recon_coeff_num: 70
+  recon_coeff_num: 69
   control_coeff_num: 69
   sys_mode_num: 69
-  loop_gain: 0.1
+  loop_gain: 0.2  # Fixed loop gain for closed-loop control
+  loop_max: 10  # Maximum number of loops for closed-loop control
   momentum: 
 
 dummy: 1  # Flag for whether to run in dummy mode, 0-real mode, 1-dummy mode

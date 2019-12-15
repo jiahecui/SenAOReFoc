@@ -32,6 +32,8 @@ class Main(QMainWindow):
         self.ui.calibrateBtn.clicked.connect(self.on_calibrate)
         self.ui.conversionBtn.clicked.connect(self.on_conversion)
         self.ui.calibrateBtn_2.clicked.connect(self.on_calibrate_zern)
+        self.ui.ZernikeOKBtn.clicked.connect(self.get_zernike_settings)
+        self.ui.ZernikeTestBtn_1.clicked.connect(self.on_zern_test_1)
         self.ui.stopBtn.clicked.connect(self.on_stop)
         self.ui.quitBtn.clicked.connect(self.on_quit)
 
@@ -129,7 +131,61 @@ class Main(QMainWindow):
             btn.setChecked(False)
         else:
             self.app.handle_calib2_start()
-            btn.setChecked(True)        
+            btn.setChecked(True)
+
+    def get_zernike_settings(self, checked):
+        """
+        Zernike coefficient array value update handler
+        """
+        btn = self.sender()
+
+        # Get Zernike coefficient array values if pressed 
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            if not self.ui.ZernikeArrEdt.text() is '':
+                try:
+                    zernike_array = self.ui.ZernikeArrEdt.text()
+                    zernike_array = [float(i) for i in zernike_array.split(' ')]
+                except Exception as e:
+                    btn.setChecked(False)
+                    self.app.handle_message_disp('Invalid input. Please try again.')
+            elif not self.ui.ZernikeValSpin.value() == 0 or self.ui.ZernikeCoeffSpin.value() == 0:
+                try:
+                    zernike_coeff = self.ui.ZernikeCoeffSpin.value()
+                    zernike_array = np.zeros(zernike_coeff)
+                    zernike_array[-1] = self.ui.ZernikeValSpin.value()
+                except Exception as e:
+                    btn.setChecked(False)
+                    self.app.handle_message_disp('Invalid input. Please try again.')
+            else:
+                btn.setChecked(False)
+                self.app.handle_message_disp('Please enter zernike coefficients.')
+
+            if btn.isChecked():
+                if not len(zernike_array) > config['AO']['control_coeff_num']:
+                    settings = {}
+                    settings['zernike_array_test'] = zernike_array
+                    self.app.handle_AO_info(settings)
+                    self.app.write_AO_info()
+                    self.app.handle_message_disp('Zernike coefficients loaded.')
+                    btn.setChecked(False)
+                else:
+                    self.app.handle_message_disp('Input too long. Please try again.')
+                    btn.setChecked(False)       
+
+    def on_zern_test_1(self, checked):
+        """
+        Closed-loop AO control via Zernikes test 1 handler
+        """
+        btn = self.sender()
+
+        # Generate control matrix via Zernikes if pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            self.app.handle_zern_test_start(mode = 1)
+            btn.setChecked(True)
 
     def on_stop(self):
         """
