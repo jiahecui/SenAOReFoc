@@ -17,15 +17,15 @@ def acq_centroid(settings, flag = 0):
     Args:
         flag = 0 for one time centroiding process
         flag = 1 for calibration process
-        flag = 2 for closed AO process
+        flag = 2 for closed-loop AO process
     """
     # Open HDF5 file to retrieve calibration images
-    image_file = h5py.File('data_info.h5', 'a')
+    data_file = h5py.File('data_info.h5', 'a')
 
-    if flag == 0:
-        image_num = 1
-    elif flag == 1:
+    if flag == 1:
         image_num = 2 * config['DM']['actuator_num']
+    else:
+        image_num = 1
    
     # Get actual search block reference centroid coords
     act_ref_cent_coord = settings['act_ref_cent_coord']
@@ -58,16 +58,23 @@ def acq_centroid(settings, flag = 0):
         if flag == 0:
             
             if config['dummy']:
-                image_temp = image_file['centroiding_img']['dummy_cent_img'][l, :, :]
+                image_temp = data_file['centroiding_img']['dummy_cent_img'][l, :, :]
             else:
-                image_temp = image_file['centroiding_img']['real_cent_img'][l, :, :]
+                image_temp = data_file['centroiding_img']['real_cent_img'][l, :, :]
 
         elif flag == 1:
 
             if config['dummy']:
-                image_temp = image_file['calibration_img']['dummy_calib_img'][l, :, :]
+                image_temp = data_file['calibration_img']['dummy_calib_img'][l, :, :]
             else:
-                image_temp = image_file['calibration_img']['real_calib_img'][l, :, :]
+                image_temp = data_file['calibration_img']['real_calib_img'][l, :, :]
+
+        elif flag == 2:
+
+            if config['dummy']:
+                image_temp = data_file['AO_img']['dummy_AO_img'][-1, ... ]
+            else:
+                image_temp = data_file['AO_img']['real_AO_img'][-1, ... ]
         
         # print('Centroiding image {}'.format(l))
 
@@ -161,11 +168,14 @@ def acq_centroid(settings, flag = 0):
             error_temp = 0
 
             if flag == 0:
-                error_x = act_cent_coord_x - image_file['centroiding_img']['dummy_spot_cent_x'][l, :]
-                error_y = act_cent_coord_y - image_file['centroiding_img']['dummy_spot_cent_y'][l, :]
+                error_x = act_cent_coord_x - data_file['centroiding_img']['dummy_spot_cent_x'][l, :]
+                error_y = act_cent_coord_y - data_file['centroiding_img']['dummy_spot_cent_y'][l, :]
             elif flag == 1:
-                error_x = act_cent_coord_x - image_file['calibration_img']['dummy_spot_cent_x'][l, :]
-                error_y = act_cent_coord_y - image_file['calibration_img']['dummy_spot_cent_y'][l, :]
+                error_x = act_cent_coord_x - data_file['calibration_img']['dummy_spot_cent_x'][l, :]
+                error_y = act_cent_coord_y - data_file['calibration_img']['dummy_spot_cent_y'][l, :]
+            elif flag == 2:
+                error_x = act_cent_coord_x - data_file['AO_img']['dummy_spot_cent_x'][-1, ... ]
+                error_y = act_cent_coord_y - data_file['AO_img']['dummy_spot_cent_y'][-1, ... ]
 
             for i in range(len(error_x)):
                 error_temp += np.sqrt(error_x[i] ** 2 + error_y[i] ** 2)
@@ -188,12 +198,13 @@ def acq_centroid(settings, flag = 0):
         # print('Slope along x axis:', slope_x)
         # print('Slope along y axis:', slope_y)
 
-    image_file.close()
+    # Close HDF5 file
+    data_file.close()
 
     prev2 = time.perf_counter()
     # print('Time for centroid calculation process is:', (prev2 - prev1))
 
-    if flag == 0:
-        return act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x_list, slope_y_list
-    elif flag == 1:
+    if flag == 1:
         return slope_x_list, slope_y_list
+    else:
+        return act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x_list, slope_y_list
