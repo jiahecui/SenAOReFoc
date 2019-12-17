@@ -125,6 +125,8 @@ class AO_Zernikes(QObject):
 
             self.message.emit('Process started for closed-loop AO via Zernikes...')
 
+            prev1 = time.perf_counter()
+
             # Run closed-loop control until residual phase error is below a certain value or iteration has reached specified maximum
             for i in range(config['AO']['loop_max']):
                 
@@ -135,10 +137,11 @@ class AO_Zernikes(QObject):
 
                             # Translate zernike coefficients into slopes to use as theoretical centroids for simulation of S-H spots
                             if i == 0:
-                                spot_cent_slope = np.dot(conv_matrix_inv, self.zern_coeff)
+                                self.zern_coeff_orig = self.zern_coeff.copy()
                             else:
-                                spot_cent_slope = np.dot(conv_matrix_inv, self.zern_coeff - config['AO']['loop_gain'] * zern_err)
+                                self.zern_coeff -= config['AO']['loop_gain'] * zern_err
 
+                            spot_cent_slope = np.dot(conv_matrix_inv, self.zern_coeff)
                             spot_cent_slope_x, spot_cent_slope_y = (np.zeros([1, self.SB_settings['act_ref_cent_num']]) for i in range(2))
                             spot_cent_slope_x[0, :] = spot_cent_slope[:self.SB_settings['act_ref_cent_num'], 0]
                             spot_cent_slope_y[0, :] = spot_cent_slope[self.SB_settings['act_ref_cent_num']:, 0]
@@ -156,7 +159,7 @@ class AO_Zernikes(QObject):
                             if i == 0:
                                 voltages = np.dot(self.mirror_settings['control_matrix_zern'], self.zern_coeff)
                             else:
-                                voltages -= config['AO']['loop_gain'] * np.dot(self.mirror_settings['control_matrix_zern'], zern_err)                        
+                                voltages += config['AO']['loop_gain'] * np.dot(self.mirror_settings['control_matrix_zern'], zern_err)                        
 
                             # Send values vector to mirror
                             self.mirror.Send(voltages)
@@ -190,7 +193,7 @@ class AO_Zernikes(QObject):
                         self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
 
                         # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
-                        zern_err = self.zern_coeff_detect - self.zern_coeff
+                        zern_err = self.zern_coeff_detect - self.zern_coeff_orig
                         rms = np.sqrt((zern_err ** 2).mean(axis = 0))[0]
                         self.loop_rms[i] = rms
 
@@ -210,7 +213,7 @@ class AO_Zernikes(QObject):
 
                         # Compare rms error with tolerance factor and decide whether to break from loop
                         if rms <= config['AO']['tolerance_fact']:
-                            break
+                            break                 
 
                     except Exception as e:
                         print(e)
@@ -222,7 +225,10 @@ class AO_Zernikes(QObject):
             data_file.close()
 
             self.message.emit('Process complete.')
-            print('Final root mean square error of detected wavefront is: {} radians'.format(rms))
+            print('Final root mean square error of detected wavefront is: {} microns'.format(rms))
+
+            prev2 = time.perf_counter()
+            print('Time for closed-loop AO process is:', (prev2 - prev1))
 
             """
             Returns closed-loop AO information into self.AO_info
