@@ -90,15 +90,15 @@ def acq_centroid(settings, flag = 0):
                 if n == 0:
                     # Get 2D coords of pixels in each search block that need to be summed
                     if settings['odd_pix']:
-                        SB_pix_coord_x = np.arange(act_ref_cent_coord_x[i] - SB_rad + 1, \
-                            act_ref_cent_coord_x[i] + SB_rad - 1)
-                        SB_pix_coord_y = np.arange(act_ref_cent_coord_y[i] - SB_rad + 1, \
-                            act_ref_cent_coord_y[i] + SB_rad - 1)
+                        SB_pix_coord_x = np.arange(int(act_ref_cent_coord_x[i]) - SB_rad + 1, \
+                            int(act_ref_cent_coord_x[i]) + SB_rad - 1)
+                        SB_pix_coord_y = np.arange(int(act_ref_cent_coord_y[i]) - SB_rad + 1, \
+                            int(act_ref_cent_coord_y[i]) + SB_rad - 1)
                     else:
-                        SB_pix_coord_x = np.arange(act_ref_cent_coord_x[i] - SB_rad + 2, \
-                            act_ref_cent_coord_x[i] + SB_rad - 1)
-                        SB_pix_coord_y = np.arange(act_ref_cent_coord_y[i] - SB_rad + 2, \
-                            act_ref_cent_coord_y[i] + SB_rad - 1)
+                        SB_pix_coord_x = np.arange(int(act_ref_cent_coord_x[i]) - SB_rad + 2, \
+                            int(act_ref_cent_coord_x[i]) + SB_rad - 1)
+                        SB_pix_coord_y = np.arange(int(act_ref_cent_coord_y[i]) - SB_rad + 2, \
+                            int(act_ref_cent_coord_y[i]) + SB_rad - 1)
                 else:
                     """
                     Two methods for setting the dynamic range
@@ -109,6 +109,11 @@ def acq_centroid(settings, flag = 0):
                         2) Without thresholding and both doing 5 cycles, Method 2 is 2 times more effective for Gaussian, Method 1 is slightly 
                             more effective for speckle, both are equally effective for Poisson.
                         3) Method 2 is much more stable than Method 1 (error level using Method 1 sometimes double with the same parameters).
+                            HOWEVER, when the position of the S-H spot in adjacent search blocks is very close together, problems occur with
+                            Method 2 as the search area may incorporate adjacent spots, while Method 1 gives much better accuracy. For spot 
+                            centre displacement of (-15, 15), 'noise' = 20, 'threshold' = 0.1, dynamic_num' = 5, positioning error for Method 1
+                            is 0.036 (equivalent to 'dynamic_num = 1), while that for Method 2 is 1.369. For large spot centre displacements, 
+                            i.e. (-15, 15), positioning error for Method 2 increases with more cycles.                            
                         4) The size of each S-H spot affects centroiding accuracy, the smaller the spot (smaller sigma), the less accurate the
                             centroiding is with all other parameters the same.
                         5) Using Method 2, without thresholding and doing 5 cycles, the average positioning error is around 0.5 for a 
@@ -141,10 +146,16 @@ def acq_centroid(settings, flag = 0):
                     #     SB_pix_coord_y = SB_pix_coord_y[1:-1]
 
                     # Method 2: Centre new search area on centroid calculated during previous cycle while shrinking search area at the same time
-                    SB_pix_coord_x = np.arange(act_cent_coord_x[i] - SB_rad + 1 + n, \
-                        act_cent_coord_x[i] + SB_rad - 1 - n)
-                    SB_pix_coord_y = np.arange(act_cent_coord_y[i] - SB_rad + 1 + n, \
-                        act_cent_coord_y[i] + SB_rad - 1 - n)
+                    if settings['odd_pix']:
+                        SB_pix_coord_x = np.arange(int(act_cent_coord_x[i]) - SB_rad + 1 + n, \
+                            int(act_cent_coord_x[i]) + SB_rad - 1 - n)
+                        SB_pix_coord_y = np.arange(int(act_cent_coord_y[i]) - SB_rad + 1 + n, \
+                            int(act_cent_coord_y[i]) + SB_rad - 1 - n)
+                    else:
+                        SB_pix_coord_x = np.arange(int(act_cent_coord_x[i]) - SB_rad + 2 + n, \
+                            int(act_cent_coord_x[i]) + SB_rad - 1 - n)
+                        SB_pix_coord_y = np.arange(int(act_cent_coord_y[i]) - SB_rad + 2 + n, \
+                            int(act_cent_coord_y[i]) + SB_rad - 1 - n)
 
                 # if i == 0:
                 #     print('SB_pixel_coord_x_{}_{}: {}'.format(i, n, SB_pix_coord_x))
@@ -152,18 +163,21 @@ def acq_centroid(settings, flag = 0):
                 #     print('Length of pixel coord along x axis for cycle {}: {}'.format(n, len(SB_pix_coord_x)))
                 #     print('Length of pixel coord along y axis for cycle {}: {}'.format(n, len(SB_pix_coord_y)))
 
-                # Calculate actual S-H spot centroids by doing weighted sum
-                for j in range(len(SB_pix_coord_y)):
-                    for k in range(len(SB_pix_coord_x)):
-                        sum_x += image_temp[int(round(SB_pix_coord_y[j])), int(round(SB_pix_coord_x[k]))] * int(round(SB_pix_coord_x[k]))
-                        sum_y += image_temp[int(round(SB_pix_coord_y[j])), int(round(SB_pix_coord_x[k]))] * int(round(SB_pix_coord_y[j]))
-                        sum_pix += image_temp[int(round(SB_pix_coord_y[j])), int(round(SB_pix_coord_x[k]))]               
+                # Calculate actual S-H spot centroids by using centre of gravity (CoG) method
+                image_crop = image_temp[int(round(SB_pix_coord_y[0])) : int(round(SB_pix_coord_y[0])) + len(SB_pix_coord_y), \
+                    int(round(SB_pix_coord_x[0])) : int(round(SB_pix_coord_x[0])) + len(SB_pix_coord_x)]
+                xx, yy = np.meshgrid(np.arange(int(round(SB_pix_coord_x[0])), int(round(SB_pix_coord_x[0])) + len(SB_pix_coord_x)), \
+                    np.arange(int(round(SB_pix_coord_y[0])), int(round(SB_pix_coord_y[0])) + len(SB_pix_coord_y)))
+
+                sum_x = (xx * image_crop).sum()
+                sum_y = (yy * image_crop).sum()
+                sum_pix = image_crop.sum()
 
                 act_cent_coord_x[i] = sum_x / sum_pix
                 act_cent_coord_y[i] = sum_y / sum_pix
-                act_cent_coord[i] = int(round(act_cent_coord_y[i])) * sensor_width + int(round(act_cent_coord_x[i]))
 
         if config['dummy']:
+
             # Calculate average centroid error 
             error_temp = 0
 
@@ -191,10 +205,9 @@ def acq_centroid(settings, flag = 0):
 
         # print('Act_cent_coord_x:', act_cent_coord_x)
         # print('Act_cent_coord_y:', act_cent_coord_y)
-        # print('Act_cent_coord:', act_cent_coord)
         # print('Error along x axis:', error_x)
         # print('Error along y axis:', error_y)
-        print('Average position error is {}'.format(error_tot))
+        # print('Average position error is {}'.format(error_tot))
         # print('Slope along x axis:', slope_x)
         # print('Slope along y axis:', slope_y)
 
