@@ -33,7 +33,15 @@ class Main(QMainWindow):
         self.ui.conversionBtn.clicked.connect(self.on_conversion)
         self.ui.calibrateBtn_2.clicked.connect(self.on_calibrate_zern)
         self.ui.ZernikeOKBtn.clicked.connect(self.get_zernike_settings)
-        self.ui.ZernikeTestBtn_1.clicked.connect(self.on_zern_test_1)
+        self.ui.ZernikeTestBtn.clicked.connect(self.on_zern_test)
+        self.ui.ZernikeAOBtn_1.clicked.connect(self.on_zern_AO_1)
+        self.ui.ZernikeAOBtn_2.clicked.connect(self.on_zern_AO_2)
+        self.ui.ZernikeAOBtn_3.clicked.connect(self.on_zern_AO_3)
+        self.ui.slopeAOBtn_1.clicked.connect(self.on_slope_AO_1)
+        self.ui.slopeAOBtn_2.clicked.connect(self.on_slope_AO_2)
+        self.ui.slopeAOBtn_3.clicked.connect(self.on_slope_AO_3)
+        self.ui.ZernikeFullBtn.clicked.connect(self.on_zern_AO_full)
+        self.ui.SlopeFullBtn.clicked.connect(self.on_slope_AO_full)
         self.ui.stopBtn.clicked.connect(self.on_stop)
         self.ui.quitBtn.clicked.connect(self.on_quit)
 
@@ -174,17 +182,121 @@ class Main(QMainWindow):
                     self.app.handle_message_disp('Input too long. Please try again.')
                     btn.setChecked(False)       
 
-    def on_zern_test_1(self, checked):
+    def on_zern_test(self, checked):
         """
         Closed-loop AO control via Zernikes test 1 handler
         """
         btn = self.sender()
 
-        # Generate control matrix via Zernikes if pressed
+        # Test closed-loop AO control via Zernikes if pressed
         if not btn.isChecked():
             btn.setChecked(False)
         else:
-            self.app.handle_zern_test_start(mode = 1)
+            self.app.handle_zern_test_start()
+            btn.setChecked(True)
+
+    def on_zern_AO_1(self, checked):
+        """
+        Closed-loop AO control via Zernikes handler 1
+        """
+        btn = self.sender()
+
+        # Start closed-loop AO control via Zernikes if pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            self.app.handle_zern_AO_start(mode = 1)
+            btn.setChecked(True)
+
+    def on_zern_AO_2(self, checked):
+        """
+        Closed-loop AO control via Zernikes handler 2
+        """
+        btn = self.sender()
+
+        # Start closed-loop AO control via Zernikes if pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            self.app.handle_zern_AO_start(mode = 2)
+            btn.setChecked(True)
+
+    def on_zern_AO_3(self, checked):
+        """
+        Closed-loop AO control via Zernikes handler 3
+        """
+        btn = self.sender()
+
+        # Start closed-loop AO control via Zernikes if pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            self.app.handle_zern_AO_start(mode = 3)
+            btn.setChecked(True)
+
+    def on_slope_AO_1(self, checked):
+        """
+        Closed-loop AO control via slopes handler 1
+        """
+        btn = self.sender()
+
+        # Start closed-loop AO control via slopes if pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            self.app.handle_slope_AO_start(mode = 1)
+            btn.setChecked(True)
+
+    def on_slope_AO_2(self, checked):
+        """
+        Closed-loop AO control via slopes handler 2
+        """
+        btn = self.sender()
+
+        # Start closed-loop AO control via slopes if pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            self.app.handle_slope_AO_start(mode = 2)
+            btn.setChecked(True)
+
+    def on_slope_AO_3(self, checked):
+        """
+        Closed-loop AO control via slopes handler 3
+        """
+        btn = self.sender()
+
+        # Start closed-loop AO control via slopes if pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            self.app.handle_slope_AO_start(mode = 3)
+            btn.setChecked(True)
+
+    def on_zern_AO_full(self, checked):
+        """
+        Full closed-loop AO control via Zernikes handler 
+        """
+        btn = self.sender()
+
+        # Start full closed-loop AO control via Zernikes if pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            self.app.handle_zern_AO_start(mode = 4)
+            btn.setChecked(True)
+
+    def on_slope_AO_full(self, checked):
+        """
+        Full closed-loop AO control via slopes handler
+        """
+        btn = self.sender()
+
+        # Start full closed-loop AO control via slopes if pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            self.app.handle_slope_AO_start(mode = 4)
             btn.setChecked(True)
 
     def on_stop(self):

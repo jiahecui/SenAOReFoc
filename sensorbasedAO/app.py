@@ -25,7 +25,9 @@ from centroiding import Centroiding
 from calibration import Calibration
 from conversion import Conversion
 from calibration_zern import Calibration_Zern
+from AO_zernikes_test import AO_Zernikes_Test
 from AO_zernikes import AO_Zernikes
+from AO_slopes import AO_Slopes
 
 logger = log.get_logger(__name__)
 
@@ -59,16 +61,16 @@ class App(QApplication):
             'calibration_img': {}, 'AO_img': {}}
 
         # Initialise output HDF5 file
-        # self.output_data = h5py.File('data_info.h5', 'a')
-        # keys = list(self.data_info.keys())
-        # grp1 = self.output_data.create_group(keys[0])
-        # grp2 = self.output_data.create_group(keys[1])
-        # grp3 = self.output_data.create_group(keys[2])
-        # grp4 = self.output_data.create_group(keys[3])
-        # grp5 = self.output_data.create_group(keys[4])
-        # grp6 = self.output_data.create_group(keys[5])
-        # grp7 = self.output_data.create_group(keys[6])
-        # self.output_data.close()
+        self.output_data = h5py.File('data_info.h5', 'a')
+        keys = list(self.data_info.keys())
+        grp1 = self.output_data.create_group(keys[0])
+        grp2 = self.output_data.create_group(keys[1])
+        grp3 = self.output_data.create_group(keys[2])
+        grp4 = self.output_data.create_group(keys[3])
+        grp5 = self.output_data.create_group(keys[4])
+        grp6 = self.output_data.create_group(keys[5])
+        grp7 = self.output_data.create_group(keys[6])
+        self.output_data.close()
 
         # Initialise workers and threads
         self.workers = {}
@@ -266,22 +268,18 @@ class App(QApplication):
         # Start calibration thread
         calib2_thread.start()
 
-    def control_zern_test(self, sensor, mirror, data_info, mode = 1):
+    def control_zern_test(self, sensor, mirror, data_info):
         """
         Closed-loop AO control via Zernikes test run
-
-        Args:
-            mode = 1 - evaluate reconstructed Zernike wavefront at S-H sensor
         """
         # Create Zernike AO worker and thread
         zern_thread = QThread()
         zern_thread.setObjectName('zern_thread')
-        zern_worker = AO_Zernikes(sensor, mirror, data_info, mode)
+        zern_worker = AO_Zernikes_Test(sensor, mirror, data_info)
         zern_worker.moveToThread(zern_thread)
 
         # Connect to signals
-        if mode == 1:
-            zern_thread.started.connect(zern_worker.run1)
+        zern_thread.started.connect(zern_worker.run)
         zern_worker.image.connect(lambda obj: self.handle_image_disp(obj))   
         zern_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         zern_worker.info.connect(lambda obj: self.handle_AO_info(obj))
@@ -295,6 +293,78 @@ class App(QApplication):
 
         # Start Zernike AO thread
         zern_thread.start()
+
+    def control_zern_AO(self, sensor, mirror, data_info, mode):
+        """
+        Closed-loop AO control via Zernikes
+        """
+        # Create Zernike AO worker and thread
+        zern_AO_thread = QThread()
+        zern_AO_thread.setObjectName('zern_AO_thread')
+        zern_AO_worker = AO_Zernikes(sensor, mirror, data_info)
+        zern_AO_worker.moveToThread(zern_AO_thread)
+
+        # Connect to signals
+        if mode == 1:
+            zern_AO_thread.started.connect(zern_AO_worker.run1)
+            zern_AO_worker.done.connect(self.handle_zern_AO_done(mode = 1))
+        elif mode == 2:
+            zern_AO_thread.started.connect(zern_AO_worker.run2)
+            zern_AO_worker.done.connect(self.handle_zern_AO_done(mode = 2))
+        elif mode == 3:
+            zern_AO_thread.started.connect(zern_AO_worker.run3)
+            zern_AO_worker.done.connect(self.handle_zern_AO_done(mode = 3))
+        elif mode == 4:
+            zern_AO_thread.started.connect(zern_AO_worker.run4)
+            zern_AO_worker.done.connect(self.handle_zern_AO_done(mode = 4))
+        zern_AO_worker.image.connect(lambda obj: self.handle_image_disp(obj))   
+        zern_AO_worker.message.connect(lambda obj: self.handle_message_disp(obj))
+        zern_AO_worker.info.connect(lambda obj: self.handle_AO_info(obj))
+        zern_AO_worker.write.connect(self.write_AO_info)
+        zern_AO_worker.error.connect(lambda obj: self.handle_error(obj))       
+
+        # Store Zernike AO worker and thread
+        self.workers['zern_AO_worker'] = zern_AO_worker
+        self.threads['zern_AO_thread'] = zern_AO_thread
+
+        # Start Zernike AO thread
+        zern_AO_thread.start()
+
+    def control_slope_AO(self, sensor, mirror, data_info, mode):
+        """
+        Closed-loop AO control via slopes
+        """
+        # Create slopes AO worker and thread
+        slopes_AO_thread = QThread()
+        slopes_AO_thread.setObjectName('slopes_AO_thread')
+        slopes_AO_worker = AO_Slopes(sensor, mirror, data_info)
+        slopes_AO_worker.moveToThread(slopes_AO_thread)
+
+        # Connect to signals
+        if mode == 1:
+            slopes_AO_thread.started.connect(slopes_AO_worker.run1)
+            slopes_AO_worker.done.connect(self.handle_slopes_AO_done(mode = 1))
+        elif mode == 2:
+            slopes_AO_thread.started.connect(slopes_AO_worker.run2)
+            slopes_AO_worker.done.connect(self.handle_slopes_AO_done(mode = 2))
+        elif mode == 3:
+            slopes_AO_thread.started.connect(slopes_AO_worker.run3)
+            slopes_AO_worker.done.connect(self.handle_slopes_AO_done(mode = 3))
+        elif mode == 4:
+            slopes_AO_thread.started.connect(slopes_AO_worker.run4)
+            slopes_AO_worker.done.connect(self.handle_slopes_AO_done(mode = 4))
+        slopes_AO_worker.image.connect(lambda obj: self.handle_image_disp(obj))   
+        slopes_AO_worker.message.connect(lambda obj: self.handle_message_disp(obj))
+        slopes_AO_worker.info.connect(lambda obj: self.handle_AO_info(obj))
+        slopes_AO_worker.write.connect(self.write_AO_info)
+        slopes_AO_worker.error.connect(lambda obj: self.handle_error(obj))       
+
+        # Store slopes AO worker and thread
+        self.workers['slopes_AO_worker'] = slopes_AO_worker
+        self.threads['slopes_AO_thread'] = slopes_AO_thread
+
+        # Start slopes AO thread
+        slopes_AO_thread.start()
 
     #========== Signal handlers ==========#
     def handle_layer_disp(self, obj):
@@ -471,11 +541,11 @@ class App(QApplication):
         self.threads['calib2_thread'].wait()
         self.main.ui.calibrateBtn_2.setChecked(False)
 
-    def handle_zern_test_start(self, mode = 1):
+    def handle_zern_test_start(self):
         """
         Handle start of closed-loop AO control test via Zernikes
         """
-        self.control_zern_test(self.devices['sensor'], self.devices['mirror'], self.data_info, mode)
+        self.control_zern_test(self.devices['sensor'], self.devices['mirror'], self.data_info)
 
     def handle_zern_test_done(self):
         """
@@ -483,7 +553,61 @@ class App(QApplication):
         """
         self.threads['zern_thread'].quit()
         self.threads['zern_thread'].wait()
-        self.main.ui.ZernikeTestBtn_1.setChecked(False)
+        self.main.ui.ZernikeTestBtn.setChecked(False)
+
+    def handle_zern_AO_start(self, mode = 1):
+        """
+        Handle start of closed-loop control process via Zernikes
+
+        Args:
+            mode = 1 - normal closed-loop AO process
+            mode = 2 - closed-loop AO process with removal of obscured subaperture
+            mode = 3 - closed-loop AO process with partial correction
+            mode = 4 - full closed-loop AO process with removal of obscured subaperture and partial correction
+        """
+        self.control_zern_AO(self.devices['sensor'], self.devices['mirror'], self.data_info, mode)
+
+    def handle_zern_AO_done(self, mode = 1):
+        """
+        Handle end of closed-loop control process via Zernikes
+        """
+        self.threads['zern_AO_thread'].quit()
+        self.threads['zern_AO_thread'].wait()
+        if mode == 1:
+            self.main.ui.ZernikeAOBtn_1.setChecked(False)
+        elif mode == 2:
+            self.main.ui.ZernikeAOBtn_2.setChecked(False)
+        elif mode == 3:
+            self.main.ui.ZernikeAOBtn_3.setChecked(False)
+        elif mode == 4:
+            self.main.ui.ZernikeFullBtn.setChecked(False)
+
+    def handle_slope_AO_start(self, mode = 1):
+        """
+        Handle start of closed-loop control process via slopes
+
+        Args:
+            mode = 1 - normal closed-loop AO process
+            mode = 2 - closed-loop AO process with removal of obscured subaperture
+            mode = 3 - closed-loop AO process with partial correction
+            mode = 4 - full closed-loop AO process with removal of obscured subaperture and partial correction
+        """
+        self.control_slope_AO(self.devices['sensor'], self.devices['mirror'], self.data_info, mode)
+
+    def handle_slope_AO_done(self, mode = 1):
+        """
+        Handle end of closed-loop control process via slopes
+        """
+        self.threads['slopes_AO_thread'].quit()
+        self.threads['slopes_AO_thread'].wait()
+        if mode == 1:
+            self.main.ui.slopesAOBtn_1.setChecked(False)
+        elif mode == 2:
+            self.main.ui.slopesAOBtn_2.setChecked(False)
+        elif mode == 3:
+            self.main.ui.slopesAOBtn_3.setChecked(False)
+        elif mode == 4:
+            self.main.ui.slopesFullBtn.setChecked(False)
 
     def stop(self):
         """

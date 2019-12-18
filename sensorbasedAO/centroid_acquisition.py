@@ -17,10 +17,34 @@ def acq_centroid(settings, flag = 0):
     Args:
         flag = 0 for one time centroiding process
         flag = 1 for calibration process
-        flag = 2 for closed-loop AO process
+        flag = 2 for test run of closed-loop AO control via Zernikes
+        flag = 3 for normal closed-loop AO control via Zernikes
+        flag = 4 for normal closed-loop AO control via slopes
+        flag = 5 for closed-loop AO control via Zernikes with obscured S-H spots
+        flag = 6 for closed-loop AO control via slopes with obscured S-H spots
+        flag = 7 for closed-loop AO control via Zernikes with partial correction
+        flag = 8 for closed-loop AO control via slopes with partial correction
+        flag = 9 for full closed-loop AO control via Zernikes
+        flag = 10 for full closed-loop AO control via slopes
     """
     # Open HDF5 file to retrieve calibration images
     data_file = h5py.File('data_info.h5', 'a')
+
+    subgroup_options = {0 : data_file['centroiding_img'],
+                        1 : data_file['calibration_img'],
+                        2 : data_file['AO_img']['zern_test'],
+                        3 : data_file['AO_img']['zern_AO_1'],
+                        4 : data_file['AO_img']['slope_AO_1'],
+                        5 : data_file['AO_img']['zern_AO_2'],
+                        6 : data_file['AO_img']['slope_AO_2'],
+                        7 : data_file['AO_img']['zern_AO_3'],
+                        8 : data_file['AO_img']['slope_AO_3'],
+                        9 : data_file['AO_img']['zern_AO_full'],
+                        10 : data_file['AO_img']['slopes_AO_full']}
+
+    dataset_options = {0 : 'real_cent_img', 1 : 'dummy_cent_img'}
+
+    axis_options = {0 : 'dummy_spot_cent_x', 1 : 'dummy_spot_cent_y'}
 
     if flag == 1:
         image_num = 2 * config['DM']['actuator_num']
@@ -55,26 +79,10 @@ def acq_centroid(settings, flag = 0):
     # Calculate actual S-H spot centroids for each search block using a dynamic range
     for l in range(image_num):
 
-        if flag == 0:
-            
-            if config['dummy']:
-                image_temp = data_file['centroiding_img']['dummy_cent_img'][l, :, :]
-            else:
-                image_temp = data_file['centroiding_img']['real_cent_img'][l, :, :]
-
-        elif flag == 1:
-
-            if config['dummy']:
-                image_temp = data_file['calibration_img']['dummy_calib_img'][l, :, :]
-            else:
-                image_temp = data_file['calibration_img']['real_calib_img'][l, :, :]
-
-        elif flag == 2:
-
-            if config['dummy']:
-                image_temp = data_file['AO_img']['dummy_AO_img'][-1, ... ]
-            else:
-                image_temp = data_file['AO_img']['real_AO_img'][-1, ... ]
+        if flag == 0 or flag == 1:
+            image_temp = subgroup_options[flag][dataset_options[config['dummy']]][l, :, :]
+        else:
+            image_temp = subgroup_options[flag][dataset_options[config['dummy']]][-1, :, :]
         
         # print('Centroiding image {}'.format(l))
 
@@ -161,35 +169,47 @@ def acq_centroid(settings, flag = 0):
                 #     print('SB_pixel_coord_x_{}_{}: {}'.format(i, n, SB_pix_coord_x))
                 #     print('SB_pixel_coord_y_{}_{}: {}'.format(i, n, SB_pix_coord_y))
                 #     print('Length of pixel coord along x axis for cycle {}: {}'.format(n, len(SB_pix_coord_x)))
-                #     print('Length of pixel coord along y axis for cycle {}: {}'.format(n, len(SB_pix_coord_y)))
+                #     print('Length of pixel coord along y axis for cycle {}: {}'.format(n, len(SB_pix_coord_y)))              
 
-                # Calculate actual S-H spot centroids by using centre of gravity (CoG) method
+                """
+                Calculate actual S-H spot centroids by using centre of gravity (CoG) method
+                """
+                # Crop image within each search area
                 image_crop = image_temp[int(round(SB_pix_coord_y[0])) : int(round(SB_pix_coord_y[0])) + len(SB_pix_coord_y), \
                     int(round(SB_pix_coord_x[0])) : int(round(SB_pix_coord_x[0])) + len(SB_pix_coord_x)]
-                xx, yy = np.meshgrid(np.arange(int(round(SB_pix_coord_x[0])), int(round(SB_pix_coord_x[0])) + len(SB_pix_coord_x)), \
-                    np.arange(int(round(SB_pix_coord_y[0])), int(round(SB_pix_coord_y[0])) + len(SB_pix_coord_y)))
 
+                # If subaperture removal function is to be incorporated, assert search block coordinate array to be all 0 when obscured
+                if flag in [5, 6, 9, 10]:
+                    if np.amax(image_temp) - np.amin(image_temp) < 25:
+                        xx, yy = (np.zeros([len(SB_pix_coord_y), len(SB_pix_coord_x)]) for i in range(2))
+                    else:
+                        xx, yy = np.meshgrid(np.arange(int(round(SB_pix_coord_x[0])), int(round(SB_pix_coord_x[0])) + len(SB_pix_coord_x)), \
+                    np.arange(int(round(SB_pix_coord_y[0])), int(round(SB_pix_coord_y[0])) + len(SB_pix_coord_y)))
+                else:
+                    xx, yy = np.meshgrid(np.arange(int(round(SB_pix_coord_x[0])), int(round(SB_pix_coord_x[0])) + len(SB_pix_coord_x)), \
+                    np.arange(int(round(SB_pix_coord_y[0])), int(round(SB_pix_coord_y[0])) + len(SB_pix_coord_y)))
+                
+                # Calculate weighted sum
                 sum_x = (xx * image_crop).sum()
                 sum_y = (yy * image_crop).sum()
                 sum_pix = image_crop.sum()
 
+                # Get actual centroid coordinates
                 act_cent_coord_x[i] = sum_x / sum_pix
                 act_cent_coord_y[i] = sum_y / sum_pix
+                act_cent_coord[i] = int(round(act_cent_coord_y[i])) * settings['sensor_width'] + int(round(act_cent_coord_x[i]))
 
         if config['dummy']:
 
             # Calculate average centroid error 
             error_temp = 0
 
-            if flag == 0:
-                error_x = act_cent_coord_x - data_file['centroiding_img']['dummy_spot_cent_x'][l, :]
-                error_y = act_cent_coord_y - data_file['centroiding_img']['dummy_spot_cent_y'][l, :]
-            elif flag == 1:
-                error_x = act_cent_coord_x - data_file['calibration_img']['dummy_spot_cent_x'][l, :]
-                error_y = act_cent_coord_y - data_file['calibration_img']['dummy_spot_cent_y'][l, :]
+            if flag == 0 or flag == 1:
+                error_x = act_cent_coord_x - subgroup_options[flag][axis_options[0]][l, :]
+                error_y = act_cent_coord_y - subgroup_options[flag][axis_options[1]][l, :]
             elif flag == 2:
-                error_x = act_cent_coord_x - data_file['AO_img']['dummy_spot_cent_x'][-1, ... ]
-                error_y = act_cent_coord_y - data_file['AO_img']['dummy_spot_cent_y'][-1, ... ]
+                error_x = act_cent_coord_x - subgroup_options[flag][axis_options[0]][-1, ... ]
+                error_y = act_cent_coord_y - subgroup_options[flag][axis_options[1]][-1, ... ]
 
             for i in range(len(error_x)):
                 error_temp += np.sqrt(error_x[i] ** 2 + error_y[i] ** 2)
