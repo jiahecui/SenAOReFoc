@@ -31,7 +31,7 @@ class AO_Zernikes(QObject):
     message = Signal(object)
     info = Signal(object)
 
-    def __init__(self, sensor, mirror, settings, mode):
+    def __init__(self, sensor, mirror, settings):
 
         # Get search block settings
         self.SB_settings = settings['SB_info']
@@ -54,27 +54,25 @@ class AO_Zernikes(QObject):
         # Initialise zernike coefficient array
         self.zern_coeff = np.zeros([config['AO']['control_coeff_num'], 1])
         
+        # Initialise array to record root mean square error after each iteration
+        self.loop_rms = np.zeros(config['AO']['loop_max'])
+
         super().__init__()
 
     @Slot(object)
     def run1(self):
         try:
             # Set process flags
-            self.loop = True
+            self.loop = True 
             self.log = True
 
             # Start thread
             self.start.emit()
 
             """
-            Set zernike coefficient array to user specified values and load corresponding control voltages to DM, acquire S-H spot 
-            pattern and reconstruct wavefront (get zernike coefficients), then apply phase residual (zernike coefficient difference
-            between applied and detected) to DM and iterate the process WITH A FIXED GAIN until residual phase error is below a 
-            certain value or iteration has reached maximum
-            """
-            # Load user specified zernike coefficients
-            self.zern_coeff.ravel()[:len(self.AO_settings['zernike_array_test'])] = self.AO_settings['zernike_array_test']
-   
+            Normal closed-loop AO process WITH A FIXED GAIN, iterated until residual phase error is below value given by Marechel 
+            criterion or iteration has reached maximum
+            """   
             # Get pseudo-inverse of slope - zernike conversion matrix to translate zernike coefficients into slopes           
             conv_matrix_inv = np.linalg.pinv(self.mirror_settings['conv_matrix'])
         
@@ -84,11 +82,13 @@ class AO_Zernikes(QObject):
             data_set_slope = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, 1])
             data_set_zern = np.zeros([config['AO']['control_coeff_num'], 1])
             data_file = h5py.File('data_info.h5', 'a')
-            data_set_1 = data_file['AO_img']
-            data_set_2 = data_file['AO_info']
-            key_list_1 = ['dummy_AO_img', 'dummy_spot_cent_x', 'dummy_spot_cent_y', 'dummy_spot_slope_x', 'dummy_spot_slope_y',\
-                'dummy_spot_slope', 'dummy_spot_zern_err']
+            grp1 = data_file['AO_img']
+            grp2 = data_file['AO_info']
+            data_set_1 = grp1.create_group('zern_AO_1')
+            data_set_2 = grp2.create_group('zern_AO_1')
+            key_list_1 = ['dummy_AO_img', 'dummy_spot_slope_x', 'dummy_spot_slope_y', 'dummy_spot_slope', 'dummy_spot_zern_err']
             key_list_2 = ['real_AO_img', 'real_spot_slope_x', 'real_spot_slope_y', 'real_spot_slope', 'real_spot_zern_err']
+
             if config['dummy']:
                 for k in key_list_1:
                     if k in data_set_1:
@@ -97,8 +97,6 @@ class AO_Zernikes(QObject):
                         del data_set_2[k]
                     if k == 'dummy_AO_img':
                         make_dset(data_set_1, k, data_set_img)
-                    elif k in {'dummy_spot_cent_x', 'dummy_spot_cent_y'}:
-                        make_dset(data_set_1, k, data_set_cent)
                     elif k in {'dummy_spot_slope_x', 'dummy_spot_slope_y'}:
                         make_dset(data_set_2, k, data_set_cent)
                     elif k in {'dummy_spot_slope'}:
@@ -120,10 +118,11 @@ class AO_Zernikes(QObject):
                     elif k in {'real_spot_zern_err'}:
                         make_dset(data_set_2, k, data_set_zern)
 
-            # Initialise array to record root mean square error after each iteration
-            self.loop_rms = np.zeros(config['AO']['loop_max'])
 
             self.message.emit('Process started for closed-loop AO via Zernikes...')
+
+            # Initialise deformable mirror voltage array
+            voltages = np.zeros(config['DM']['actuator_num'])
 
             prev1 = time.perf_counter()
 
@@ -131,35 +130,18 @@ class AO_Zernikes(QObject):
             for i in range(config['AO']['loop_max']):
                 
                 if self.loop:
-                    
+
                     try:
                         if config['dummy']:
 
-                            # Translate zernike coefficients into slopes to use as theoretical centroids for simulation of S-H spots
-                            if i == 0:
-                                self.zern_coeff_orig = self.zern_coeff.copy()
-                            else:
-                                self.zern_coeff -= config['AO']['loop_gain'] * zern_err
-
-                            spot_cent_slope = np.dot(conv_matrix_inv, self.zern_coeff)
-                            spot_cent_slope_x, spot_cent_slope_y = (np.zeros([1, self.SB_settings['act_ref_cent_num']]) for i in range(2))
-                            spot_cent_slope_x[0, :] = spot_cent_slope[:self.SB_settings['act_ref_cent_num'], 0]
-                            spot_cent_slope_y[0, :] = spot_cent_slope[self.SB_settings['act_ref_cent_num']:, 0]
-
-                            # Get simulated S-H spots and append to list
-                            spot_img = SpotSim(self.SB_settings)
-                            AO_image, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim\
-                                (centred = 1, xc = np.ravel(spot_cent_slope_x), yc = np.ravel(spot_cent_slope_y))
-                            dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                            dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                            dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+                            pass
                         else:
 
                             # Update mirror control voltages
                             if i == 0:
-                                voltages = np.dot(self.mirror_settings['control_matrix_zern'], self.zern_coeff)
+                                voltages = config['DM']['vol_bias']
                             else:
-                                voltages += config['AO']['loop_gain'] * np.dot(self.mirror_settings['control_matrix_zern'], zern_err)                        
+                                voltages -= config['AO']['loop_gain'] * np.dot(self.mirror_settings['control_matrix_zern'], zern_err)                        
 
                             # Send values vector to mirror
                             self.mirror.Send(voltages)
@@ -177,10 +159,8 @@ class AO_Zernikes(QObject):
                         self.image.emit(AO_image)
 
                         # Calculate centroids of S-H spots
-                        act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = \
-                            acq_centroid(self.SB_settings, flag = 2)
-                        act_cent_coord, act_cent_coord_x, act_cent_coord_y = \
-                            map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+                        act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 3)
+                        act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
 
                         # Draw actual S-H spot centroids on image layer
                         AO_image.ravel()[act_cent_coord.astype(int)] = 0
@@ -193,7 +173,7 @@ class AO_Zernikes(QObject):
                         self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
 
                         # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
-                        zern_err = self.zern_coeff_detect - self.zern_coeff_orig
+                        zern_err = self.zern_coeff_detect.copy()
                         rms = np.sqrt((zern_err ** 2).mean(axis = 0))[0]
                         self.loop_rms[i] = rms
 
@@ -211,8 +191,8 @@ class AO_Zernikes(QObject):
                             dset_append(data_set_2, 'real_spot_slope', slope)
                             dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
-                        # Compare rms error with tolerance factor and decide whether to break from loop
-                        if rms <= config['AO']['tolerance_fact']:
+                        # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
+                        if rms <= config['AO']['tolerance_fact_zern']:
                             break                 
 
                     except Exception as e:
@@ -235,8 +215,8 @@ class AO_Zernikes(QObject):
             """             
             if self.log:
 
-                self.AO_info['loop_num'] = i
-                self.AO_info['residual_phase_err_1'] = self.loop_rms
+                self.AO_info['zern_AO_1']['loop_num'] = i
+                self.AO_info['zern_AO_1']['residual_phase_err_1'] = self.loop_rms
 
                 self.info.emit(self.AO_info)
                 self.write.emit()
@@ -255,3 +235,4 @@ class AO_Zernikes(QObject):
     def stop(self):
         self.loop = False
         self.log = False
+
