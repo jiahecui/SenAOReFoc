@@ -118,7 +118,6 @@ class AO_Zernikes(QObject):
                     elif k in {'real_spot_zern_err'}:
                         make_dset(data_set_2, k, data_set_zern)
 
-
             self.message.emit('Process started for closed-loop AO via Zernikes...')
 
             # Initialise deformable mirror voltage array
@@ -242,7 +241,7 @@ class AO_Zernikes(QObject):
             self.start.emit()
 
             """
-            Closed-loop AO process to deal with obscured S-H spots using a FIXED GAIN, iterated until residual phase error is below value 
+            Closed-loop AO process to handle obscured S-H spots using a FIXED GAIN, iterated until residual phase error is below value 
             given by Marechel criterion or iteration has reached maximum
             """   
             # Get pseudo-inverse of slope - zernike conversion matrix to translate zernike coefficients into slopes           
@@ -302,8 +301,7 @@ class AO_Zernikes(QObject):
                     elif k in {'real_spot_zern_err'}:
                         make_dset(data_set_2, k, data_set_zern)
 
-
-            self.message.emit('Process started for closed-loop AO via Zernikes...')
+            self.message.emit('Process started for closed-loop AO via Zernikes with obscured subapertures...')
 
             # Initialise deformable mirror voltage array
             voltages = np.zeros(config['DM']['actuator_num'])
@@ -424,6 +422,178 @@ class AO_Zernikes(QObject):
 
                 self.AO_info['zern_AO_2']['loop_num'] = i
                 self.AO_info['zern_AO_2']['residual_phase_err_1'] = self.loop_rms
+
+                self.info.emit(self.AO_info)
+                self.write.emit()
+            else:
+
+                self.done.emit()
+
+            # Finished closed-loop AO process
+            self.done.emit()
+
+        except Exception as e:
+            raise
+            self.error.emit(e)
+
+     @Slot(object)
+    def run3(self):
+        try:
+            # Set process flags
+            self.loop = True 
+            self.log = True
+
+            # Start thread
+            self.start.emit()
+
+            """
+            Closed-loop AO process to handle partial correction using a FIXED GAIN, iterated until residual phase error is below value 
+            given by Marechel criterion or iteration has reached maximum            
+            """   
+            # Get pseudo-inverse of slope - zernike conversion matrix to translate zernike coefficients into slopes           
+            conv_matrix_inv = np.linalg.pinv(self.mirror_settings['conv_matrix'])
+        
+            # Open HDF5 file and create new dataset to store closed-loop AO data
+            data_set_img = np.zeros([self.SB_settings['sensor_width'], self.SB_settings['sensor_height']])
+            data_set_cent = np.zeros(self.SB_settings['act_ref_cent_num'])
+            data_set_slope = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, 1])
+            data_set_zern = np.zeros([config['AO']['control_coeff_num'], 1])
+            data_file = h5py.File('data_info.h5', 'a')
+            grp1 = data_file['AO_img']
+            grp2 = data_file['AO_info']
+            data_set_1 = grp1.create_group('zern_AO_3')
+            data_set_2 = grp2.create_group('zern_AO_3')
+            key_list_1 = ['dummy_AO_img', 'dummy_spot_slope_x', 'dummy_spot_slope_y', 'dummy_spot_slope', 'dummy_spot_zern_err']
+            key_list_2 = ['real_AO_img', 'real_spot_slope_x', 'real_spot_slope_y', 'real_spot_slope', 'real_spot_zern_err']
+
+            if config['dummy']:
+                for k in key_list_1:
+                    if k in data_set_1:
+                        del data_set_1[k]
+                    elif k in data_set_2:
+                        del data_set_2[k]
+                    if k == 'dummy_AO_img':
+                        make_dset(data_set_1, k, data_set_img)
+                    elif k in {'dummy_spot_slope_x', 'dummy_spot_slope_y'}:
+                        make_dset(data_set_2, k, data_set_cent)
+                    elif k in {'dummy_spot_slope'}:
+                        make_dset(data_set_2, k, data_set_slope)
+                    elif k in {'dummy_spot_zern_err'}:
+                        make_dset(data_set_2, k, data_set_zern)
+            else:
+                for k in key_list_2:
+                    if k in data_set_1:
+                        del data_set_1[k]
+                    elif k in data_set_2:
+                        del data_set_2[k]
+                    if k == 'real_AO_img':
+                        make_dset(data_set_1, k, data_set_img)
+                    elif k in {'real_spot_slope_x', 'real_spot_slope_y'}:
+                        make_dset(data_set_2, k, data_set_cent)
+                    elif k in {'real_spot_slope'}:
+                        make_dset(data_set_2, k, data_set_slope)
+                    elif k in {'real_spot_zern_err'}:
+                        make_dset(data_set_2, k, data_set_zern)
+
+            self.message.emit('Process started for closed-loop AO via Zernikes with partial correction...')
+
+            # Initialise deformable mirror voltage array
+            voltages = np.zeros(config['DM']['actuator_num'])
+
+            prev1 = time.perf_counter()
+
+            # Run closed-loop control until residual phase error is below a certain value or iteration has reached specified maximum
+            for i in range(config['AO']['loop_max']):
+                
+                if self.loop:
+
+                    try:
+                        if config['dummy']:
+
+                            pass
+                        else:
+
+                            # Update mirror control voltages
+                            if i == 0:
+                                voltages = config['DM']['vol_bias']
+                            else:
+                                zern_err[0 : 2, 1] = 0
+                                voltages -= config['AO']['loop_gain'] * np.dot(self.mirror_settings['control_matrix_zern'], zern_err)                        
+
+                            # Send values vector to mirror
+                            self.mirror.Send(voltages)
+                            
+                            # Wait for DM to settle
+                            time.sleep(config['DM']['settling_time'])
+                        
+                            # Acquire S-H spots using camera and append to list
+                            AO_image = acq_image(self.sensor, self.SB_settings['sensor_width'], self.SB_settings['sensor_height'], acq_mode = 0)
+                            dset_append(data_set_1, 'real_AO_img', AO_image)
+
+                        # Image thresholding to remove background
+                        AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                        AO_image[AO_image < 0] = 0
+                        self.image.emit(AO_image)
+
+                        # Calculate centroids of S-H spots
+                        act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 7)
+                        act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+
+                        # Draw actual S-H spot centroids on image layer
+                        AO_image.ravel()[act_cent_coord.astype(int)] = 0
+                        self.image.emit(AO_image)
+
+                        # Concatenate slopes into one slope matrix
+                        slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+
+                        # Get detected zernike coefficients from slope matrix
+                        self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
+
+                        # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
+                        zern_err = self.zern_coeff_detect.copy()
+                        rms = np.sqrt((zern_err ** 2).mean(axis = 0))[0]
+                        self.loop_rms[i] = rms
+
+                        print('Root mean square error {} is {}'.format(i + 1, rms))                        
+
+                        # Append data to list
+                        if config['dummy']:
+                            dset_append(data_set_2, 'dummy_spot_slope_x', slope_x)
+                            dset_append(data_set_2, 'dummy_spot_slope_y', slope_y)
+                            dset_append(data_set_2, 'dummy_spot_slope', slope)
+                            dset_append(data_set_2, 'dummy_spot_zern_err', zern_err)
+                        else:
+                            dset_append(data_set_2, 'real_spot_slope_x', slope_x)
+                            dset_append(data_set_2, 'real_spot_slope_y', slope_y)
+                            dset_append(data_set_2, 'real_spot_slope', slope)
+                            dset_append(data_set_2, 'real_spot_zern_err', zern_err)
+
+                        # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
+                        if rms <= config['AO']['tolerance_fact_zern']:
+                            break                 
+
+                    except Exception as e:
+                        print(e)
+                else:
+
+                    self.done.emit()
+
+            # Close HDF5 file
+            data_file.close()
+
+            self.message.emit('Process complete.')
+            print('Final root mean square error of detected wavefront is: {} microns'.format(rms))
+
+            prev2 = time.perf_counter()
+            print('Time for closed-loop AO process is:', (prev2 - prev1))
+
+            """
+            Returns closed-loop AO information into self.AO_info
+            """             
+            if self.log:
+
+                self.AO_info['zern_AO_3']['loop_num'] = i
+                self.AO_info['zern_AO_3']['residual_phase_err_1'] = self.loop_rms
 
                 self.info.emit(self.AO_info)
                 self.write.emit()
