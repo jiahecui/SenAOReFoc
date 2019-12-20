@@ -691,7 +691,7 @@ class AO_Slopes(QObject):
                         self.image.emit(AO_image)
 
                         # Calculate centroids of S-H spots
-                        act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 10)
+                        act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 8)
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
 
                         # Remove corresponding elements from slopes and rows from influence function matrix
