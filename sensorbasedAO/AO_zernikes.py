@@ -246,18 +246,6 @@ class AO_Zernikes(QObject):
             """   
             # Get pseudo-inverse of slope - zernike conversion matrix to translate zernike coefficients into slopes           
             conv_matrix_inv = np.linalg.pinv(self.mirror_settings['conv_matrix'])
-
-            # Get influence function via slopes
-            inf_matrix_slopes = self.mirror_settings['inf_matrix_slopes']
-
-            # Get zernike matrix
-            zern_matrix = self.mirror_settings['zern_matrix']
-            
-            # Get zernike derivative matrix
-            diff_matrix = self.mirror_settings['diff_matrix']
-
-            # Get control matrix via zernikes
-            control_matrix_zern = self.mirror_settings['control_matrix_zern']
         
             # Open HDF5 file and create new dataset to store closed-loop AO data
             data_set_img = np.zeros([self.SB_settings['sensor_width'], self.SB_settings['sensor_height']])
@@ -350,9 +338,9 @@ class AO_Zernikes(QObject):
                         slope_x = np.argwhere(slope_x + self.mirror_settings['act_ref_cent_coord_x'])
                         slope_y = np.argwhere(slope_y + self.mirror_settings['act_ref_cent_coord_y'])
                         act_cent_coord = np.delete(act_cent_coord, index_remove, axis = None)
-                        inf_matrix_slopes = np.delete(inf_matrix_slopes, index_remove_inf, axis = 0)
-                        zern_matrix = np.delete(zern_matrix, index_remove_inf, axis = 0)
-                        diff_matrix = np.delete(diff_matrix, index_remove_inf, axis = 0)
+                        inf_matrix_slopes = np.delete(self.mirror_settings['inf_matrix_slopes'].copy(), index_remove_inf, axis = 0)
+                        zern_matrix = np.delete(self.mirror_settings['zern_matrix'].copy(), index_remove_inf, axis = 0)
+                        diff_matrix = np.delete(self.mirror_settings['diff_matrix'].copy(), index_remove_inf, axis = 0)
 
                         # print('The number of obscured subapertures is: {}'.format(len(index_remove)))
                         # print('The shapes of slope_x, slope_y, and inf_matrix_slopes are: {}, {}, and {}'.format(np.shape(slope_x), np.shape(slope_y),\
@@ -517,7 +505,7 @@ class AO_Zernikes(QObject):
                             if i == 0:
                                 voltages = config['DM']['vol_bias']
                             else:
-                                zern_err[0 : 2, 1] = 0
+                                zern_err[0 : 2, 0] = 0
                                 voltages -= config['AO']['loop_gain'] * np.dot(self.mirror_settings['control_matrix_zern'], zern_err)                        
 
                             # Send values vector to mirror
@@ -625,18 +613,6 @@ class AO_Zernikes(QObject):
             # Get pseudo-inverse of slope - zernike conversion matrix to translate zernike coefficients into slopes           
             conv_matrix_inv = np.linalg.pinv(self.mirror_settings['conv_matrix'])
 
-            # Get influence function via slopes
-            inf_matrix_slopes = self.mirror_settings['inf_matrix_slopes']
-
-            # Get zernike matrix
-            zern_matrix = self.mirror_settings['zern_matrix']
-            
-            # Get zernike derivative matrix
-            diff_matrix = self.mirror_settings['diff_matrix']
-
-            # Get control matrix via zernikes
-            control_matrix_zern = self.mirror_settings['control_matrix_zern']
-        
             # Open HDF5 file and create new dataset to store closed-loop AO data
             data_set_img = np.zeros([self.SB_settings['sensor_width'], self.SB_settings['sensor_height']])
             data_set_cent = np.zeros(self.SB_settings['act_ref_cent_num'])
@@ -701,7 +677,7 @@ class AO_Zernikes(QObject):
                             if i == 0:
                                 voltages = config['DM']['vol_bias']
                             else:
-                                zern_err[0 : 2, 1] = 0
+                                zern_err[0 : 2, 0] = 0
                                 voltages -= config['AO']['loop_gain'] * np.dot(control_matrix_zern, zern_err)                        
 
                             # Send values vector to mirror
@@ -729,9 +705,9 @@ class AO_Zernikes(QObject):
                         slope_x = np.argwhere(slope_x + self.mirror_settings['act_ref_cent_coord_x'])
                         slope_y = np.argwhere(slope_y + self.mirror_settings['act_ref_cent_coord_y'])
                         act_cent_coord = np.delete(act_cent_coord, index_remove, axis = None)
-                        inf_matrix_slopes = np.delete(inf_matrix_slopes, index_remove_inf, axis = 0)
-                        zern_matrix = np.delete(zern_matrix, index_remove_inf, axis = 0)
-                        diff_matrix = np.delete(diff_matrix, index_remove_inf, axis = 0)
+                        inf_matrix_slopes = np.delete(self.mirror_settings['inf_matrix_slopes'].copy(), index_remove_inf, axis = 0)
+                        zern_matrix = np.delete(self.mirror_settings['zern_matrix'].copy(), index_remove_inf, axis = 0)
+                        diff_matrix = np.delete(self.mirror_settings['diff_matrix'].copy(), index_remove_inf, axis = 0)
 
                         # print('The number of obscured subapertures is: {}'.format(len(index_remove)))
                         # print('The shapes of slope_x, slope_y, and inf_matrix_slopes are: {}, {}, and {}'.format(np.shape(slope_x), np.shape(slope_y),\
