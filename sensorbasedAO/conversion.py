@@ -10,13 +10,13 @@ import numpy as np
 
 import log
 from config import config
-from zernike_diff import zern_diff
+from zernike import zern, zern_diff
 
 logger = log.get_logger(__name__)
 
 class Conversion(QObject):
     """
-    Generates slope - zernike conversion matrix
+    Generates slope - zernike conversion matrix and zernike matrix for a given pupil shape
     """
     start = Signal()
     write = Signal()
@@ -42,8 +42,8 @@ class Conversion(QObject):
         # Initialise conversion matrix information parameter
         self.conv_info = {}
 
-        # Initialise conversion matrix
-        self.conv_matrix = np.zeros([2 * self.SB_settings['act_ref_cent_num'], config['AO']['recon_coeff_num']])
+        # Initialise zernike matrix and zernike derivative matrix
+        self.zern_matrix, self.diff_matrix = (np.zeros([2 * self.SB_settings['act_ref_cent_num'], config['AO']['recon_coeff_num']]) for i in range(2))
         
         super().__init__()
 
@@ -101,11 +101,11 @@ class Conversion(QObject):
                 self.done.emit()
 
             """
-            Get normalised coordinates for each individual element in search block and calculate conversion matrix
+            Get normalised coordinates for each individual element in search block to calculate zernike matrix and conversion matrix
             """
             if self.calculate:
 
-                self.message.emit('Retrieving slope - zernike conversion matrix...')
+                self.message.emit('Retrieving zernike matrix and slope - zernike conversion matrix...')
                 for i in range(self.SB_settings['act_ref_cent_num']):
 
                     # Get reference centroid coords of each element
@@ -117,22 +117,26 @@ class Conversion(QObject):
                     # print('Elem_ref_cent_coord_x:', elem_ref_cent_coord_x)
                     # print('Elem_ref_cent_coord_y:', elem_ref_cent_coord_y)
 
-                    # Get averaged x and y derivatives of the jth Zernike polynomial to fill zernike derivative matrix
+                    # Get averaged x and y values and derivatives of the jth Zernike polynomial to fill zernike matrix and 
+                    # zernike derivative matrix respectively 
                     for j in range(config['AO']['recon_coeff_num']):
 
-                        self.conv_matrix[i, j] = zern_diff(elem_ref_cent_coord_x, elem_ref_cent_coord_y, j + 1, True)
-                        self.conv_matrix[i + self.SB_settings['act_ref_cent_num'], j] = zern_diff(elem_ref_cent_coord_x, elem_ref_cent_coord_y, j + 1, False)
+                        self.zern_matrix[i, j] = zern(elem_ref_cent_coord_x, elem_ref_cent_coord_y, j + 1)
+                        self.zern_matrix[i + self.SB_settings['act_ref_cent_num'], j] = zern(elem_ref_cent_coord_x, elem_ref_cent_coord_y, j + 1)
+
+                        self.diff_matrix[i, j] = zern_diff(elem_ref_cent_coord_x, elem_ref_cent_coord_y, j + 1, True)
+                        self.diff_matrix[i + self.SB_settings['act_ref_cent_num'], j] = zern_diff(elem_ref_cent_coord_x, elem_ref_cent_coord_y, j + 1, False)
 
                 # Get singular value decomposition of zernike derivative matrix
-                u, s, vh = np.linalg.svd(self.conv_matrix, full_matrices = False)
+                u, s, vh = np.linalg.svd(self.diff_matrix, full_matrices = False)
 
                 # print('u: {}, s: {}, vh: {}'.format(u, s, vh))
                 # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
                 
                 # Calculate pseudo inverse of zernike derivative matrix to get final conversion matrix
-                self.conv_matrix = np.linalg.pinv(self.conv_matrix, rcond = 1e-6)
+                self.conv_matrix = np.linalg.pinv(self.diff_matrix, rcond = 1e-6)
 
-                self.message.emit('Slope - zernike conversion matrix retrieved.')
+                self.message.emit('Zernike matrix and slope - zernike conversion matrix retrieved.')
                 # print('Conversion matrix is:', self.conv_matrix)
                 # print('Shape of conversion matrix is:', np.shape(self.conv_matrix))
             else:
@@ -140,13 +144,15 @@ class Conversion(QObject):
                 self.done.emit()
 
             """
-            Returns slope - zernike conversion matrix information into self.conv_info
+            Returns zernike matrix and slope - zernike conversion matrix information into self.conv_info
             """ 
             if self.log:
 
                 self.conv_info['norm_ref_cent_coord_x'] = self.norm_ref_cent_coord_x
                 self.conv_info['norm_ref_cent_coord_y'] = self.norm_ref_cent_coord_y
                 self.conv_info['conv_matrix_SV'] = s
+                self.conv_info['zern_matrix'] = self.zern_matrix
+                self.conv_info['diff_matrix'] = self.diff_matrix
                 self.conv_info['conv_matrix'] = self.conv_matrix
 
                 self.info.emit(self.conv_info)
