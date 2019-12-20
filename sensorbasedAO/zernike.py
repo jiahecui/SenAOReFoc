@@ -1,13 +1,75 @@
 import numpy as np
 import math
 
+def zern(xx, yy, j):
+    """
+    Generates the value of Zernike polynomials for wavefront reconstruction at a particular pupil location
+
+    Args:
+        xx - normalised x value array
+        yy - normalised y value array
+        j - single index, ignores piston, starts with tip as 1
+    """
+    # Initialise instance variables
+    count = 0
+    val_sum = 0
+
+    # Convert single index to double index form for both radial order and angular frequency
+    n = int(np.ceil((-3 + np.sqrt(9 + 8 * j)) / 2))
+    m = int(abs(2 * j - n * (n + 2)))
+
+    # Calculate values of the jth Zernike polynomial
+    for y in yy:
+        for x in xx:
+
+            if np.sqrt((x ** 2 + y ** 2)) <= 1:
+
+                count += 1
+
+                # Calculate rho and theta (add eps to prevent from dividing by zero)
+                eps = 2 ** (-52)
+                x = x + eps
+                rho     = np.sqrt(x ** 2 + y ** 2)
+                theta   = math.atan2(y, x)
+
+                # Calculate the radial dependent component and derivative
+                Rnm = np.zeros(np.size(rho))
+
+                for s in range((n - m) // 2):
+
+                    constant = ((-1) ** s * math.factorial(n - s)) / (math.factorial(s) * math.factorial((n + m) / 2 - s) * math.factorial((n - m) / 2 - s))
+                    Rnm      = Rnm + constant * rho ** (n - 2 * s)
+
+                # Calculate normalisation constant
+                if m == 0:
+                    N = np.sqrt(n + 1)
+                else:
+                    N = np.sqrt(2 * (n + 1))
+
+                # Final result
+                if m >= 0:
+                    Z = N * Rnm * np.cos(m * theta))
+                else:
+                    Z = -N * Rnm * np.sin(m * theta))
+
+                # Sum value for each element in search block
+                val_sum += Z
+
+    # Divide sum of zernike value by total number of counts:
+    z_ave = val_sum / count
+
+    # if x_flag:
+    #     print('Averaged value for the {}th polynomial is {}'.format(j, z_ave))
+            
+    return z_ave
+                
 def zern_diff(xx, yy, j, x_flag = True):
     """
     Generates the slopes of Zernike polynomials for wavefront reconstruction using Zernikes
 
     Args:
-        xx - x value array
-        yy - y value array
+        xx - normalised x value array
+        yy - normalised y value array
         j - single index, ignores piston, starts with tip as 1
         x_flag - flag for differentiating relative to x or y
     """
