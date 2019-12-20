@@ -339,6 +339,10 @@ class AO_Slopes(QObject):
                         # print('The shapes of slope_x, slope_y, and inf_matrix_slopes are: {}, {}, and {}'.format(np.shape(slope_x), np.shape(slope_y),\
                         #     np.shape(inf_matrix_slopes)))
 
+                        # Draw actual S-H spot centroids on image layer
+                        AO_image.ravel()[act_cent_coord.astype(int)] = 0
+                        self.image.emit(AO_image)
+                        
                         # Calculate singular value decomposition of modified influence function matrix
                         u, s, vh = np.linalg.svd(inf_matrix_slopes, full_matrices = False)
 
@@ -349,10 +353,6 @@ class AO_Slopes(QObject):
                         control_matrix_slopes = np.linalg.pinv(inf_matrix_slopes)
 
                         # print('Shape of new control matrix is:', np.shape(control_matrix_slopes))
-
-                        # Draw actual S-H spot centroids on image layer
-                        AO_image.ravel()[act_cent_coord.astype(int)] = 0
-                        self.image.emit(AO_image)
 
                         # Concatenate slopes into one slope matrix
                         slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
@@ -411,7 +411,7 @@ class AO_Slopes(QObject):
 
             # Finished closed-loop AO process
             self.done.emit()
-                    
+
         except Exception as e:
             raise
             self.error.emit(e)   
