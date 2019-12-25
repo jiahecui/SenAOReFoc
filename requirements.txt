@@ -10,3 +10,4 @@ pytest-qt
 pyyaml
 Click
 random
+scipy
