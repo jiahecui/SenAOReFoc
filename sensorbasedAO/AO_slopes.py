@@ -12,7 +12,7 @@ import numpy as np
 
 import log
 from config import config
-from HDF5_dset import make_dset, dset_append
+from HDF5_dset import dset_append, get_dset, get_mat_dset
 from image_acquisition import acq_image
 from centroid_acquisition import acq_centroid
 from spot_sim import SpotSim
@@ -48,9 +48,6 @@ class AO_Slopes(QObject):
         # Get mirror instance
         self.mirror = mirror
 
-        # Initialise AO information parameter
-        self.AO_info = {}
-
         # Initialise zernike coefficient array
         self.zern_coeff = np.zeros([config['AO']['control_coeff_num'], 1])
         
@@ -72,47 +69,18 @@ class AO_Slopes(QObject):
             """
             Normal closed-loop AO process using a FIXED GAIN, iterated until residual phase error is below value given by Marechel 
             criterion or iteration has reached maximum
-            """   
+            """
+            # Initialise AO information parameter
+            self.AO_info = {'slope_AO_1': {}}
+               
             # Get pseudo-inverse of slope - zernike conversion matrix to translate zernike coefficients into slopes           
             conv_matrix_inv = np.linalg.pinv(self.mirror_settings['conv_matrix'])
         
-            # Open HDF5 file and create new dataset to store closed-loop AO data
-            data_set_img = np.zeros([self.SB_settings['sensor_width'], self.SB_settings['sensor_height']])
-            data_set_cent = np.zeros(self.SB_settings['act_ref_cent_num'])
-            data_set_slope = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, 1])
-            data_set_zern = np.zeros([config['AO']['control_coeff_num'], 1])
+            # Create new datasets in HDF5 file to store closed-loop AO data and open file
+            get_dset(self.SB_settings, 'slope_AO_1', flag = 2)
             data_file = h5py.File('data_info.h5', 'a')
-            grp1 = data_file['AO_img']
-            grp2 = data_file['AO_info']
-            data_set_1 = grp1.create_group('slope_AO_1')
-            data_set_2 = grp2.create_group('slope_AO_1')
-            key_list_1 = ['dummy_AO_img', 'dummy_spot_slope_x', 'dummy_spot_slope_y', 'dummy_spot_slope', 'dummy_spot_slope_err']
-            key_list_2 = ['real_AO_img', 'real_spot_slope_x', 'real_spot_slope_y', 'real_spot_slope', 'real_spot_slope_err']
-
-            if config['dummy']:
-                for k in key_list_1:
-                    if k in data_set_1:
-                        del data_set_1[k]
-                    elif k in data_set_2:
-                        del data_set_2[k]
-                    if k == 'dummy_AO_img':
-                        make_dset(data_set_1, k, data_set_img)
-                    elif k in {'dummy_spot_slope_x', 'dummy_spot_slope_y'}:
-                        make_dset(data_set_2, k, data_set_cent)
-                    elif k in {'dummy_spot_slope', 'dummy_spot_slope_err'}:
-                        make_dset(data_set_2, k, data_set_slope)
-            else:
-                for k in key_list_2:
-                    if k in data_set_1:
-                        del data_set_1[k]
-                    elif k in data_set_2:
-                        del data_set_2[k]
-                    if k == 'real_AO_img':
-                        make_dset(data_set_1, k, data_set_img)
-                    elif k in {'real_spot_slope_x', 'real_spot_slope_y'}:
-                        make_dset(data_set_2, k, data_set_cent)
-                    elif k in {'real_spot_slope', 'real_spot_slope_err'}:
-                        make_dset(data_set_2, k, data_set_slope)
+            data_set_1 = data_file['AO_img']['slope_AO_1']
+            data_set_2 = data_file['AO_info']['slope_AO_1']
 
             self.message.emit('Process started for closed-loop AO via slopes...')
 
@@ -207,7 +175,7 @@ class AO_Slopes(QObject):
             """             
             if self.log:
 
-                self.AO_info['slope_AO_1']['loop_num'] = i
+                self.AO_info['slope_AO_1']['loop_num'] = i + 1
                 self.AO_info['slope_AO_1']['residual_phase_err_1'] = self.loop_rms
 
                 self.info.emit(self.AO_info)
@@ -240,43 +208,11 @@ class AO_Slopes(QObject):
             # Get pseudo-inverse of slope - zernike conversion matrix to translate zernike coefficients into slopes           
             conv_matrix_inv = np.linalg.pinv(self.mirror_settings['conv_matrix'])
         
-            # Open HDF5 file and create new dataset to store closed-loop AO data
-            data_set_img = np.zeros([self.SB_settings['sensor_width'], self.SB_settings['sensor_height']])
-            data_set_cent = np.zeros(self.SB_settings['act_ref_cent_num'])
-            data_set_slope = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, 1])
-            data_set_zern = np.zeros([config['AO']['control_coeff_num'], 1])
+            # Create new datasets in HDF5 file to store closed-loop AO data and open file
+            get_dset(self.SB_settings, 'slope_AO_2', flag = 2)
             data_file = h5py.File('data_info.h5', 'a')
-            grp1 = data_file['AO_img']
-            grp2 = data_file['AO_info']
-            data_set_1 = grp1.create_group('slope_AO_2')
-            data_set_2 = grp2.create_group('slope_AO_2')
-            key_list_1 = ['dummy_AO_img', 'dummy_spot_slope_x', 'dummy_spot_slope_y', 'dummy_spot_slope', 'dummy_spot_slope_err']
-            key_list_2 = ['real_AO_img', 'real_spot_slope_x', 'real_spot_slope_y', 'real_spot_slope', 'real_spot_slope_err']
-
-            if config['dummy']:
-                for k in key_list_1:
-                    if k in data_set_1:
-                        del data_set_1[k]
-                    elif k in data_set_2:
-                        del data_set_2[k]
-                    if k == 'dummy_AO_img':
-                        make_dset(data_set_1, k, data_set_img)
-                    elif k in {'dummy_spot_slope_x', 'dummy_spot_slope_y'}:
-                        make_dset(data_set_2, k, data_set_cent)
-                    elif k in {'dummy_spot_slope', 'dummy_spot_slope_err'}:
-                        make_dset(data_set_2, k, data_set_slope)
-            else:
-                for k in key_list_2:
-                    if k in data_set_1:
-                        del data_set_1[k]
-                    elif k in data_set_2:
-                        del data_set_2[k]
-                    if k == 'real_AO_img':
-                        make_dset(data_set_1, k, data_set_img)
-                    elif k in {'real_spot_slope_x', 'real_spot_slope_y'}:
-                        make_dset(data_set_2, k, data_set_cent)
-                    elif k in {'real_spot_slope', 'real_spot_slope_err'}:
-                        make_dset(data_set_2, k, data_set_slope)
+            data_set_1 = data_file['AO_img']['slope_AO_2']
+            data_set_2 = data_file['AO_info']['slope_AO_2']
 
             self.message.emit('Process started for closed-loop AO via slopes with obscured subapertures...')
 
@@ -442,44 +378,11 @@ class AO_Slopes(QObject):
 
             # print('Shape of new control matrix is:', np.shape(control_matrix_slopes))
         
-            # Open HDF5 file and create new dataset to store closed-loop AO data
-            data_set_img = np.zeros([self.SB_settings['sensor_width'], self.SB_settings['sensor_height']])
-            data_set_cent = np.zeros(self.SB_settings['act_ref_cent_num'])
-            data_set_slope = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, 1])
-            data_set_zern = np.zeros([config['AO']['control_coeff_num'], 1])
+            # Create new datasets in HDF5 file to store closed-loop AO data and open file
+            get_dset(self.SB_settings, 'slope_AO_3', flag = 2)
             data_file = h5py.File('data_info.h5', 'a')
-            grp1 = data_file['AO_img']
-            grp2 = data_file['AO_info']
-            data_set_1 = grp1.create_group('slope_AO_3')
-            data_set_2 = grp2.create_group('slope_AO_3')
-            key_list_1 = ['dummy_AO_img', 'dummy_spot_slope_x', 'dummy_spot_slope_y', 'dummy_spot_slope', 'dummy_spot_slope_err']
-            key_list_2 = ['real_AO_img', 'real_spot_slope_x', 'real_spot_slope_y', 'real_spot_slope', 'real_spot_slope_err']
-
-            if config['dummy']:
-                for k in key_list_1:
-                    if k in data_set_1:
-                        del data_set_1[k]
-                    elif k in data_set_2:
-                        del data_set_2[k]
-                    if k == 'dummy_AO_img':
-                        make_dset(data_set_1, k, data_set_img)
-                    elif k in {'dummy_spot_slope_x', 'dummy_spot_slope_y'}:
-                        make_dset(data_set_2, k, data_set_cent)
-                    elif k in {'dummy_spot_slope', 'dummy_spot_slope_err'}:
-                        make_dset(data_set_2, k, data_set_slope)
-            else:
-                for k in key_list_2:
-                    if k in data_set_1:
-                        del data_set_1[k]
-                    elif k in data_set_2:
-                        del data_set_2[k]
-                    if k == 'real_AO_img':
-                        make_dset(data_set_1, k, data_set_img)
-                    elif k in {'real_spot_slope_x', 'real_spot_slope_y'}:
-                        make_dset(data_set_2, k, data_set_cent)
-                    elif k in {'real_spot_slope', 'real_spot_slope_err'}:
-                        make_dset(data_set_2, k, data_set_slope)
-
+            data_set_1 = data_file['AO_img']['slope_AO_3']
+            data_set_2 = data_file['AO_info']['slope_AO_3']
             self.message.emit('Process started for closed-loop AO via slopes with partial correction...')
 
             # Initialise deformable mirror voltage array
@@ -609,43 +512,11 @@ class AO_Slopes(QObject):
             # Get pseudo-inverse of slope - zernike conversion matrix to translate zernike coefficients into slopes           
             conv_matrix_inv = np.linalg.pinv(self.mirror_settings['conv_matrix'])
 
-            # Open HDF5 file and create new dataset to store closed-loop AO data
-            data_set_img = np.zeros([self.SB_settings['sensor_width'], self.SB_settings['sensor_height']])
-            data_set_cent = np.zeros(self.SB_settings['act_ref_cent_num'])
-            data_set_slope = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, 1])
-            data_set_zern = np.zeros([config['AO']['control_coeff_num'], 1])
+            # Create new datasets in HDF5 file to store closed-loop AO data and open file
+            get_dset(self.SB_settings, 'slope_AO_full', flag = 2)
             data_file = h5py.File('data_info.h5', 'a')
-            grp1 = data_file['AO_img']
-            grp2 = data_file['AO_info']
-            data_set_1 = grp1.create_group('slope_AO_4')
-            data_set_2 = grp2.create_group('slope_AO_4')
-            key_list_1 = ['dummy_AO_img', 'dummy_spot_slope_x', 'dummy_spot_slope_y', 'dummy_spot_slope', 'dummy_spot_slope_err']
-            key_list_2 = ['real_AO_img', 'real_spot_slope_x', 'real_spot_slope_y', 'real_spot_slope', 'real_spot_slope_err']
-
-            if config['dummy']:
-                for k in key_list_1:
-                    if k in data_set_1:
-                        del data_set_1[k]
-                    elif k in data_set_2:
-                        del data_set_2[k]
-                    if k == 'dummy_AO_img':
-                        make_dset(data_set_1, k, data_set_img)
-                    elif k in {'dummy_spot_slope_x', 'dummy_spot_slope_y'}:
-                        make_dset(data_set_2, k, data_set_cent)
-                    elif k in {'dummy_spot_slope', 'dummy_spot_slope_err'}:
-                        make_dset(data_set_2, k, data_set_slope)
-            else:
-                for k in key_list_2:
-                    if k in data_set_1:
-                        del data_set_1[k]
-                    elif k in data_set_2:
-                        del data_set_2[k]
-                    if k == 'real_AO_img':
-                        make_dset(data_set_1, k, data_set_img)
-                    elif k in {'real_spot_slope_x', 'real_spot_slope_y'}:
-                        make_dset(data_set_2, k, data_set_cent)
-                    elif k in {'real_spot_slope', 'real_spot_slope_err'}:
-                        make_dset(data_set_2, k, data_set_slope)
+            data_set_1 = data_file['AO_img']['slope_AO_full']
+            data_set_2 = data_file['AO_info']['slope_AO_full']
 
             self.message.emit('Process started for full closed-loop AO via slopes...')
 
@@ -663,7 +534,7 @@ class AO_Slopes(QObject):
                         if config['dummy']:
 
                             pass
-                        else:
+                        else: 
 
                             # Update mirror control voltages
                             if i == 0:
@@ -780,8 +651,8 @@ class AO_Slopes(QObject):
             """             
             if self.log:
 
-                self.AO_info['slope_AO_4']['loop_num'] = i
-                self.AO_info['slope_AO_4']['residual_phase_err_1'] = self.loop_rms
+                self.AO_info['slope_AO_full']['loop_num'] = i
+                self.AO_info['slope_AO_full']['residual_phase_err_1'] = self.loop_rms
 
                 self.info.emit(self.AO_info)
                 self.write.emit()

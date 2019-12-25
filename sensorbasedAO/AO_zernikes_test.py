@@ -12,7 +12,7 @@ import numpy as np
 
 import log
 from config import config
-from HDF5_dset import make_dset, dset_append
+from HDF5_dset import dset_append, get_dset
 from image_acquisition import acq_image
 from centroid_acquisition import acq_centroid
 from spot_sim import SpotSim
@@ -49,7 +49,7 @@ class AO_Zernikes_Test(QObject):
         self.mirror = mirror
 
         # Initialise AO information parameter
-        self.AO_info = {}
+        self.AO_info = {'zern_test': {}}
 
         # Initialise zernike coefficient array
         self.zern_coeff = np.zeros([config['AO']['control_coeff_num'], 1])
@@ -77,51 +77,12 @@ class AO_Zernikes_Test(QObject):
    
             # Get pseudo-inverse of slope - zernike conversion matrix to translate zernike coefficients into slopes           
             conv_matrix_inv = np.linalg.pinv(self.mirror_settings['conv_matrix'])
-        
-            # Open HDF5 file and create new dataset to store closed-loop AO data
-            data_set_img = np.zeros([self.SB_settings['sensor_width'], self.SB_settings['sensor_height']])
-            data_set_cent = np.zeros(self.SB_settings['act_ref_cent_num'])
-            data_set_slope = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, 1])
-            data_set_zern = np.zeros([config['AO']['control_coeff_num'], 1])
-            data_file = h5py.File('data_info.h5', 'a')
-            grp1 = data_file['AO_img']
-            grp2 = data_file['AO_info']
-            data_set_1 = grp1.create_group('zern_test')
-            data_set_2 = grp2.create_group('zern_test')
-            key_list_1 = ['dummy_AO_img', 'dummy_spot_cent_x', 'dummy_spot_cent_y', 'dummy_spot_slope_x', 'dummy_spot_slope_y',\
-                'dummy_spot_slope', 'dummy_spot_zern_err']
-            key_list_2 = ['real_AO_img', 'real_spot_slope_x', 'real_spot_slope_y', 'real_spot_slope', 'real_spot_zern_err']
 
-            if config['dummy']:
-                for k in key_list_1:
-                    if k in data_set_1:
-                        del data_set_1[k]
-                    elif k in data_set_2:
-                        del data_set_2[k]
-                    if k == 'dummy_AO_img':
-                        make_dset(data_set_1, k, data_set_img)
-                    elif k in {'dummy_spot_cent_x', 'dummy_spot_cent_y'}:
-                        make_dset(data_set_1, k, data_set_cent)
-                    elif k in {'dummy_spot_slope_x', 'dummy_spot_slope_y'}:
-                        make_dset(data_set_2, k, data_set_cent)
-                    elif k in {'dummy_spot_slope'}:
-                        make_dset(data_set_2, k, data_set_slope)
-                    elif k in {'dummy_spot_zern_err'}:
-                        make_dset(data_set_2, k, data_set_zern)
-            else:
-                for k in key_list_2:
-                    if k in data_set_1:
-                        del data_set_1[k]
-                    elif k in data_set_2:
-                        del data_set_2[k]
-                    if k == 'real_AO_img':
-                        make_dset(data_set_1, k, data_set_img)
-                    elif k in {'real_spot_slope_x', 'real_spot_slope_y'}:
-                        make_dset(data_set_2, k, data_set_cent)
-                    elif k in {'real_spot_slope'}:
-                        make_dset(data_set_2, k, data_set_slope)
-                    elif k in {'real_spot_zern_err'}:
-                        make_dset(data_set_2, k, data_set_zern)
+            # Create new datasets in HDF5 file to store closed-loop AO data and open file
+            get_dset(self.SB_settings, 'zern_test', flag = 0)
+            data_file = h5py.File('data_info.h5', 'a')
+            data_set_1 = data_file['AO_img']['zern_test']
+            data_set_2 = data_file['AO_info']['zern_test']
 
             # Initialise array to record root mean square error after each iteration
             self.loop_rms = np.zeros(config['AO']['loop_max'])
@@ -235,8 +196,8 @@ class AO_Zernikes_Test(QObject):
             Returns closed-loop AO information into self.AO_info
             """             
             if self.log:
-
-                self.AO_info['zern_test']['loop_num'] = i
+                
+                self.AO_info['zern_test']['loop_num'] = i + 1
                 self.AO_info['zern_test']['residual_phase_err_1'] = self.loop_rms
 
                 self.info.emit(self.AO_info)

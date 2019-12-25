@@ -13,7 +13,7 @@ from ximea import xiapi
 import log
 from config import config
 from sensor import SENSOR
-from HDF5_dset import make_dset, dset_append
+from HDF5_dset import dset_append, get_dset
 from image_acquisition import acq_image
 from centroid_acquisition import acq_centroid
 from spot_sim import SpotSim
@@ -73,27 +73,10 @@ class Centroiding(QObject):
             """
             Calculate actual S-H spot centroid coordinates
             """
-            # Open HDF5 file and create new dataset to store centroiding data
-            data_set_img = np.zeros([self.SB_settings['sensor_width'], self.SB_settings['sensor_height']])
-            data_set_cent = np.zeros(self.SB_settings['act_ref_cent_num'])
+            # Create new datasets in HDF5 file to store centroiding data
+            get_dset(self.SB_settings, 'centroiding_img', flag = 3)
             data_file = h5py.File('data_info.h5', 'a')
             data_set = data_file['centroiding_img']
-            key_list_1 = ['dummy_cent_img', 'dummy_spot_cent_x', 'dummy_spot_cent_y']
-            key_list_2 = ['real_cent_img']
-            if config['dummy']:
-                for k in key_list_1:
-                    if k in data_set:
-                        del data_set[k]
-                    if k == 'dummy_cent_img':
-                        make_dset(data_set, k, data_set_img)
-                    elif k in {'dummy_spot_cent_x', 'dummy_spot_cent_y'}:
-                        make_dset(data_set, k, data_set_cent)
-            else:
-                for k in key_list_2:
-                    if k in data_set:
-                        del data_set[k]
-                    if k == 'real_cent_img':
-                        make_dset(data_set, k, data_set_img)
 
             # Initialise search block layer and display search blocks
             self.SB_layer_2D = np.zeros([self.sensor_width, self.sensor_height], dtype = 'uint8')

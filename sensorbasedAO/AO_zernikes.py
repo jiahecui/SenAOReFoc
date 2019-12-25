@@ -12,7 +12,7 @@ import numpy as np
 
 import log
 from config import config
-from HDF5_dset import make_dset, dset_append
+from HDF5_dset import dset_append, get_dset, get_mat_dset
 from image_acquisition import acq_image
 from centroid_acquisition import acq_centroid
 from spot_sim import SpotSim
@@ -48,9 +48,6 @@ class AO_Zernikes(QObject):
         # Get mirror instance
         self.mirror = mirror
 
-        # Initialise AO information parameter
-        self.AO_info = {}
-
         # Initialise zernike coefficient array
         self.zern_coeff = np.zeros([config['AO']['control_coeff_num'], 1])
         
@@ -72,51 +69,18 @@ class AO_Zernikes(QObject):
             """
             Normal closed-loop AO process WITH A FIXED GAIN, iterated until residual phase error is below value given by Marechel 
             criterion or iteration has reached maximum
-            """   
+            """
+            # Initialise AO information parameter
+            self.AO_info = {'zern_AO_1': {}}
+
             # Get pseudo-inverse of slope - zernike conversion matrix to translate zernike coefficients into slopes           
             conv_matrix_inv = np.linalg.pinv(self.mirror_settings['conv_matrix'])
         
-            # Open HDF5 file and create new dataset to store closed-loop AO data
-            data_set_img = np.zeros([self.SB_settings['sensor_width'], self.SB_settings['sensor_height']])
-            data_set_cent = np.zeros(self.SB_settings['act_ref_cent_num'])
-            data_set_slope = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, 1])
-            data_set_zern = np.zeros([config['AO']['control_coeff_num'], 1])
+            # Create new datasets in HDF5 file to store closed-loop AO data and open file
+            get_dset(self.SB_settings, 'zern_AO_1', flag = 1)
             data_file = h5py.File('data_info.h5', 'a')
-            grp1 = data_file['AO_img']
-            grp2 = data_file['AO_info']
-            data_set_1 = grp1.create_group('zern_AO_1')
-            data_set_2 = grp2.create_group('zern_AO_1')
-            key_list_1 = ['dummy_AO_img', 'dummy_spot_slope_x', 'dummy_spot_slope_y', 'dummy_spot_slope', 'dummy_spot_zern_err']
-            key_list_2 = ['real_AO_img', 'real_spot_slope_x', 'real_spot_slope_y', 'real_spot_slope', 'real_spot_zern_err']
-
-            if config['dummy']:
-                for k in key_list_1:
-                    if k in data_set_1:
-                        del data_set_1[k]
-                    elif k in data_set_2:
-                        del data_set_2[k]
-                    if k == 'dummy_AO_img':
-                        make_dset(data_set_1, k, data_set_img)
-                    elif k in {'dummy_spot_slope_x', 'dummy_spot_slope_y'}:
-                        make_dset(data_set_2, k, data_set_cent)
-                    elif k in {'dummy_spot_slope'}:
-                        make_dset(data_set_2, k, data_set_slope)
-                    elif k in {'dummy_spot_zern_err'}:
-                        make_dset(data_set_2, k, data_set_zern)
-            else:
-                for k in key_list_2:
-                    if k in data_set_1:
-                        del data_set_1[k]
-                    elif k in data_set_2:
-                        del data_set_2[k]
-                    if k == 'real_AO_img':
-                        make_dset(data_set_1, k, data_set_img)
-                    elif k in {'real_spot_slope_x', 'real_spot_slope_y'}:
-                        make_dset(data_set_2, k, data_set_cent)
-                    elif k in {'real_spot_slope'}:
-                        make_dset(data_set_2, k, data_set_slope)
-                    elif k in {'real_spot_zern_err'}:
-                        make_dset(data_set_2, k, data_set_zern)
+            data_set_1 = data_file['AO_img']['zern_AO_1']
+            data_set_2 = data_file['AO_info']['zern_AO_1']
 
             self.message.emit('Process started for closed-loop AO via Zernikes...')
 
@@ -132,6 +96,10 @@ class AO_Zernikes(QObject):
 
                     try:
                         if config['dummy']:
+
+                            phase = get_mat_dset()
+                            phase = np.pad(phase, (184, 184), 'constant', constant_values = (0, 0))
+                            self.image.emit(phase)
 
                             pass
                         else:
@@ -214,7 +182,7 @@ class AO_Zernikes(QObject):
             """             
             if self.log:
 
-                self.AO_info['zern_AO_1']['loop_num'] = i
+                self.AO_info['zern_AO_1']['loop_num'] = i + 1
                 self.AO_info['zern_AO_1']['residual_phase_err_1'] = self.loop_rms
 
                 self.info.emit(self.AO_info)
@@ -243,51 +211,18 @@ class AO_Zernikes(QObject):
             """
             Closed-loop AO process to handle obscured S-H spots using a FIXED GAIN, iterated until residual phase error is below value 
             given by Marechel criterion or iteration has reached maximum
-            """   
+            """ 
+            # Initialise AO information parameter
+            self.AO_info = {'zern_AO_2': {}}
+
             # Get pseudo-inverse of slope - zernike conversion matrix to translate zernike coefficients into slopes           
             conv_matrix_inv = np.linalg.pinv(self.mirror_settings['conv_matrix'])
         
-            # Open HDF5 file and create new dataset to store closed-loop AO data
-            data_set_img = np.zeros([self.SB_settings['sensor_width'], self.SB_settings['sensor_height']])
-            data_set_cent = np.zeros(self.SB_settings['act_ref_cent_num'])
-            data_set_slope = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, 1])
-            data_set_zern = np.zeros([config['AO']['control_coeff_num'], 1])
+            # Create new datasets in HDF5 file to store closed-loop AO data and open file
+            get_dset(self.SB_settings, 'zern_AO_2', flag = 1)
             data_file = h5py.File('data_info.h5', 'a')
-            grp1 = data_file['AO_img']
-            grp2 = data_file['AO_info']
-            data_set_1 = grp1.create_group('zern_AO_2')
-            data_set_2 = grp2.create_group('zern_AO_2')
-            key_list_1 = ['dummy_AO_img', 'dummy_spot_slope_x', 'dummy_spot_slope_y', 'dummy_spot_slope', 'dummy_spot_zern_err']
-            key_list_2 = ['real_AO_img', 'real_spot_slope_x', 'real_spot_slope_y', 'real_spot_slope', 'real_spot_zern_err']
-
-            if config['dummy']:
-                for k in key_list_1:
-                    if k in data_set_1:
-                        del data_set_1[k]
-                    elif k in data_set_2:
-                        del data_set_2[k]
-                    if k == 'dummy_AO_img':
-                        make_dset(data_set_1, k, data_set_img)
-                    elif k in {'dummy_spot_slope_x', 'dummy_spot_slope_y'}:
-                        make_dset(data_set_2, k, data_set_cent)
-                    elif k in {'dummy_spot_slope'}:
-                        make_dset(data_set_2, k, data_set_slope)
-                    elif k in {'dummy_spot_zern_err'}:
-                        make_dset(data_set_2, k, data_set_zern)
-            else:
-                for k in key_list_2:
-                    if k in data_set_1:
-                        del data_set_1[k]
-                    elif k in data_set_2:
-                        del data_set_2[k]
-                    if k == 'real_AO_img':
-                        make_dset(data_set_1, k, data_set_img)
-                    elif k in {'real_spot_slope_x', 'real_spot_slope_y'}:
-                        make_dset(data_set_2, k, data_set_cent)
-                    elif k in {'real_spot_slope'}:
-                        make_dset(data_set_2, k, data_set_slope)
-                    elif k in {'real_spot_zern_err'}:
-                        make_dset(data_set_2, k, data_set_zern)
+            data_set_1 = data_file['AO_img']['zern_AO_2']
+            data_set_2 = data_file['AO_info']['zern_AO_2']
 
             self.message.emit('Process started for closed-loop AO via Zernikes with obscured subapertures...')
 
@@ -424,7 +359,7 @@ class AO_Zernikes(QObject):
             raise
             self.error.emit(e)
 
-     @Slot(object)
+    @Slot(object)
     def run3(self):
         try:
             # Set process flags
@@ -437,51 +372,18 @@ class AO_Zernikes(QObject):
             """
             Closed-loop AO process to handle partial correction using a FIXED GAIN, iterated until residual phase error is below value 
             given by Marechel criterion or iteration has reached maximum            
-            """   
+            """
+            # Initialise AO information parameter
+            self.AO_info = {'zern_AO_3': {}}
+
             # Get pseudo-inverse of slope - zernike conversion matrix to translate zernike coefficients into slopes           
             conv_matrix_inv = np.linalg.pinv(self.mirror_settings['conv_matrix'])
         
-            # Open HDF5 file and create new dataset to store closed-loop AO data
-            data_set_img = np.zeros([self.SB_settings['sensor_width'], self.SB_settings['sensor_height']])
-            data_set_cent = np.zeros(self.SB_settings['act_ref_cent_num'])
-            data_set_slope = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, 1])
-            data_set_zern = np.zeros([config['AO']['control_coeff_num'], 1])
+            # Create new datasets in HDF5 file to store closed-loop AO data and open file
+            get_dset(self.SB_settings, 'zern_AO_3', flag = 1)
             data_file = h5py.File('data_info.h5', 'a')
-            grp1 = data_file['AO_img']
-            grp2 = data_file['AO_info']
-            data_set_1 = grp1.create_group('zern_AO_3')
-            data_set_2 = grp2.create_group('zern_AO_3')
-            key_list_1 = ['dummy_AO_img', 'dummy_spot_slope_x', 'dummy_spot_slope_y', 'dummy_spot_slope', 'dummy_spot_zern_err']
-            key_list_2 = ['real_AO_img', 'real_spot_slope_x', 'real_spot_slope_y', 'real_spot_slope', 'real_spot_zern_err']
-
-            if config['dummy']:
-                for k in key_list_1:
-                    if k in data_set_1:
-                        del data_set_1[k]
-                    elif k in data_set_2:
-                        del data_set_2[k]
-                    if k == 'dummy_AO_img':
-                        make_dset(data_set_1, k, data_set_img)
-                    elif k in {'dummy_spot_slope_x', 'dummy_spot_slope_y'}:
-                        make_dset(data_set_2, k, data_set_cent)
-                    elif k in {'dummy_spot_slope'}:
-                        make_dset(data_set_2, k, data_set_slope)
-                    elif k in {'dummy_spot_zern_err'}:
-                        make_dset(data_set_2, k, data_set_zern)
-            else:
-                for k in key_list_2:
-                    if k in data_set_1:
-                        del data_set_1[k]
-                    elif k in data_set_2:
-                        del data_set_2[k]
-                    if k == 'real_AO_img':
-                        make_dset(data_set_1, k, data_set_img)
-                    elif k in {'real_spot_slope_x', 'real_spot_slope_y'}:
-                        make_dset(data_set_2, k, data_set_cent)
-                    elif k in {'real_spot_slope'}:
-                        make_dset(data_set_2, k, data_set_slope)
-                    elif k in {'real_spot_zern_err'}:
-                        make_dset(data_set_2, k, data_set_zern)
+            data_set_1 = data_file['AO_img']['zern_AO_3']
+            data_set_2 = data_file['AO_info']['zern_AO_3']
 
             self.message.emit('Process started for closed-loop AO via Zernikes with partial correction...')
 
@@ -609,51 +511,18 @@ class AO_Zernikes(QObject):
             """
             Closed-loop AO process to handle both obscured S-H spots and partial correction using a FIXED GAIN, iterated until residual phase 
             error is below value given by Marechel criterion or iteration has reached maximum
-            """   
+            """
+            # Initialise AO information parameter
+            self.AO_info = {'zern_AO_full': {}}
+
             # Get pseudo-inverse of slope - zernike conversion matrix to translate zernike coefficients into slopes           
             conv_matrix_inv = np.linalg.pinv(self.mirror_settings['conv_matrix'])
 
-            # Open HDF5 file and create new dataset to store closed-loop AO data
-            data_set_img = np.zeros([self.SB_settings['sensor_width'], self.SB_settings['sensor_height']])
-            data_set_cent = np.zeros(self.SB_settings['act_ref_cent_num'])
-            data_set_slope = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, 1])
-            data_set_zern = np.zeros([config['AO']['control_coeff_num'], 1])
+            # Create new datasets in HDF5 file to store closed-loop AO data and open file
+            get_dset(self.SB_settings, 'zern_AO_full', flag = 1)
             data_file = h5py.File('data_info.h5', 'a')
-            grp1 = data_file['AO_img']
-            grp2 = data_file['AO_info']
-            data_set_1 = grp1.create_group('zern_AO_4')
-            data_set_2 = grp2.create_group('zern_AO_4')
-            key_list_1 = ['dummy_AO_img', 'dummy_spot_slope_x', 'dummy_spot_slope_y', 'dummy_spot_slope', 'dummy_spot_zern_err']
-            key_list_2 = ['real_AO_img', 'real_spot_slope_x', 'real_spot_slope_y', 'real_spot_slope', 'real_spot_zern_err']
-
-            if config['dummy']:
-                for k in key_list_1:
-                    if k in data_set_1:
-                        del data_set_1[k]
-                    elif k in data_set_2:
-                        del data_set_2[k]
-                    if k == 'dummy_AO_img':
-                        make_dset(data_set_1, k, data_set_img)
-                    elif k in {'dummy_spot_slope_x', 'dummy_spot_slope_y'}:
-                        make_dset(data_set_2, k, data_set_cent)
-                    elif k in {'dummy_spot_slope'}:
-                        make_dset(data_set_2, k, data_set_slope)
-                    elif k in {'dummy_spot_zern_err'}:
-                        make_dset(data_set_2, k, data_set_zern)
-            else:
-                for k in key_list_2:
-                    if k in data_set_1:
-                        del data_set_1[k]
-                    elif k in data_set_2:
-                        del data_set_2[k]
-                    if k == 'real_AO_img':
-                        make_dset(data_set_1, k, data_set_img)
-                    elif k in {'real_spot_slope_x', 'real_spot_slope_y'}:
-                        make_dset(data_set_2, k, data_set_cent)
-                    elif k in {'real_spot_slope'}:
-                        make_dset(data_set_2, k, data_set_slope)
-                    elif k in {'real_spot_zern_err'}:
-                        make_dset(data_set_2, k, data_set_zern)
+            data_set_1 = data_file['AO_img']['zern_AO_full']
+            data_set_2 = data_file['AO_info']['zern_AO_full']
 
             self.message.emit('Process started for full closed-loop AO via Zernikes...')
 
@@ -775,8 +644,8 @@ class AO_Zernikes(QObject):
             """             
             if self.log:
 
-                self.AO_info['zern_AO_4']['loop_num'] = i
-                self.AO_info['zern_AO_4']['residual_phase_err_1'] = self.loop_rms
+                self.AO_info['zern_AO_full']['loop_num'] = i
+                self.AO_info['zern_AO_full']['residual_phase_err_1'] = self.loop_rms
 
                 self.info.emit(self.AO_info)
                 self.write.emit()
