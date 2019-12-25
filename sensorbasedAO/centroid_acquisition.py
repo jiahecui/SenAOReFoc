@@ -40,9 +40,13 @@ def acq_centroid(settings, flag = 0):
                         7 : data_file['AO_img']['zern_AO_3'],
                         8 : data_file['AO_img']['slope_AO_3'],
                         9 : data_file['AO_img']['zern_AO_full'],
-                        10 : data_file['AO_img']['slopes_AO_full']}
+                        10 : data_file['AO_img']['slope_AO_full']}
 
-    dataset_options = {0 : 'real_cent_img', 1 : 'dummy_cent_img'}
+    cent_options = {0 : 'real_cent_img', 1 : 'dummy_cent_img'}
+
+    calib_options = {0 : 'real_calib_img', 1 : 'dummy_calib_img'}
+
+    AO_options = {0 : 'real_AO_img', 1 : 'dummy_AO_img'}
 
     axis_options = {0 : 'dummy_spot_cent_x', 1 : 'dummy_spot_cent_y'}
 
@@ -50,7 +54,7 @@ def acq_centroid(settings, flag = 0):
         image_num = 2 * config['DM']['actuator_num']
     else:
         image_num = 1
-   
+
     # Get actual search block reference centroid coords
     act_ref_cent_coord = settings['act_ref_cent_coord']
     act_ref_cent_coord_x = settings['act_ref_cent_coord_x']
@@ -73,16 +77,17 @@ def acq_centroid(settings, flag = 0):
 
     # Initialise list for storing S-H spot centroid information for all images in data
     slope_x_list, slope_y_list = ([] for i in range(2))
-
     prev1 = time.perf_counter()
 
     # Calculate actual S-H spot centroids for each search block using a dynamic range
     for l in range(image_num):
 
-        if flag == 0 or flag == 1:
-            image_temp = subgroup_options[flag][dataset_options[config['dummy']]][l, :, :]
+        if flag == 0:
+            image_temp = subgroup_options[flag][cent_options[config['dummy']]][l, :, :]
+        elif flag == 1:
+            image_temp = subgroup_options[flag][calib_options[config['dummy']]][l, :, :]
         else:
-            image_temp = subgroup_options[flag][dataset_options[config['dummy']]][-1, :, :]
+            image_temp = subgroup_options[flag][AO_options[config['dummy']]][-1, :, :]
         
         # print('Centroiding image {}'.format(l))
 
