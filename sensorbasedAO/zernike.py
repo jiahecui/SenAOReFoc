@@ -48,9 +48,9 @@ def zern(xx, yy, j):
 
                 # Final result
                 if m >= 0:
-                    Z = N * Rnm * np.cos(m * theta))
+                    Z = N * Rnm * np.cos(m * theta)
                 else:
-                    Z = -N * Rnm * np.sin(m * theta))
+                    Z = -N * Rnm * np.sin(m * theta)
 
                 # Sum value for each element in search block
                 val_sum += Z
