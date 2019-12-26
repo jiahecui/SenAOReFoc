@@ -205,6 +205,9 @@ class AO_Slopes(QObject):
             Closed-loop AO process to deal with obscured S-H spots using a FIXED GAIN, iterated until residual phase error is below value 
             given by Marechel criterion or iteration has reached maximum
             """
+            # Initialise AO information parameter
+            self.AO_info = {'slope_AO_2': {}}
+
             # Get pseudo-inverse of slope - zernike conversion matrix to translate zernike coefficients into slopes           
             conv_matrix_inv = np.linalg.pinv(self.mirror_settings['conv_matrix'])
         
@@ -359,7 +362,10 @@ class AO_Slopes(QObject):
             """
             Closed-loop AO process to handle partial correction using a FIXED GAIN, iterated until residual phase error is below value given by Marechel 
             criterion or iteration has reached maximum
-            """   
+            """
+            # Initialise AO information parameter
+            self.AO_info = {'slope_AO_3': {}}
+
             # Get pseudo-inverse of slope - zernike conversion matrix to translate zernike coefficients into slopes           
             conv_matrix_inv = np.linalg.pinv(self.mirror_settings['conv_matrix'])
 
@@ -508,7 +514,10 @@ class AO_Slopes(QObject):
             """
             Closed-loop AO process to handle partial correction using a FIXED GAIN, iterated until residual phase error is below value given by Marechel 
             criterion or iteration has reached maximum
-            """   
+            """
+            # Initialise AO information parameter
+            self.AO_info = {'slope_AO_full': {}}
+
             # Get pseudo-inverse of slope - zernike conversion matrix to translate zernike coefficients into slopes           
             conv_matrix_inv = np.linalg.pinv(self.mirror_settings['conv_matrix'])
 
