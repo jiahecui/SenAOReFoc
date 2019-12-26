@@ -48,7 +48,7 @@ class App(QApplication):
             sys.exit(app.exec_())
     """
     def __init__(self, debug = False):
-        QThread.currentThread().setObjectName('app')
+        QThread.currentThread().setObjectName('app')   
         
         super().__init__()
 
@@ -59,18 +59,11 @@ class App(QApplication):
         # Initialise dictionary for storing data info throughout processing of software
         self.data_info = {'SB_info': {}, 'mirror_info': {}, 'centroiding_info': {}, 'AO_info': {}, 'centroiding_img': {}, \
             'calibration_img': {}, 'AO_img': {}}
+        self.AO_group = {'zern_test': {}, 'zern_AO_1': {}, 'zern_AO_2': {}, 'zern_AO_3': {}, 'zern_AO_full': {}, \
+            'slope_AO_1': {}, 'slope_AO_2': {}, 'slope_AO_3': {}, 'slope_AO_full': {}}
 
         # Initialise output HDF5 file
-        self.output_data = h5py.File('data_info.h5', 'a')
-        keys = list(self.data_info.keys())
-        grp1 = self.output_data.create_group(keys[0])
-        grp2 = self.output_data.create_group(keys[1])
-        grp3 = self.output_data.create_group(keys[2])
-        grp4 = self.output_data.create_group(keys[3])
-        grp5 = self.output_data.create_group(keys[4])
-        grp6 = self.output_data.create_group(keys[5])
-        grp7 = self.output_data.create_group(keys[6])
-        self.output_data.close()
+        self.HDF5_init()
 
         # Initialise workers and threads
         self.workers = {}
@@ -367,6 +360,23 @@ class App(QApplication):
         slopes_AO_thread.start()
 
     #========== Signal handlers ==========#
+    def HDF5_init(self):
+        """
+        Initialises HDF5 file and creates relevant groups
+        """
+        self.output_data = h5py.File('data_info.h5', 'a')
+        data_keys = list(self.data_info.keys())
+        AO_keys = list(self.AO_group.keys())
+        for k in data_keys:
+            if not k in self.output_data:
+                self.output_data.create_group(k)
+        for k in AO_keys:
+            if not k in self.output_data['AO_img']:
+                self.output_data['AO_img'].create_group(k)
+            if not k in self.output_data['AO_info']:
+                self.output_data['AO_info'].create_group(k)      
+        self.output_data.close()
+
     def handle_layer_disp(self, obj):
         """
         Handle display of search block layer
@@ -444,7 +454,7 @@ class App(QApplication):
         Handle AO information
         """
         self.data_info['AO_info'].update(obj)
-
+        
     def write_AO_info(self):
         """
         Write AO info to HDF5 file
@@ -453,8 +463,14 @@ class App(QApplication):
         grp4 = self.output_data['AO_info']
         for k, v in self.data_info['AO_info'].items():
             if k in grp4:
-               del grp4[k]
-            grp4.create_dataset(k, data = v)
+                if isinstance(v, dict):  
+                    for kk, vv in self.data_info['AO_info'][k].items():
+                        if kk in grp4[k]:
+                            del grp4[k][kk]
+                        grp4[k].create_dataset(kk, data = vv) 
+                else:
+                    del grp4[k]
+                    grp4.create_dataset(k, data = v)                
         self.output_data.close()
 
     def handle_error(self, error):
