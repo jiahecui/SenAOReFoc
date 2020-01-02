@@ -16,6 +16,7 @@ from config import config
 from sensor import SENSOR
 from image_acquisition import acq_image
 from spot_sim import SpotSim
+from HDF5_dset import get_mat_dset
 
 logger = log.get_logger(__name__)
 
@@ -79,18 +80,28 @@ class Positioning(QObject):
             self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
             self.layer.emit(self.SB_layer_2D_temp)
 
-            # Acquire S-H spot image or use simulated Gaussian profile S-H spot image
+            # Acquire S-H spot image, use simulated Gaussian profile S-H spot image, or use real phase data
             if self.acquire:
+
                 # Acquire image
-                # self._image = acq_image(self.sensor, self.sensor_width, self.sensor_height, acq_mode = 0)
-                spot_img = SpotSim(self.SB_settings)
-                self._image, self.spot_cent_x, self.spot_cent_y = spot_img.SH_spot_sim(centred = 0)
+                if config['dummy']:
+                    if config['real_phase']:
+                        # self._image = get_mat_dset(self.SB_settings, get_spots = 0)
+                        x_slope, y_slope = get_mat_dset(self.SB_settings, get_spots = 1)
+                        spot_img = SpotSim(self.SB_settings)
+                        self._image, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = x_slope, yc = y_slope)
+                    else:
+                        spot_img = SpotSim(self.SB_settings)
+                        self._image, self.spot_cent_x, self.spot_cent_y = spot_img.SH_spot_sim(centred = 0)
+                else:
+                    self._image = acq_image(self.sensor, self.sensor_width, self.sensor_height, acq_mode = 0)               
                                
                 # Image thresholding to remove background
                 self._image = self._image - config['image']['threshold'] * np.amax(self._image)
                 self._image[self._image < 0] = 0
                 self.image.emit(self._image)
             else:
+
                 self.done.emit()
 
             # Ask user whether DM needs calibrating, if 'y' reposition search block using keyboard, if 'n' load search block position from HDF5 file
