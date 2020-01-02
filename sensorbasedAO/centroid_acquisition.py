@@ -96,9 +96,7 @@ def acq_centroid(settings, flag = 0):
             for n in range(config['image']['dynamic_num']):
 
                 # Initialise temporary summing parameters
-                sum_x = 0
-                sum_y = 0
-                sum_pix = 0
+                sum_x, sum_y, sum_pix = (0 for i in range(3))
 
                 if n == 0:
                     # Get 2D coords of pixels in each search block that need to be summed

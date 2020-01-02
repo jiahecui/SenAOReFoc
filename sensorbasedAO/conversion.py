@@ -36,7 +36,7 @@ class Conversion(QObject):
         # Initialise search block parameters
         self.SB_rad = self.SB_settings['SB_rad']
         self.SB_across_width = self.SB_settings['SB_across_width']
-        self.act_ref_cent_coord_x = self.SB_settings['act_ref_cent_coord_x']
+        self.act_ref_cent_coord_x = self.SB_settingssettings
         self.act_ref_cent_coord_y = self.SB_settings['act_ref_cent_coord_y']
 
         # Initialise conversion matrix information parameter
@@ -109,10 +109,10 @@ class Conversion(QObject):
                 for i in range(self.SB_settings['act_ref_cent_num']):
 
                     # Get reference centroid coords of each element
-                    elem_ref_cent_coord_x = np.arange(self.norm_ref_cent_coord_x[i] - self.norm_rad + self.elem_size / 2 , \
-                        self.norm_ref_cent_coord_x[i] + self.norm_rad - self.elem_size // 2, self.elem_size)
-                    elem_ref_cent_coord_y = np.arange(self.norm_ref_cent_coord_y[i] - self.norm_rad + self.elem_size / 2 , \
-                        self.norm_ref_cent_coord_y[i] + self.norm_rad - self.elem_size // 2, self.elem_size)
+                    elem_ref_cent_coord_x = np.arange(self.norm_ref_cent_coord_x[i] - self.norm_rad + self.elem_size / 2, \
+                        self.norm_ref_cent_coord_x[i] + self.norm_rad - self.elem_size / 2, self.elem_size)
+                    elem_ref_cent_coord_y = np.arange(self.norm_ref_cent_coord_y[i] - self.norm_rad + self.elem_size / 2, \
+                        self.norm_ref_cent_coord_y[i] + self.norm_rad - self.elem_size / 2, self.elem_size)
 
                     # print('Elem_ref_cent_coord_x:', elem_ref_cent_coord_x)
                     # print('Elem_ref_cent_coord_y:', elem_ref_cent_coord_y)
