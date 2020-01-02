@@ -576,8 +576,8 @@ class AO_Slopes(QObject):
                         slope_x = np.argwhere(slope_x + self.mirror_settings['act_ref_cent_coord_x'])
                         slope_y = np.argwhere(slope_y + self.mirror_settings['act_ref_cent_coord_y'])
                         act_cent_coord = np.delete(act_cent_coord, index_remove, axis = None)
+                        zern_matrix = np.delete(self.mirror_settings['zern_matrix'].copy(), index_remove, axis = 0)
                         inf_matrix_slopes = np.delete(self.mirror_settings['inf_matrix_slopes'].copy(), index_remove_inf, axis = 0)
-                        zern_matrix = np.delete(self.mirror_settings['zern_matrix'].copy(), index_remove_inf, axis = 0)
                         diff_matrix = np.delete(self.mirror_settings['diff_matrix'].copy(), index_remove_inf, axis = 0)
 
                         # print('The number of obscured subapertures is: {}'.format(len(index_remove)))

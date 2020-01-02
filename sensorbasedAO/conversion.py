@@ -36,14 +36,15 @@ class Conversion(QObject):
         # Initialise search block parameters
         self.SB_rad = self.SB_settings['SB_rad']
         self.SB_across_width = self.SB_settings['SB_across_width']
-        self.act_ref_cent_coord_x = self.SB_settingssettings
+        self.act_ref_cent_coord_x = self.SB_settings['act_ref_cent_coord_x']
         self.act_ref_cent_coord_y = self.SB_settings['act_ref_cent_coord_y']
 
         # Initialise conversion matrix information parameter
         self.conv_info = {}
 
         # Initialise zernike matrix and zernike derivative matrix
-        self.zern_matrix, self.diff_matrix = (np.zeros([2 * self.SB_settings['act_ref_cent_num'], config['AO']['recon_coeff_num']]) for i in range(2))
+        self.zern_matrix = np.zeros([self.SB_settings['act_ref_cent_num'], config['AO']['recon_coeff_num']])
+        self.diff_matrix = np.zeros([2 * self.SB_settings['act_ref_cent_num'], config['AO']['recon_coeff_num']]) 
         
         super().__init__()
 
@@ -122,7 +123,6 @@ class Conversion(QObject):
                     for j in range(config['AO']['recon_coeff_num']):
 
                         self.zern_matrix[i, j] = zern(elem_ref_cent_coord_x, elem_ref_cent_coord_y, j + 1)
-                        self.zern_matrix[i + self.SB_settings['act_ref_cent_num'], j] = zern(elem_ref_cent_coord_x, elem_ref_cent_coord_y, j + 1)
 
                         self.diff_matrix[i, j] = zern_diff(elem_ref_cent_coord_x, elem_ref_cent_coord_y, j + 1, True)
                         self.diff_matrix[i + self.SB_settings['act_ref_cent_num'], j] = zern_diff(elem_ref_cent_coord_x, elem_ref_cent_coord_y, j + 1, False)
