@@ -116,7 +116,8 @@ def get_mat_dset(settings, get_spots = 1):
 
     # Interpolate to suitable size
     data = np.array(data[-1,...]) * config['AO']['lambda'] / (2 * np.pi)
-    data_interp = sp.ndimage.zoom(data, 4).T
+    mag_fac = config['search_block']['pupil_diam'] / 7.216 * 4
+    data_interp = sp.ndimage.zoom(data, mag_fac).T
 
     # Pad image to same dimension as sensor size
     data_interp = np.pad(data_interp, ((settings['sensor_height'] - np.shape(data_interp)[0]) // 2,\
