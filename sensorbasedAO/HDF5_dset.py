@@ -1,7 +1,7 @@
 import h5py
 import numpy as np
 import scipy as sp
-from scipy import interpolate
+from scipy import ndimage
 from config import config
 
 def dset_append(group, name, data):
@@ -105,16 +105,63 @@ def get_dset(settings, name, flag = 0):
                 elif flag == 4 and k == 'real_calib_img':
                     make_dset(group, k, data_set_img)
 
-def get_mat_dset():
+def get_mat_dset(settings, get_spots = 1):
     """
-    Function to load .mat file image and interpolate to suitable size for analysis
+    Function to load .mat file image and interpolate to suitable size for analysis, includes option for whether to get S-H spots 
+    from phase data
     """
+    # Retrieve phase data from .mat file
     f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte.mat','r')
     data = f.get('WrappedPhase')
-    data = np.array(data[-1,...])
-    x, y = (np.arange(164) for i in range(2))
-    interp_func = sp.interpolate.RectBivariateSpline(x, y, data, kx = 3, ky = 3)
-    xx, yy = (np.arange(656) for i in range(2))
-    data_interp = interp_func(xx, yy)
 
-    return data_interp
+    # Interpolate to suitable size
+    data = np.array(data[-1,...]) * config['AO']['lambda'] / (2 * np.pi)
+    data_interp = sp.ndimage.zoom(data, 4).T
+
+    # Pad image to same dimension as sensor size
+    data_interp = np.pad(data_interp, ((settings['sensor_height'] - np.shape(data_interp)[0]) // 2,\
+        (settings['sensor_width'] - np.shape(data_interp)[1]) // 2), 'constant', constant_values = (0, 0))
+
+    # Get S-H spots from phase data if required
+    if get_spots:
+
+        # Initialise array to store S-H spot centroid position within each search block
+        x_slope, y_slope = (np.zeros(settings['act_ref_cent_num']) for i in range(2))
+
+        # Get S-H spot centroid position within each search block
+        for i in range(settings['act_ref_cent_num']):
+
+            # Get 2D coords of pixels in each search block that need to be summed
+            if settings['odd_pix']:
+                SB_pix_coord_x = np.arange(int(settings['act_ref_cent_coord_x'][i]) - settings['SB_rad'] + 1, \
+                    int(settings['act_ref_cent_coord_x'][i]) + settings['SB_rad'] - 1)
+                SB_pix_coord_y = np.arange(int(settings['act_ref_cent_coord_y'][i]) - settings['SB_rad'] + 1, \
+                    int(settings['act_ref_cent_coord_y'][i]) + settings['SB_rad'] - 1)
+            else:
+                SB_pix_coord_x = np.arange(int(settings['act_ref_cent_coord_x'][i]) - settings['SB_rad'] + 2, \
+                    int(settings['act_ref_cent_coord_x'][i]) + settings['SB_rad'] - 1)
+                SB_pix_coord_y = np.arange(int(settings['act_ref_cent_coord_y'][i]) - settings['SB_rad'] + 2, \
+                    int(settings['act_ref_cent_coord_y'][i]) + settings['SB_rad'] - 1)
+
+            # Initialise instance variables for calculating wavefront tilt within each search block
+            a_x, a_y = (np.zeros(len(SB_pix_coord_x)) for i in range(2))
+
+            # Get wavefront tilt of each row and column within each search block
+            for j in range(len(SB_pix_coord_x)):
+                a_x[j] = np.polyfit(SB_pix_coord_x, data_interp[int(round(SB_pix_coord_y[j])), int(round(SB_pix_coord_x[0])) : \
+                    int(round(SB_pix_coord_x[0])) + len(SB_pix_coord_x)], 1)[0] 
+                a_y[j] = np.polyfit(SB_pix_coord_y, data_interp[int(round(SB_pix_coord_y[0])) : int(round(SB_pix_coord_y[0])) + \
+                    len(SB_pix_coord_y), int(round(SB_pix_coord_x[j]))], 1)[0] 
+
+            # Calculate average wavefront tilt within each search block
+            a_x_ave = -np.mean(a_x) / settings['pixel_size']
+            a_y_ave = -np.mean(a_y) / settings['pixel_size']
+
+            # Calculate S-H spot centroid position along x and y axis
+            x_slope[i] = a_x_ave * config['lenslet']['lenslet_focal_length'] / settings['pixel_size']
+            y_slope[i] = a_y_ave * config['lenslet']['lenslet_focal_length'] / settings['pixel_size']
+
+    if get_spots:
+        return x_slope, y_slope
+    else:
+        return data_interp
