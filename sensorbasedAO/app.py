@@ -300,16 +300,13 @@ class App(QApplication):
         # Connect to signals
         if mode == 1:
             zern_AO_thread.started.connect(zern_AO_worker.run1)
-            zern_AO_worker.done.connect(self.handle_zern_AO_done(mode = 1))
         elif mode == 2:
-            zern_AO_thread.started.connect(zern_AO_worker.run2)
-            zern_AO_worker.done.connect(self.handle_zern_AO_done(mode = 2))
+            zern_AO_thread.started.connect(zern_AO_worker.run2)          
         elif mode == 3:
-            zern_AO_thread.started.connect(zern_AO_worker.run3)
-            zern_AO_worker.done.connect(self.handle_zern_AO_done(mode = 3))
+            zern_AO_thread.started.connect(zern_AO_worker.run3)            
         elif mode == 4:
-            zern_AO_thread.started.connect(zern_AO_worker.run4)
-            zern_AO_worker.done.connect(self.handle_zern_AO_done(mode = 4))
+            zern_AO_thread.started.connect(zern_AO_worker.run4)      
+        zern_AO_worker.done.connect(lambda mode: self.handle_zern_AO_done(mode))
         zern_AO_worker.image.connect(lambda obj: self.handle_image_disp(obj))   
         zern_AO_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         zern_AO_worker.info.connect(lambda obj: self.handle_AO_info(obj))
@@ -336,16 +333,13 @@ class App(QApplication):
         # Connect to signals
         if mode == 1:
             slopes_AO_thread.started.connect(slopes_AO_worker.run1)
-            slopes_AO_worker.done.connect(self.handle_slopes_AO_done(mode = 1))
         elif mode == 2:
             slopes_AO_thread.started.connect(slopes_AO_worker.run2)
-            slopes_AO_worker.done.connect(self.handle_slopes_AO_done(mode = 2))
         elif mode == 3:
             slopes_AO_thread.started.connect(slopes_AO_worker.run3)
-            slopes_AO_worker.done.connect(self.handle_slopes_AO_done(mode = 3))
         elif mode == 4:
             slopes_AO_thread.started.connect(slopes_AO_worker.run4)
-            slopes_AO_worker.done.connect(self.handle_slopes_AO_done(mode = 4))
+        slopes_AO_worker.done.connect(lambda mode: self.handle_slopes_AO_done(mode))
         slopes_AO_worker.image.connect(lambda obj: self.handle_image_disp(obj))   
         slopes_AO_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         slopes_AO_worker.info.connect(lambda obj: self.handle_AO_info(obj))
