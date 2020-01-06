@@ -25,7 +25,7 @@ class AO_Slopes(QObject):
     """
     start = Signal()
     write = Signal()
-    done = Signal()
+    done = Signal(object)
     error = Signal(object)
     image = Signal(object)
     message = Signal(object)
@@ -47,9 +47,6 @@ class AO_Slopes(QObject):
 
         # Get mirror instance
         self.mirror = mirror
-
-        # Initialise zernike coefficient array
-        self.zern_coeff = np.zeros([config['AO']['control_coeff_num'], 1])
         
         # Initialise array to record root mean square error after each iteration
         self.loop_rms = np.zeros(config['AO']['loop_max'])
@@ -159,7 +156,7 @@ class AO_Slopes(QObject):
                         print(e)
                 else:
 
-                    self.done.emit()
+                    self.done.emit(1)
 
             # Close HDF5 file
             data_file.close()
@@ -182,10 +179,10 @@ class AO_Slopes(QObject):
                 self.write.emit()
             else:
 
-                self.done.emit()
+                self.done.emit(1)
 
             # Finished closed-loop AO process
-            self.done.emit()
+            self.done.emit(1)
 
         except Exception as e:
             raise
@@ -317,7 +314,7 @@ class AO_Slopes(QObject):
                         print(e)
                 else:
 
-                    self.done.emit()
+                    self.done.emit(2)
 
             # Close HDF5 file
             data_file.close()
@@ -340,10 +337,10 @@ class AO_Slopes(QObject):
                 self.write.emit()
             else:
 
-                self.done.emit()
+                self.done.emit(2)
 
             # Finished closed-loop AO process
-            self.done.emit()
+            self.done.emit(2)
 
         except Exception as e:
             raise
@@ -469,7 +466,7 @@ class AO_Slopes(QObject):
                         print(e)
                 else:
 
-                    self.done.emit()
+                    self.done.emit(3)
 
             # Close HDF5 file
             data_file.close()
@@ -492,10 +489,10 @@ class AO_Slopes(QObject):
                 self.write.emit()
             else:
 
-                self.done.emit()
+                self.done.emit(3)
 
             # Finished closed-loop AO process
-            self.done.emit()
+            self.done.emit(3)
 
         except Exception as e:
             raise
@@ -644,7 +641,7 @@ class AO_Slopes(QObject):
                         print(e)
                 else:
 
-                    self.done.emit()
+                    self.done.emit(4)
 
             # Close HDF5 file
             data_file.close()
@@ -667,10 +664,10 @@ class AO_Slopes(QObject):
                 self.write.emit()
             else:
 
-                self.done.emit()
+                self.done.emit(4)
 
             # Finished closed-loop AO process
-            self.done.emit()
+            self.done.emit(4)
 
         except Exception as e:
             raise
