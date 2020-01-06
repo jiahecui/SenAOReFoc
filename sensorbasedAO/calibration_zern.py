@@ -36,7 +36,7 @@ class Calibration_Zern(QObject):
         self.mirror_info = {}
 
         # Initialise influence function matrix
-        self.inf_matrix_zern = np.zeros([config['AO']['recon_coeff_num'], config['DM']['actuator_num']])
+        self.inf_matrix_zern = np.zeros([config['AO']['control_coeff_num'], config['DM']['actuator_num']])
         
         super().__init__()
 
@@ -71,7 +71,8 @@ class Calibration_Zern(QObject):
                 for i in range(config['DM']['actuator_num']):
 
                     self.inf_matrix_zern[:, i] = \
-                        np.dot(self.conv_matrix, (self.slope[:, 2 * i] - self.slope[:, 2 * i + 1])) / (config['DM']['vol_max'] - config['DM']['vol_min'])
+                        np.dot(self.conv_matrix, (self.slope[:, 2 * i] - self.slope[:, 2 * i + 1]))[:config['AO']['control_coeff_num']] \
+                            / (config['DM']['vol_max'] - config['DM']['vol_min'])
             
                 # Get singular value decomposition of influence function matrix
                 u, s, vh = np.linalg.svd(self.inf_matrix_zern, full_matrices = False)
@@ -80,7 +81,12 @@ class Calibration_Zern(QObject):
                 # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
                 
                 # Calculate pseudo inverse of influence function matrix to get final control matrix
-                self.control_matrix_zern = np.linalg.pinv(self.inf_matrix_zern, rcond = 1e-6)
+                self.control_matrix_zern = np.linalg.pinv(self.inf_matrix_zern)
+
+                # u1, s1, vh1 = np.linalg.svd(self.control_matrix_zern, full_matrices = False)
+                # print('u1: {}, s1: {}, vh1: {}'.format(u1, s1, vh1))
+
+                svd_check_zern = np.dot(self.inf_matrix_zern, self.control_matrix_zern)
 
                 self.message.emit('Zernike control matrix retrieved.')
                 # print('Control matrix is:', self.control_matrix_zern)
@@ -97,6 +103,7 @@ class Calibration_Zern(QObject):
                 self.mirror_info['inf_matrix_zern_SV'] = s
                 self.mirror_info['inf_matrix_zern'] = self.inf_matrix_zern
                 self.mirror_info['control_matrix_zern'] = self.control_matrix_zern
+                self.mirror_info['svd_check_zern'] = svd_check_zern
 
                 self.info.emit(self.mirror_info)
                 self.write.emit()

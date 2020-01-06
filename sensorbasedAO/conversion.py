@@ -133,8 +133,13 @@ class Conversion(QObject):
                 # print('u: {}, s: {}, vh: {}'.format(u, s, vh))
                 # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
                 
-                # Calculate pseudo inverse of zernike derivative matrix to get final conversion matrix
-                self.conv_matrix = np.linalg.pinv(self.diff_matrix, rcond = 1e-6)
+                # Calculate pseudo inverse of zernike derivative matrix to get conversion matrix
+                self.conv_matrix = np.linalg.pinv(self.diff_matrix)
+
+                svd_check_conv = np.dot(self.conv_matrix, self.diff_matrix)
+
+                # Modify unit of conversion matrix from None to um / pixel in order to convert from pixels -> um during slope - zernike conversion
+                self.conv_matrix = self.conv_matrix * self.SB_settings['pixel_size']
 
                 self.message.emit('Zernike matrix and slope - zernike conversion matrix retrieved.')
                 # print('Conversion matrix is:', self.conv_matrix)
@@ -154,6 +159,7 @@ class Conversion(QObject):
                 self.conv_info['zern_matrix'] = self.zern_matrix
                 self.conv_info['diff_matrix'] = self.diff_matrix
                 self.conv_info['conv_matrix'] = self.conv_matrix
+                self.conv_info['svd_check_conv'] = svd_check_conv
 
                 self.info.emit(self.conv_info)
                 self.write.emit()

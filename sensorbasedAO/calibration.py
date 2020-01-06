@@ -16,6 +16,7 @@ from HDF5_dset import dset_append, get_dset
 from image_acquisition import acq_image
 from centroid_acquisition import acq_centroid
 from spot_sim import SpotSim
+from gaussian_inf import inf_diff
 
 logger = log.get_logger(__name__)
 
@@ -49,45 +50,6 @@ class Calibration(QObject):
         self.inf_matrix_slopes = np.zeros([2 * self.SB_settings['act_ref_cent_num'], config['DM']['actuator_num']])
         
         super().__init__()
-
-    def inf_diff(self, xx, yy, xc, yc, j, x_flag = True):
-        """
-        Generates the slopes of modeled Gaussian distribution influence function for simulation of DM control matrix
-        
-        Args:
-            xx - x value array
-            yy - y value array
-            j - actuator index, starts from 0
-            x_flag - flag for differentiating relative to x or y
-        """
-        # Initialise instance variables
-        count = 0
-        diff_sum = 0
-
-        # Calculate averaged derivative of the jth actuator influence function
-        for y in yy:
-            for x in xx:
-
-                count += 1
-
-                # Calculate exponential factor
-                expo = np.exp(np.log(config['DM']['coupling_fac']) * ((x - xc[j]) ** 2 + (y - yc[j]) ** 2) / self.act_diam ** 2)
-
-                # Calculate x or y derivative of Gaussian distribution influence function and get final result
-                if x_flag:
-                    dFn_dx = 2 * np.log(config['DM']['coupling_fac']) / self.act_diam ** 2 * (x - xc[j])
-                    dFn = dFn_dx * expo
-                else:
-                    dFn_dy = 2 * np.log(config['DM']['coupling_fac']) / self.act_diam ** 2 * (y - yc[j])
-                    dFn = dFn_dy * expo
-
-                # Sum derivative for each element in search block
-                diff_sum += dFn
-        
-        # Divide sum of derivative by total number of counts:
-        dFn_ave = diff_sum / count
-
-        return dFn_ave
 
     def act_coord(self, act_diam):
         """
@@ -142,10 +104,10 @@ class Calibration(QObject):
                 Get DM control matrix via slopes by modeling influence function of each actuator as a Gaussian function
                 """
                 # Get DM parameters
-                self.act_diam = config['search_block']['pupil_diam'] / config['DM']['aperture'] * config['DM']['pitch'] / self.SB_settings['pixel_size']
+                act_diam = config['search_block']['pupil_diam'] / config['DM']['aperture'] * config['DM']['pitch'] / self.SB_settings['pixel_size']
 
                 # Get actuator coordinates
-                xc, yc = self.act_coord(self.act_diam)
+                xc, yc = self.act_coord(act_diam)
 
                 # Get size of individual elements within each search block
                 self.elem_size = self.SB_settings['SB_diam'] / config['search_block']['div_elem']
@@ -176,43 +138,44 @@ class Calibration(QObject):
 
                         # Get averaged derivatives of the modeled Gaussian influence function
                         for j in range(config['DM']['actuator_num']):
-
-                            self.inf_matrix_slopes[i, j] = self.inf_diff(elem_ref_cent_coord_x, elem_ref_cent_coord_y, xc, yc, j, True)
+                           
+                            self.inf_matrix_slopes[i, j] = inf_diff(elem_ref_cent_coord_x, elem_ref_cent_coord_y, xc, yc, j, act_diam, True)
                             self.inf_matrix_slopes[i + self.SB_settings['act_ref_cent_num'], j] = \
-                                self.inf_diff(elem_ref_cent_coord_x, elem_ref_cent_coord_y, xc, yc, j, False)
-
+                                inf_diff(elem_ref_cent_coord_x, elem_ref_cent_coord_y, xc, yc, j, act_diam, False)
+                           
                     # Take pixel size and lenslet focal length into account
                     self.inf_matrix_slopes = self.inf_matrix_slopes / self.SB_settings['pixel_size'] * config['lenslet']['lenslet_focal_length']\
-                        / self.SB_settings['pixel_size']
+                        / self.SB_settings['pixel_size'] * config['DM']['comp_fact']
 
                     # print('Influence function is:', self.inf_matrix_slopes)
 
                     # Calculate singular value decomposition of influence function matrix
                     u, s, vh = np.linalg.svd(self.inf_matrix_slopes, full_matrices = False)
 
-                    print('u: {}, s: {}, vh: {}'.format(u, s, vh))
+                    # print('u: {}, s: {}, vh: {}'.format(u, s, vh))
                     # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
 
                     # Calculate pseudo inverse of influence function matrix to get final control matrix
                     self.control_matrix_slopes = np.linalg.pinv(self.inf_matrix_slopes)
 
+                    svd_check_slopes = np.dot(self.control_matrix_slopes, self.inf_matrix_slopes)
+
                     # Get corresponding slope values generated with a unit voltage and calculated influence function matrix
                     voltages = np.zeros(config['DM']['actuator_num'])
                     self.slope_x, self.slope_y = (np.zeros([2 * config['DM']['actuator_num'], self.SB_settings['act_ref_cent_num']]) for i in range(2))
-                    try:
-                        for i in range(config['DM']['actuator_num']):
 
-                            voltages_temp = voltages.copy()
+                    for i in range(config['DM']['actuator_num']):
 
-                            voltages_temp[i] = config['DM']['vol_max']
-                            self.slope_x[2 * i, :] = np.dot(self.inf_matrix_slopes, voltages_temp)[:self.SB_settings['act_ref_cent_num']]
-                            self.slope_y[2 * i, :] = np.dot(self.inf_matrix_slopes, voltages_temp)[self.SB_settings['act_ref_cent_num']:]
+                        voltages_temp = voltages.copy()
 
-                            voltages_temp[i] = config['DM']['vol_min']
-                            self.slope_x[2 * i + 1, :] = np.dot(self.inf_matrix_slopes, voltages_temp)[:self.SB_settings['act_ref_cent_num']]
-                            self.slope_y[2 * i + 1, :] = np.dot(self.inf_matrix_slopes, voltages_temp)[self.SB_settings['act_ref_cent_num']:]
-                    except Exception as e:
-                        print(e)
+                        voltages_temp[i] = config['DM']['vol_max']
+                        self.slope_x[2 * i, :] = np.dot(self.inf_matrix_slopes, voltages_temp)[:self.SB_settings['act_ref_cent_num']]
+                        self.slope_y[2 * i, :] = np.dot(self.inf_matrix_slopes, voltages_temp)[self.SB_settings['act_ref_cent_num']:]
+
+                        voltages_temp[i] = config['DM']['vol_min']
+                        self.slope_x[2 * i + 1, :] = np.dot(self.inf_matrix_slopes, voltages_temp)[:self.SB_settings['act_ref_cent_num']]
+                        self.slope_y[2 * i + 1, :] = np.dot(self.inf_matrix_slopes, voltages_temp)[self.SB_settings['act_ref_cent_num']:]
+
                     self.message.emit('DM calibration process finished.')
                     # print('Control matrix is:', self.control_matrix_slopes)
                     # print('Shape of control matrix is:', np.shape(self.control_matrix_slopes))
@@ -349,6 +312,8 @@ class Calibration(QObject):
                     # Calculate pseudo inverse of influence function matrix to get final control matrix
                     self.control_matrix_slopes = np.linalg.pinv(self.inf_matrix_slopes)
 
+                    svd_check_slopes = np.dot(self.control_matrix_slopes, self.inf_matrix_slopes)
+
                     self.message.emit('DM calibration process finished.')
                     # print('Control matrix is:', self.control_matrix_slopes)
                     # print('Shape of control matrix is:', np.shape(self.control_matrix_slopes))
@@ -369,6 +334,12 @@ class Calibration(QObject):
                 self.mirror_info['control_matrix_slopes'] = self.control_matrix_slopes
                 self.mirror_info['calib_slope_x'] = self.slope_x
                 self.mirror_info['calib_slope_y'] = self.slope_y
+                self.mirror_info['svd_check_slopes'] = svd_check_slopes
+                
+                if config['real_phase']:
+                    self.mirror_info['act_pos_x'] = xc
+                    self.mirror_info['act_pos_y'] = yc
+                    self.mirror_info['act_diam'] = act_diam
 
                 self.info.emit(self.mirror_info)
                 self.write.emit()
