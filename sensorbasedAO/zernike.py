@@ -16,7 +16,8 @@ def zern(xx, yy, j):
 
     # Convert single index to double index form for both radial order and angular frequency
     n = int(np.ceil((-3 + np.sqrt(9 + 8 * j)) / 2))
-    m = int(abs(2 * j - n * (n + 2)))
+    m = 2 * j - n * (n + 2)
+    mabs = abs(m)
 
     # Calculate values of the jth Zernike polynomial
     for y in yy:
@@ -33,11 +34,10 @@ def zern(xx, yy, j):
                 theta   = math.atan2(y, x)
 
                 # Calculate the radial dependent component and derivative
-                Rnm = np.zeros(np.size(rho))
+                Rnm = 0
+                for s in range((n - mabs) // 2 + 1):
 
-                for s in range((n - m) // 2):
-
-                    constant = ((-1) ** s * math.factorial(n - s)) / (math.factorial(s) * math.factorial((n + m) / 2 - s) * math.factorial((n - m) / 2 - s))
+                    constant = ((-1) ** s * math.factorial(n - s)) / (math.factorial(s) * math.factorial((n + mabs) / 2 - s) * math.factorial((n - mabs) / 2 - s))
                     Rnm      = Rnm + constant * rho ** (n - 2 * s)
 
                 # Calculate normalisation constant
@@ -79,7 +79,8 @@ def zern_diff(xx, yy, j, x_flag = True):
 
     # Convert single index to double index form for both radial order and angular frequency
     n = int(np.ceil((-3 + np.sqrt(9 + 8 * j)) / 2))
-    m = int(abs(2 * j - n * (n + 2)))
+    m = 2 * j - n * (n + 2)
+    mabs = abs(m)
 
     # Calculate averaged derivative of the jth Zernike polynomial
     for y in yy:
@@ -104,12 +105,12 @@ def zern_diff(xx, yy, j, x_flag = True):
                     dtheta_dx   = x / rho ** 2
 
                 # Calculate the radial dependent component and derivative
-                Rnm         = np.zeros(np.size(rho))
-                dRnm_drho   = np.zeros(np.size(rho))
+                Rnm         = 0
+                dRnm_drho   = 0
                 
-                for s in range((n - m) // 2):
+                for s in range((n - mabs) // 2 + 1):
 
-                    constant    = ((-1) ** s * math.factorial(n - s)) / (math.factorial(s) * math.factorial((n + m) / 2 - s) * math.factorial((n - m) / 2 - s))
+                    constant    = ((-1) ** s * math.factorial(n - s)) / (math.factorial(s) * math.factorial((n + mabs) / 2 - s) * math.factorial((n - mabs) / 2 - s))
                     Rnm         = Rnm + constant * rho ** (n - 2 * s)
                     dRnm_drho   = dRnm_drho + constant * (n - 2 * s) * rho ** (n - 2 * s - 1)
 
