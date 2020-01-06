@@ -52,7 +52,7 @@ class AO_Zernikes_Test(QObject):
         self.AO_info = {'zern_test': {}}
 
         # Initialise zernike coefficient array
-        self.zern_coeff = np.zeros([config['AO']['control_coeff_num'], 1])
+        self.zern_coeff = np.zeros([config['AO']['recon_coeff_num'], 1])
         
         super().__init__()
 
