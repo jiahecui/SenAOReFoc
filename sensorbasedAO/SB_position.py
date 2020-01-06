@@ -86,11 +86,12 @@ class Positioning(QObject):
                 # Acquire image
                 if config['dummy']:
                     if config['real_phase']:
-                        # self._image = get_mat_dset(self.SB_settings, get_spots = 0)
-                        x_slope, y_slope = get_mat_dset(self.SB_settings, get_spots = 1)
+                        # Retrieve slope data and S-H spot image from real phase data
+                        slope_x, slope_y = get_mat_dset(self.SB_settings, flag = 2)
                         spot_img = SpotSim(self.SB_settings)
-                        self._image, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = x_slope, yc = y_slope)
+                        self._image, self.spot_cent_x, self.spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = slope_x, yc = slope_y)
                     else:
+                        # Retrieve simulated Gaussian profile spots
                         spot_img = SpotSim(self.SB_settings)
                         self._image, self.spot_cent_x, self.spot_cent_y = spot_img.SH_spot_sim(centred = 0)
                 else:

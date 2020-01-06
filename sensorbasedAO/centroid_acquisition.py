@@ -187,7 +187,7 @@ def acq_centroid(settings, flag = 0):
                         xx, yy = (np.zeros([len(SB_pix_coord_y), len(SB_pix_coord_x)]) for i in range(2))
                     else:
                         xx, yy = np.meshgrid(np.arange(int(round(SB_pix_coord_x[0])), int(round(SB_pix_coord_x[0])) + len(SB_pix_coord_x)), \
-                    np.arange(int(round(SB_pix_coord_y[0])), int(round(SB_pix_coord_y[0])) + len(SB_pix_coord_y)))
+                            np.arange(int(round(SB_pix_coord_y[0])), int(round(SB_pix_coord_y[0])) + len(SB_pix_coord_y)))
                 else:
                     xx, yy = np.meshgrid(np.arange(int(round(SB_pix_coord_x[0])), int(round(SB_pix_coord_x[0])) + len(SB_pix_coord_x)), \
                     np.arange(int(round(SB_pix_coord_y[0])), int(round(SB_pix_coord_y[0])) + len(SB_pix_coord_y)))
