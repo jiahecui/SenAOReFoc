@@ -101,7 +101,7 @@ class AO_Zernikes(QObject):
             delta_phase += inf(coord_xx, coord_yy, self.mirror_settings['act_pos_x'], self.mirror_settings['act_pos_y'],\
                 i, self.mirror_settings['act_diam']) * voltages[i]
 
-        delta_phase = delta_phase * pupil_mask
+        delta_phase = delta_phase * pupil_mask * 2
 
         print('Max and min values in delta_phase are: {} um, {} um'.format(np.amax(delta_phase), np.amin(delta_phase)))
 
@@ -171,7 +171,7 @@ class AO_Zernikes(QObject):
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
                                 zern_err[:config['AO']['control_coeff_num']]))
 
-                            print('Voltages {}: {}'.format(i, voltages))
+                            # print('Voltages {}: {}'.format(i, voltages))
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
                         if config['dummy']:
