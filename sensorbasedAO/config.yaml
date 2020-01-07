@@ -37,7 +37,6 @@ DM:
   vol_bias: 0
   vol_step: 1
   settling_time: 0.05
-  comp_fact: 3
 
 relay:
   mirror_odd: 0  # Flag for whether there is an odd number of mirrors in between DM and lenslet
@@ -50,7 +49,7 @@ lenslet:
 search_block:
   div_elem: 5  # Number of elements in each dimension of a search block
   outline_int: 255  # uint8
-  pupil_diam: 8.4  # mm 7.216
+  pupil_diam: 7.216  # mm 7.216 8.4
 
 image:
   noise: 0
@@ -62,10 +61,10 @@ image:
   rescale: 1  # 0-rescale off, 1-rescale on
 
 AO:
-  recon_coeff_num: 37
+  recon_coeff_num: 60
   control_coeff_num: 37
-  loop_gain: 0.3  # Fixed loop gain for closed-loop control
-  loop_max: 100  # Maximum number of loops for closed-loop control
+  loop_gain: 0.1  # Fixed loop gain for closed-loop control
+  loop_max: 50  # Maximum number of loops for closed-loop control
   lambda: 0.83  # um
   tolerance_fact_zern: 0.06  # RMS error tolerance factor via zernikes, = lambda / 14 um
   tolerance_fact_slopes: 0.001
