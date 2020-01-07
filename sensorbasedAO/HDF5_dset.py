@@ -126,8 +126,8 @@ def get_mat_dset(settings, flag = 1):
     data_interp = sp.ndimage.zoom(data, mag_fac).T
 
     # Pad image to same dimension as sensor size
-    data_pad = np.pad(data_interp, ((settings['sensor_height'] - np.shape(data_interp)[0]) // 2,\
-        (settings['sensor_width'] - np.shape(data_interp)[1]) // 2), 'constant', constant_values = (0, 0))
+    data_pad = np.pad(data_interp, (int(round((settings['sensor_height'] - np.shape(data_interp)[0]) / 2)),\
+        int(round((settings['sensor_width'] - np.shape(data_interp)[1]) / 2))), 'constant', constant_values = (0, 0))
 
     if flag == 0:
         return data_interp
