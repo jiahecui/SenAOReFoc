@@ -1,4 +1,5 @@
 import h5py
+import math
 import numpy as np
 import scipy as sp
 from scipy import ndimage
@@ -62,7 +63,7 @@ def get_dset(settings, name, flag = 0):
                     del subgroup_2[k]
                 if k == 'dummy_AO_img':
                     make_dset(subgroup_1, k, data_set_img)
-                elif flag == 0 and k in {'dummy_spot_cent_x', 'dummy_spot_cent_y'}:
+                elif flag in [0, 1, 2] and k in {'dummy_spot_cent_x', 'dummy_spot_cent_y'}:
                     make_dset(subgroup_1, k, data_set_cent)
                 elif flag == 2 and k in {'dummy_spot_slope_err'}:
                     make_dset(subgroup_2, k, data_set_slope)
@@ -121,13 +122,13 @@ def get_mat_dset(settings, flag = 1):
     data = f.get('WrappedPhase')
 
     # Interpolate to suitable size
-    data = np.array(data[-1,...]) * config['AO']['lambda'] / (2 * np.pi)
+    data = np.array(data[-4,...]) * config['AO']['lambda'] / (2 * np.pi)  # -4
     mag_fac = config['search_block']['pupil_diam'] / 7.216 * 4
     data_interp = sp.ndimage.zoom(data, mag_fac).T
 
     # Pad image to same dimension as sensor size
-    data_pad = np.pad(data_interp, (int(round((settings['sensor_height'] - np.shape(data_interp)[0]) / 2)),\
-        int(round((settings['sensor_width'] - np.shape(data_interp)[1]) / 2))), 'constant', constant_values = (0, 0))
+    data_pad = np.pad(data_interp, (math.ceil((settings['sensor_height'] - np.shape(data_interp)[0]) / 2),\
+        math.ceil((settings['sensor_width'] - np.shape(data_interp)[1]) / 2)), 'constant', constant_values = (0, 0))
 
     if flag == 0:
         return data_interp

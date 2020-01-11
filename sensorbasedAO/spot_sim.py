@@ -1,6 +1,7 @@
 import numpy as np
 import PIL.Image
 import random
+import math
 
 from config import config
 
@@ -21,14 +22,17 @@ class SpotSim():
             # Use actual search block reference centroid coords centre position for tiling of individual S-H spots
             offset_coord = self.settings['act_ref_cent_coord'] - int(self.settings['SB_rad']) * \
                 self.settings['sensor_width'] - int(self.settings['SB_rad'])
-            offset_coord_x = self.settings['act_ref_cent_coord_x'] - self.settings['SB_rad']
-            offset_coord_y = self.settings['act_ref_cent_coord_y'] - self.settings['SB_rad']
+            offset_coord_x = self.settings['act_ref_cent_coord_x'].astype(int) + 1 - self.settings['SB_rad']
+            offset_coord_y = self.settings['act_ref_cent_coord_y'].astype(int) + 1 - self.settings['SB_rad']
+            
+            # print('offset_coord_x:', offset_coord_x)
+            # print('offset_coord_y:', offset_coord_y)
         else:
             # Use actual search block reference centroid coords as upper left corner position for tiling of individual S-H spots
             offset_coord = self.settings['act_ref_cent_coord']
-            offset_coord_x = self.settings['act_ref_cent_coord_x']
-            offset_coord_y = self.settings['act_ref_cent_coord_y']
-    
+            offset_coord_x = self.settings['act_ref_cent_coord_x'].astype(int) + 1
+            offset_coord_y = self.settings['act_ref_cent_coord_y'].astype(int) + 1
+        
         # Initialise spot image array and S-H spot centre coords array
         self.SH_spot_img = np.zeros([self.settings['sensor_width'], self.settings['sensor_height']])
         self.spot_cent, self.spot_cent_x, self.spot_cent_y = (np.zeros(len(offset_coord)) for i in range(3))
@@ -43,23 +47,22 @@ class SpotSim():
             xc, yc = (np.random.randint(-10, 10, self.settings['act_ref_cent_num']) for i in range(2))
 
         # print('xc: {}, yc: {}'.format(xc, yc))
-
         # Generate individual Gaussian profile S-H spots and integrate them to pre-initialised spot image array
         for i in range(len(offset_coord)):
 
             # Generate a Gaussian profile S-H spot
             Gaus_spot = self.dirac_function(x, y, xc[i], yc[i], sigma, array_size)
-
-            # Calculate centre of S-H spot
-            self.spot_cent_x[i] = int(offset_coord_x[i]) + int(self.settings['SB_rad']) + xc[i]
-            self.spot_cent_y[i] = int(offset_coord_y[i]) + int(self.settings['SB_rad']) + yc[i]
-            self.spot_cent[i] = int(self.spot_cent_y[i]) * self.settings['sensor_width'] + int(self.spot_cent_x[i])
+            
+            # Calculate centre of S-H spot     
+            self.spot_cent_x[i] = offset_coord_x[i] + self.settings['SB_rad'] + xc[i]
+            self.spot_cent_y[i] = offset_coord_y[i] + self.settings['SB_rad'] + yc[i]                
+            self.spot_cent[i] = math.ceil(self.spot_cent_y[i]) * self.settings['sensor_width'] + math.ceil(self.spot_cent_x[i])
 
             # Integrate it to pre-initialised spot image array
             A_start = [0, 0]
-            B_start = [int(offset_coord_y[i]), int(offset_coord_x[i])]
-            B_end = [int(offset_coord_y[i] + array_size), int(offset_coord_x[i] + array_size)]
-           
+            B_start = [math.ceil(offset_coord_y[i]), math.ceil(offset_coord_x[i])]
+            B_end = [math.ceil(offset_coord_y[i] + array_size), math.ceil(offset_coord_x[i] + array_size)]
+        
             self.SH_spot_img = self.array_integrate(Gaus_spot, self.SH_spot_img, A_start, B_start, B_end)
 
         # Add noise to S-H spot image

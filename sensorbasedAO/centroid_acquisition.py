@@ -4,6 +4,7 @@ import argparse
 import time
 import h5py
 import numpy as np
+import math
 
 import log
 from config import config
@@ -101,15 +102,15 @@ def acq_centroid(settings, flag = 0):
                 if n == 0:
                     # Get 2D coords of pixels in each search block that need to be summed
                     if settings['odd_pix']:
-                        SB_pix_coord_x = np.arange(int(act_ref_cent_coord_x[i]) - SB_rad + 1, \
-                            int(act_ref_cent_coord_x[i]) + SB_rad - 1)
-                        SB_pix_coord_y = np.arange(int(act_ref_cent_coord_y[i]) - SB_rad + 1, \
-                            int(act_ref_cent_coord_y[i]) + SB_rad - 1)
+                        SB_pix_coord_x = np.arange(math.ceil(math.ceil(act_ref_cent_coord_x[i]) - SB_rad) + 1, \
+                            (math.ceil(math.ceil(act_ref_cent_coord_x[i]) - SB_rad) + 1) + settings['SB_diam'] - 2)
+                        SB_pix_coord_y = np.arange(math.ceil(math.ceil(act_ref_cent_coord_y[i]) - SB_rad) + 1, \
+                            (math.ceil(math.ceil(act_ref_cent_coord_y[i]) - SB_rad) + 1) + settings['SB_diam'] - 2)
                     else:
-                        SB_pix_coord_x = np.arange(int(act_ref_cent_coord_x[i]) - SB_rad + 2, \
-                            int(act_ref_cent_coord_x[i]) + SB_rad - 1)
-                        SB_pix_coord_y = np.arange(int(act_ref_cent_coord_y[i]) - SB_rad + 2, \
-                            int(act_ref_cent_coord_y[i]) + SB_rad - 1)
+                        SB_pix_coord_x = np.arange(math.ceil(math.ceil(act_ref_cent_coord_x[i]) - SB_rad) + 2, \
+                            (math.ceil(math.ceil(act_ref_cent_coord_x[i]) - SB_rad) + 2) + settings['SB_diam'] - 3)
+                        SB_pix_coord_y = np.arange(math.ceil(math.ceil(act_ref_cent_coord_y[i]) - SB_rad) + 2, \
+                            (math.ceil(math.ceil(act_ref_cent_coord_y[i]) - SB_rad) + 2) + settings['SB_diam'] - 3)
                 else:
                     """
                     Two methods for setting the dynamic range
@@ -142,31 +143,31 @@ def acq_centroid(settings, flag = 0):
                             5 cycles of dynamic range.                                 
                     """
                     # Method 1: Judge the position of S-H spot centroid relative to centre of search block and decrease dynamic range
-                    # if act_cent_coord_x[i] > act_ref_cent_coord_x[i]:
-                    #     SB_pix_coord_x = SB_pix_coord_x[1:]
-                    # elif act_cent_coord_x[i] < act_ref_cent_coord_x[i]:
-                    #     SB_pix_coord_x = SB_pix_coord_x[:-1]
-                    # else:
-                    #     SB_pix_coord_x = SB_pix_coord_x[1:-1]
+                    if act_cent_coord_x[i] > act_ref_cent_coord_x[i]:
+                        SB_pix_coord_x = SB_pix_coord_x[1:]
+                    elif act_cent_coord_x[i] < act_ref_cent_coord_x[i]:
+                        SB_pix_coord_x = SB_pix_coord_x[:-1]
+                    else:
+                        SB_pix_coord_x = SB_pix_coord_x[1:-1]
 
-                    # if act_cent_coord_y[i] > act_ref_cent_coord_y[i]:
-                    #     SB_pix_coord_y = SB_pix_coord_y[1:]
-                    # elif act_cent_coord_y[i] < act_ref_cent_coord_y[i]:
-                    #     SB_pix_coord_y = SB_pix_coord_y[:-1]
-                    # else:
-                    #     SB_pix_coord_y = SB_pix_coord_y[1:-1]
+                    if act_cent_coord_y[i] > act_ref_cent_coord_y[i]:
+                        SB_pix_coord_y = SB_pix_coord_y[1:]
+                    elif act_cent_coord_y[i] < act_ref_cent_coord_y[i]:
+                        SB_pix_coord_y = SB_pix_coord_y[:-1]
+                    else:
+                        SB_pix_coord_y = SB_pix_coord_y[1:-1]
 
                     # Method 2: Centre new search area on centroid calculated during previous cycle while shrinking search area at the same time
-                    if settings['odd_pix']:
-                        SB_pix_coord_x = np.arange(int(act_cent_coord_x[i]) - SB_rad + 1 + n, \
-                            int(act_cent_coord_x[i]) + SB_rad - 1 - n)
-                        SB_pix_coord_y = np.arange(int(act_cent_coord_y[i]) - SB_rad + 1 + n, \
-                            int(act_cent_coord_y[i]) + SB_rad - 1 - n)
-                    else:
-                        SB_pix_coord_x = np.arange(int(act_cent_coord_x[i]) - SB_rad + 2 + n, \
-                            int(act_cent_coord_x[i]) + SB_rad - 1 - n)
-                        SB_pix_coord_y = np.arange(int(act_cent_coord_y[i]) - SB_rad + 2 + n, \
-                            int(act_cent_coord_y[i]) + SB_rad - 1 - n)
+                    # if settings['odd_pix']:
+                    #     SB_pix_coord_x = np.arange(math.ceil(math.ceil(act_cent_coord_x[i]) - SB_rad) + 1 + n, \
+                    #         math.ceil(math.ceil(act_cent_coord_x[i]) - SB_rad) + settings['SB_diam'] - 2 - 2 * n)
+                    #     SB_pix_coord_y = np.arange(math.ceil(math.ceil(act_cent_coord_y[i]) - SB_rad) + 1 + n, \
+                    #         math.ceil(math.ceil(act_cent_coord_y[i]) - SB_rad) + settings['SB_diam'] - 2 - 2 * n)
+                    # else:
+                    #     SB_pix_coord_x = np.arange(math.ceil(math.ceil(act_cent_coord_x[i]) - SB_rad) + 2 + n, \
+                    #         math.ceil(math.ceil(act_cent_coord_x[i]) - SB_rad) + settings['SB_diam'] - 2 - 2 * n)
+                    #     SB_pix_coord_y = np.arange(math.ceil(math.ceil(act_cent_coord_y[i]) - SB_rad) + 1 + n, \
+                    #         math.ceil(math.ceil(act_cent_coord_y[i]) - SB_rad) + settings['SB_diam'] - 2 - 2 * n)
 
                 # if i == 0:
                 #     print('SB_pixel_coord_x_{}_{}: {}'.format(i, n, SB_pix_coord_x))
@@ -177,21 +178,24 @@ def acq_centroid(settings, flag = 0):
                 """
                 Calculate actual S-H spot centroids by using centre of gravity (CoG) method
                 """
-                # Crop image within each search area
-                image_crop = image_temp[int(round(SB_pix_coord_y[0])) : int(round(SB_pix_coord_y[0])) + len(SB_pix_coord_y), \
-                    int(round(SB_pix_coord_x[0])) : int(round(SB_pix_coord_x[0])) + len(SB_pix_coord_x)]
+                try:
+                    # Crop image within each search area
+                    image_crop = image_temp[SB_pix_coord_y[0] : SB_pix_coord_y[0] + len(SB_pix_coord_y), \
+                        SB_pix_coord_x[0] : SB_pix_coord_x[0] + len(SB_pix_coord_x)]
 
-                # If subaperture removal function is to be incorporated, assert search block coordinate array to be all 0 when obscured
-                if flag in [5, 6, 9, 10]:
-                    if np.amax(image_temp) - np.amin(image_temp) < 25:
-                        xx, yy = (np.zeros([len(SB_pix_coord_y), len(SB_pix_coord_x)]) for i in range(2))
+                    # If subaperture removal function is to be incorporated, assert search block coordinate array to be all 0 when obscured
+                    if flag in [5, 6, 9, 10]:
+                        if np.amax(image_crop) - np.amin(image_crop) < 25:
+                            xx, yy = (np.zeros([len(SB_pix_coord_y), len(SB_pix_coord_x)]) for i in range(2))
+                        else:
+                            xx, yy = np.meshgrid(np.arange(SB_pix_coord_x[0], SB_pix_coord_x[0] + len(SB_pix_coord_x)), \
+                                np.arange(SB_pix_coord_y[0], SB_pix_coord_y[0] + len(SB_pix_coord_y)))
                     else:
-                        xx, yy = np.meshgrid(np.arange(int(round(SB_pix_coord_x[0])), int(round(SB_pix_coord_x[0])) + len(SB_pix_coord_x)), \
-                            np.arange(int(round(SB_pix_coord_y[0])), int(round(SB_pix_coord_y[0])) + len(SB_pix_coord_y)))
-                else:
-                    xx, yy = np.meshgrid(np.arange(int(round(SB_pix_coord_x[0])), int(round(SB_pix_coord_x[0])) + len(SB_pix_coord_x)), \
-                    np.arange(int(round(SB_pix_coord_y[0])), int(round(SB_pix_coord_y[0])) + len(SB_pix_coord_y)))
-                
+                        xx, yy = np.meshgrid(np.arange(SB_pix_coord_x[0], SB_pix_coord_x[0] + len(SB_pix_coord_x)), \
+                            np.arange(SB_pix_coord_y[0], SB_pix_coord_y[0] + len(SB_pix_coord_y)))
+                except Exception as e:
+                    print(e)
+
                 # Calculate weighted sum
                 sum_x = (xx * image_crop).sum()
                 sum_y = (yy * image_crop).sum()
@@ -200,17 +204,17 @@ def acq_centroid(settings, flag = 0):
                 # Get actual centroid coordinates
                 act_cent_coord_x[i] = sum_x / sum_pix
                 act_cent_coord_y[i] = sum_y / sum_pix
-                act_cent_coord[i] = int(round(act_cent_coord_y[i])) * settings['sensor_width'] + int(round(act_cent_coord_x[i]))
+                act_cent_coord[i] = math.ceil(act_cent_coord_y[i]) * settings['sensor_width'] + math.ceil(act_cent_coord_x[i])
 
         if config['dummy']:
 
             # Calculate average centroid error 
             error_temp = 0
 
-            if flag == 0 or flag == 1:
+            if flag in [0, 1]:
                 error_x = act_cent_coord_x - subgroup_options[flag][axis_options[0]][l, :]
                 error_y = act_cent_coord_y - subgroup_options[flag][axis_options[1]][l, :]
-            elif flag == 2:
+            else:
                 error_x = act_cent_coord_x - subgroup_options[flag][axis_options[0]][-1, ... ]
                 error_y = act_cent_coord_y - subgroup_options[flag][axis_options[1]][-1, ... ]
 
@@ -219,8 +223,8 @@ def acq_centroid(settings, flag = 0):
             error_tot = error_temp / len(error_x)
 
         # Calculate raw slopes in each dimension
-        slope_x = act_cent_coord_x - act_ref_cent_coord_x
-        slope_y = act_cent_coord_y - act_ref_cent_coord_y
+        slope_x = act_cent_coord_x - (act_ref_cent_coord_x.astype(int) + 1)
+        slope_y = act_cent_coord_y - (act_ref_cent_coord_y.astype(int) + 1)
 
         # Append slopes to list
         slope_x_list.append(slope_x)
