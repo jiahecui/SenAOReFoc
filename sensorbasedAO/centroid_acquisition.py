@@ -73,8 +73,8 @@ def acq_centroid(settings, flag = 0):
     SB_diam = settings['SB_diam']
     SB_rad = settings['SB_rad']
 
-    # Initialise actual S-H spot centroid coords array
-    act_cent_coord, act_cent_coord_x, act_cent_coord_y = (np.zeros(settings['act_ref_cent_num']) for i in range(3))
+    # Initialise actual S-H spot centroid coords array and sharpness metric array
+    act_cent_coord, act_cent_coord_x, act_cent_coord_y, sharpness = (np.zeros(settings['act_ref_cent_num']) for i in range(4))
 
     # Initialise list for storing S-H spot centroid information for all images in data
     slope_x_list, slope_y_list = ([] for i in range(2))
@@ -178,28 +178,42 @@ def acq_centroid(settings, flag = 0):
                 """
                 Calculate actual S-H spot centroids by using centre of gravity (CoG) method
                 """
-                try:
-                    # Crop image within each search area
-                    image_crop = image_temp[SB_pix_coord_y[0] : SB_pix_coord_y[0] + len(SB_pix_coord_y), \
-                        SB_pix_coord_x[0] : SB_pix_coord_x[0] + len(SB_pix_coord_x)]
+                # Crop image within each search area
+                image_crop = image_temp[SB_pix_coord_y[0] : SB_pix_coord_y[0] + len(SB_pix_coord_y), \
+                    SB_pix_coord_x[0] : SB_pix_coord_x[0] + len(SB_pix_coord_x)]
 
-                    # If subaperture removal function is to be incorporated, assert search block coordinate array to be all 0 when obscured
-                    if flag in [5, 6, 9, 10]:
-                        if np.amax(image_crop) - np.amin(image_crop) < 25:
-                            xx, yy = (np.zeros([len(SB_pix_coord_y), len(SB_pix_coord_x)]) for i in range(2))
-                        else:
-                            xx, yy = np.meshgrid(np.arange(SB_pix_coord_x[0], SB_pix_coord_x[0] + len(SB_pix_coord_x)), \
-                                np.arange(SB_pix_coord_y[0], SB_pix_coord_y[0] + len(SB_pix_coord_y)))
+                # Calculate centroid positions within search area
+                if flag in [5, 6, 9, 10]:
+
+                    # If subaperture removal function is to be incorporated, calculate sharpness metric within subaperture
+                    if image_crop.sum() == 0:
+                        sharpness[i] = 0
                     else:
+                        sharpness[i] = ((image_crop ** 2).sum()) / (image_crop.sum() ** 2)
+
+                    if sharpness[i] == 0 or sharpness[i] > config['search_block']['sharpness_thres']:
+                        # If aperture is obscured, set sum_x, sum_y to 0
+                        sum_x, sum_y = (0 for i in range(2))
+                        sum_pix = 1
+                    else:                     
+                        # If aperture isn't obscured, calculate centroid using CoG method
                         xx, yy = np.meshgrid(np.arange(SB_pix_coord_x[0], SB_pix_coord_x[0] + len(SB_pix_coord_x)), \
                             np.arange(SB_pix_coord_y[0], SB_pix_coord_y[0] + len(SB_pix_coord_y)))
-                except Exception as e:
-                    print(e)
 
-                # Calculate weighted sum
-                sum_x = (xx * image_crop).sum()
-                sum_y = (yy * image_crop).sum()
-                sum_pix = image_crop.sum()
+                        sum_x = (xx * image_crop).sum()
+                        sum_y = (yy * image_crop).sum()
+                        sum_pix = image_crop.sum()
+
+                    # if i == (settings['act_ref_cent_num'] - 1):
+                        # print('Sharpness {} is {}:'.format(i + 1, sharpness[i]))
+                else:
+                    # If subaperture removal function is not incorporated, calculate centroid using CoG method
+                    xx, yy = np.meshgrid(np.arange(SB_pix_coord_x[0], SB_pix_coord_x[0] + len(SB_pix_coord_x)), \
+                        np.arange(SB_pix_coord_y[0], SB_pix_coord_y[0] + len(SB_pix_coord_y)))
+
+                    sum_x = (xx * image_crop).sum()
+                    sum_y = (yy * image_crop).sum()
+                    sum_pix = image_crop.sum()
 
                 # Get actual centroid coordinates
                 act_cent_coord_x[i] = sum_x / sum_pix
