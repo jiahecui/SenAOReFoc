@@ -339,7 +339,7 @@ class App(QApplication):
             slopes_AO_thread.started.connect(slopes_AO_worker.run3)
         elif mode == 4:
             slopes_AO_thread.started.connect(slopes_AO_worker.run4)
-        slopes_AO_worker.done.connect(lambda mode: self.handle_slopes_AO_done(mode))
+        slopes_AO_worker.done.connect(lambda mode: self.handle_slope_AO_done(mode))
         slopes_AO_worker.image.connect(lambda obj: self.handle_image_disp(obj))   
         slopes_AO_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         slopes_AO_worker.info.connect(lambda obj: self.handle_AO_info(obj))
@@ -611,13 +611,13 @@ class App(QApplication):
         self.threads['slopes_AO_thread'].quit()
         self.threads['slopes_AO_thread'].wait()
         if mode == 1:
-            self.main.ui.slopesAOBtn_1.setChecked(False)
+            self.main.ui.slopeAOBtn_1.setChecked(False)
         elif mode == 2:
-            self.main.ui.slopesAOBtn_2.setChecked(False)
+            self.main.ui.slopeAOBtn_2.setChecked(False)
         elif mode == 3:
-            self.main.ui.slopesAOBtn_3.setChecked(False)
+            self.main.ui.slopeAOBtn_3.setChecked(False)
         elif mode == 4:
-            self.main.ui.slopesFullBtn.setChecked(False)
+            self.main.ui.SlopeFullBtn.setChecked(False)
 
     def stop(self):
         """
