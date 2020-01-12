@@ -16,6 +16,8 @@ from HDF5_dset import dset_append, get_dset, get_mat_dset
 from image_acquisition import acq_image
 from centroid_acquisition import acq_centroid
 from spot_sim import SpotSim
+from gaussian_inf import inf
+from common import get_slope_from_phase
 
 logger = log.get_logger(__name__)
 
@@ -48,10 +50,77 @@ class AO_Slopes(QObject):
         # Get mirror instance
         self.mirror = mirror
         
-        # Initialise array to record root mean square error after each iteration
+        # Initialise array to record root mean square error and strehl ratio after each iteration
         self.loop_rms = np.zeros(config['AO']['loop_max'])
+        self.strehl = np.zeros(config['AO']['loop_max'])
 
         super().__init__()
+
+    def strehl_calc(self, phase):
+        """
+        Calculates the strehl ratio of a given phase profile
+        """
+        # Get meshgrid of coordinates within phase image
+        coord_xx, coord_yy = self.get_coord_mesh(self.SB_settings['sensor_width'])
+
+        # Get boolean pupil mask
+        pupil_mask = self.get_pupil_mask(coord_xx, coord_yy)
+
+        # Get average phase and phase deviation across pupil aperture
+        phase_ave = np.mean(phase[pupil_mask])
+        phase_delta = (phase - phase_ave) * pupil_mask
+
+        # print('Max and min values in phase before subtracting average: {}, {}'.format(np.amax(phase), np.amin(phase)))
+        # print('Max and min values in phase after subtracting average: {}, {}'.format(np.amax(phase_delta), np.amin(phase_delta)))
+        # print('phase_ave', phase_ave)
+
+        # Calculate Strehl ratio estimated using only the statistics of the phase deviation, according to Mahajan
+        phase_delta_2 = phase_delta ** 2 * pupil_mask
+        sigma_2 = np.mean(phase_delta_2[pupil_mask])
+        strehl = np.exp(-sigma_2)
+
+        return strehl
+
+    def phase_calc(self, voltages):
+        """
+        Calculates phase profile introduced by DM
+        """
+        # Get meshgrid of coordinates within phase image
+        coord_xx, coord_yy = self.get_coord_mesh(self.SB_settings['sensor_width'])
+
+        # Get boolean pupil mask
+        pupil_mask = self.get_pupil_mask(coord_xx, coord_yy)
+
+        # Calculate Gaussian distribution influence function value introduced by each actuator at each pixel
+        delta_phase = np.zeros([self.SB_settings['sensor_width'], self.SB_settings['sensor_width']])
+
+        for i in range(config['DM']['actuator_num']):
+            delta_phase += inf(coord_xx, coord_yy, self.mirror_settings['act_pos_x'], self.mirror_settings['act_pos_y'],\
+                i, self.mirror_settings['act_diam']) * voltages[i]
+
+        delta_phase = delta_phase * pupil_mask * 2
+
+        print('Max and min values in delta_phase are: {} um, {} um'.format(np.amax(delta_phase), np.amin(delta_phase)))
+
+        return delta_phase
+
+    def get_coord_mesh(self, image_diam):
+        """
+        Retrieves coordinate meshgrid for calculations over a full image
+        """
+        coord_x, coord_y = (np.arange(int(-image_diam / 2), int(-image_diam / 2) + image_diam) for i in range(2))
+        coord_xx, coord_yy = np.meshgrid(coord_x, coord_y)
+
+        return coord_xx, coord_yy
+
+    def get_pupil_mask(self, coord_xx, coord_yy):
+        """
+        Retrieves boolean pupil mask for round aperture
+        """
+        pupil_mask = np.sqrt((coord_xx * self.SB_settings['pixel_size']) ** 2 + \
+            (coord_yy * self.SB_settings['pixel_size']) ** 2) <= config['search_block']['pupil_diam'] * 1e3 / 2
+        
+        return pupil_mask
 
     @Slot(object)
     def run1(self):
@@ -69,9 +138,6 @@ class AO_Slopes(QObject):
             """
             # Initialise AO information parameter
             self.AO_info = {'slope_AO_1': {}}
-               
-            # Get pseudo-inverse of slope - zernike conversion matrix to translate zernike coefficients into slopes           
-            conv_matrix_inv = np.linalg.pinv(self.mirror_settings['conv_matrix'])
         
             # Create new datasets in HDF5 file to store closed-loop AO data and open file
             get_dset(self.SB_settings, 'slope_AO_1', flag = 2)
@@ -92,16 +158,91 @@ class AO_Slopes(QObject):
                 if self.loop:
 
                     try:
-                        if config['dummy']:
-
-                            pass
+                        # Update mirror control voltages
+                        if i == 0:
+                            voltages = config['DM']['vol_bias']
                         else:
+                            voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_slopes'], slope_err))
+                            
+                            # print('Voltages {}: {}'.format(i, voltages))
+                            print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
-                            # Update mirror control voltages
-                            if i == 0:
-                                voltages = config['DM']['vol_bias']
+                        if config['dummy']:
+                            if config['real_phase']:
+
+                                # Update phase profile, slope data, S-H spot image, and calculate Strehl ratio 
+                                if i == 0:
+
+                                    # Retrieve phase profile
+                                    phase_init = get_mat_dset(self.SB_settings, flag = 1)
+
+                                    # Display correction phase introduced by DM and corrected phase
+                                    self.image.emit(abs(phase_init))
+                                    time.sleep(2)
+
+                                    print('Max and min values of initial phase are: {} um, {} um'.format(np.amax(phase_init), np.amin(phase_init)))
+
+                                    # Calculate strehl ratio of initial phase profile
+                                    strehl_init = self.strehl_calc(phase_init / (config['AO']['lambda'] / (2 * np.pi)))
+                                    self.strehl[i] = strehl_init
+
+                                    print('Strehl ratio of initial phase is:', strehl_init)  
+
+                                    # Retrieve slope data from updated phase profile to use as theoretical centroids for simulation of S-H spots
+                                    spot_cent_slope_x, spot_cent_slope_y = get_mat_dset(self.SB_settings, flag = 2)
+
+                                    # Get simulated S-H spots and append to list
+                                    spot_img = SpotSim(self.SB_settings)
+                                    AO_image, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = spot_cent_slope_x, yc = spot_cent_slope_y)
+                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+
+                                    # print('spot_cent_slope_x:', spot_cent_slope_x)
+                                    # print('spot_cent_slope_y:', spot_cent_slope_y)
+
+                                    phase = phase_init.copy()
+                                    strehl = strehl_init.copy()
+    
+                                else:
+
+                                    # Calculate phase profile introduced by DM
+                                    delta_phase = self.phase_calc(voltages)
+
+                                    # Update phase data
+                                    phase = phase_init - delta_phase
+
+                                    # Display correction phase introduced by DM and corrected phase
+                                    self.image.emit(abs(delta_phase))
+                                    time.sleep(2)
+                                    self.image.emit(abs(phase))
+                                    time.sleep(2)
+
+                                    print('Max and min values of phase are: {} um, {} um'.format(np.amax(phase), np.amin(phase)))
+
+                                    # Calculate strehl ratio of updated phase profile
+                                    strehl = self.strehl_calc(phase / (config['AO']['lambda'] / (2 * np.pi)))
+                                    self.strehl[i] = strehl
+
+                                    print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))
+
+                                    # Retrieve slope data from initial phase profile to use as theoretical centroids for simulation of S-H spots
+                                    spot_cent_slope_x, spot_cent_slope_y = get_slope_from_phase(self.SB_settings, phase)
+                                    
+                                    # Get simulated S-H spots and append to list
+                                    spot_img = SpotSim(self.SB_settings)
+                                    AO_image, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = spot_cent_slope_x, yc = spot_cent_slope_y)
+                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+
+                                    # print('spot_cent_slope_x:', spot_cent_slope_x)
+                                    # print('spot_cent_slope_y:', spot_cent_slope_y)
                             else:
-                                voltages -= config['AO']['loop_gain'] * np.dot(self.mirror_settings['control_matrix_slopes'], slopes_err)                        
+
+                                self.done.emit(1)
+
+                        else:    
 
                             # Send values vector to mirror
                             self.mirror.Send(voltages)
@@ -122,6 +263,9 @@ class AO_Slopes(QObject):
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 4)
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
 
+                        # print('slope_x:', slope_x)
+                        # print('slope_y:', slope_y)
+
                         # Draw actual S-H spot centroids on image layer
                         AO_image.ravel()[act_cent_coord.astype(int)] = 0
                         self.image.emit(AO_image)
@@ -131,10 +275,10 @@ class AO_Slopes(QObject):
 
                         # Get phase residual (slope residual error) and calculate root mean square (rms) error
                         slope_err = slope.copy()
-                        rms = np.sqrt((slope_err ** 2).mean(axis = 0))[0]
+                        rms = np.sqrt((slope_err ** 2).mean())
                         self.loop_rms[i] = rms
 
-                        print('Root mean square error {} is {}'.format(i + 1, rms))                        
+                        print('Root mean square error {} is {} pixels (slope value)'.format(i + 1, rms))                        
 
                         # Append data to list
                         if config['dummy']:
@@ -149,7 +293,7 @@ class AO_Slopes(QObject):
                             dset_append(data_set_2, 'real_spot_slope_err', slope_err)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                        if rms <= config['AO']['tolerance_fact_slopes']:
+                        if strehl >= config['AO']['tolerance_fact_strehl']:
                             break                 
 
                     except Exception as e:
@@ -174,6 +318,7 @@ class AO_Slopes(QObject):
 
                 self.AO_info['slope_AO_1']['loop_num'] = i + 1
                 self.AO_info['slope_AO_1']['residual_phase_err_1'] = self.loop_rms
+                self.AO_info['slope_AO_1']['strehl_ratio'] = self.strehl
 
                 self.info.emit(self.AO_info)
                 self.write.emit()
@@ -205,9 +350,6 @@ class AO_Slopes(QObject):
             # Initialise AO information parameter
             self.AO_info = {'slope_AO_2': {}}
 
-            # Get pseudo-inverse of slope - zernike conversion matrix to translate zernike coefficients into slopes           
-            conv_matrix_inv = np.linalg.pinv(self.mirror_settings['conv_matrix'])
-        
             # Create new datasets in HDF5 file to store closed-loop AO data and open file
             get_dset(self.SB_settings, 'slope_AO_2', flag = 2)
             data_file = h5py.File('data_info.h5', 'a')
@@ -227,16 +369,91 @@ class AO_Slopes(QObject):
                 if self.loop:
 
                     try:
-                        if config['dummy']:
-
-                            pass  
+                        # Update mirror control voltages
+                        if i == 0:
+                            voltages = config['DM']['vol_bias']
                         else:
+                            voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(control_matrix_slopes, slope_err))
 
-                            # Update mirror control voltages
-                            if i == 0:
-                                voltages = config['DM']['vol_bias']
+                            # print('Voltages {}: {}'.format(i, voltages))
+                            print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
+
+                        if config['dummy']:
+                            if config['real_phase']:
+
+                                # Update phase profile, slope data, S-H spot image, and calculate Strehl ratio 
+                                if i == 0:
+
+                                    # Retrieve phase profile
+                                    phase_init = get_mat_dset(self.SB_settings, flag = 1)
+
+                                    # Display correction phase introduced by DM and corrected phase
+                                    self.image.emit(abs(phase_init))
+                                    time.sleep(2)
+
+                                    print('Max and min values of initial phase are: {} um, {} um'.format(np.amax(phase_init), np.amin(phase_init)))
+
+                                    # Calculate strehl ratio of initial phase profile
+                                    strehl_init = self.strehl_calc(phase_init / (config['AO']['lambda'] / (2 * np.pi)))
+                                    self.strehl[i] = strehl_init
+
+                                    print('Strehl ratio of initial phase is:', strehl_init)  
+
+                                    # Retrieve slope data from updated phase profile to use as theoretical centroids for simulation of S-H spots
+                                    spot_cent_slope_x, spot_cent_slope_y = get_mat_dset(self.SB_settings, flag = 2)
+
+                                    # Get simulated S-H spots and append to list
+                                    spot_img = SpotSim(self.SB_settings)
+                                    AO_image, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = spot_cent_slope_x, yc = spot_cent_slope_y)
+                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+
+                                    # print('spot_cent_slope_x:', spot_cent_slope_x)
+                                    # print('spot_cent_slope_y:', spot_cent_slope_y)
+
+                                    phase = phase_init.copy()
+                                    strehl = strehl_init.copy()
+    
+                                else:
+
+                                    # Calculate phase profile introduced by DM
+                                    delta_phase = self.phase_calc(voltages)
+
+                                    # Update phase data
+                                    phase = phase_init - delta_phase
+
+                                    # Display correction phase introduced by DM and corrected phase
+                                    self.image.emit(abs(delta_phase))
+                                    time.sleep(2)
+                                    self.image.emit(abs(phase))
+                                    time.sleep(2)
+
+                                    print('Max and min values of phase are: {} um, {} um'.format(np.amax(phase), np.amin(phase)))
+
+                                    # Calculate strehl ratio of updated phase profile
+                                    strehl = self.strehl_calc(phase / (config['AO']['lambda'] / (2 * np.pi)))
+                                    self.strehl[i] = strehl
+
+                                    print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))
+
+                                    # Retrieve slope data from initial phase profile to use as theoretical centroids for simulation of S-H spots
+                                    spot_cent_slope_x, spot_cent_slope_y = get_slope_from_phase(self.SB_settings, phase)
+                                    
+                                    # Get simulated S-H spots and append to list
+                                    spot_img = SpotSim(self.SB_settings)
+                                    AO_image, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = spot_cent_slope_x, yc = spot_cent_slope_y)
+                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+
+                                    # print('spot_cent_slope_x:', spot_cent_slope_x)
+                                    # print('spot_cent_slope_y:', spot_cent_slope_y)
                             else:
-                                voltages -= config['AO']['loop_gain'] * np.dot(control_matrix_slopes, slopes_err)                        
+
+                                self.done.emit(2)
+                          
+                        else:
 
                             # Send values vector to mirror
                             self.mirror.Send(voltages)
@@ -257,17 +474,24 @@ class AO_Slopes(QObject):
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 6)
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
 
-                        # Remove corresponding elements from slopes and rows from influence function matrix
-                        index_remove = np.where(slope_x + self.mirror_settings['act_ref_cent_coord_x'] == 0)[0]
-                        index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
-                        slope_x = np.argwhere(slope_x + self.mirror_settings['act_ref_cent_coord_x'])
-                        slope_y = np.argwhere(slope_y + self.mirror_settings['act_ref_cent_coord_y'])
-                        act_cent_coord = np.delete(act_cent_coord, index_remove, axis = None)
-                        inf_matrix_slopes = np.delete(self.mirror_settings['inf_matrix_slopes'].copy(), index_remove_inf, axis = 0)
+                        # print('slope_x:', slope_x)
+                        # print('slope_y:', slope_y)
 
-                        # print('The number of obscured subapertures is: {}'.format(len(index_remove)))
-                        # print('The shapes of slope_x, slope_y, and inf_matrix_slopes are: {}, {}, and {}'.format(np.shape(slope_x), np.shape(slope_y),\
-                        #     np.shape(inf_matrix_slopes)))
+                        # Remove corresponding elements from slopes and rows from influence function matrix
+                        index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'].astype(int) + 1 == 0)[1]
+                        print('Shape index_remove:', np.shape(index_remove))
+                        # print('index_remove:', index_remove)
+                        index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
+                        # print('Shape index_remove_inf:', np.shape(index_remove_inf))
+                        # print('index_remove_inf:', index_remove_inf)
+                        slope_x = np.delete(slope_x, index_remove, axis = 1)
+                        slope_y = np.delete(slope_y, index_remove, axis = 1)
+                        # print('Shape slope_x:', np.shape(slope_x))
+                        # print('Shape slope_y:', np.shape(slope_y))
+                        act_cent_coord = np.delete(act_cent_coord, index_remove, axis = None)
+                        # print('Shape act_cent_coord:', np.shape(act_cent_coord))
+                        inf_matrix_slopes = np.delete(self.mirror_settings['inf_matrix_slopes'].copy(), index_remove_inf, axis = 0)
+                        # print('Shape inf_matrix_slopes:', np.shape(inf_matrix_slopes))
 
                         # Draw actual S-H spot centroids on image layer
                         AO_image.ravel()[act_cent_coord.astype(int)] = 0
@@ -275,13 +499,11 @@ class AO_Slopes(QObject):
 
                         # Calculate singular value decomposition of modified influence function matrix
                         u, s, vh = np.linalg.svd(inf_matrix_slopes, full_matrices = False)
-
                         # print('u: {}, s: {}, vh: {}'.format(u, s, vh))
                         # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
 
                         # Recalculate pseudo-inverse of modified influence function matrix to get new control matrix
                         control_matrix_slopes = np.linalg.pinv(inf_matrix_slopes)
-
                         # print('Shape of new control matrix is:', np.shape(control_matrix_slopes))
 
                         # Concatenate slopes into one slope matrix
@@ -289,25 +511,25 @@ class AO_Slopes(QObject):
 
                         # Get phase residual (slope residual error) and calculate root mean square (rms) error
                         slope_err = slope.copy()
-                        rms = np.sqrt((slope_err ** 2).mean(axis = 0))[0]
+                        rms = np.sqrt((slope_err ** 2).mean())
                         self.loop_rms[i] = rms
 
-                        print('Root mean square error {} is {}'.format(i + 1, rms))                        
+                        print('Root mean square error {} is {} um (slope value)'.format(i + 1, rms))                        
 
                         # Append data to list
-                        if config['dummy']:
-                            dset_append(data_set_2, 'dummy_spot_slope_x', slope_x)
-                            dset_append(data_set_2, 'dummy_spot_slope_y', slope_y)
-                            dset_append(data_set_2, 'dummy_spot_slope', slope)
-                            dset_append(data_set_2, 'dummy_spot_slope_err', slope_err)
-                        else:
-                            dset_append(data_set_2, 'real_spot_slope_x', slope_x)
-                            dset_append(data_set_2, 'real_spot_slope_y', slope_y)
-                            dset_append(data_set_2, 'real_spot_slope', slope)
-                            dset_append(data_set_2, 'real_spot_slope_err', slope_err)
+                        # if config['dummy']:
+                            # dset_append(data_set_2, 'dummy_spot_slope_x', slope_x)
+                            # dset_append(data_set_2, 'dummy_spot_slope_y', slope_y)
+                            # dset_append(data_set_2, 'dummy_spot_slope', slope)
+                            # dset_append(data_set_2, 'dummy_spot_slope_err', slope_err)
+                        # else:
+                            # dset_append(data_set_2, 'real_spot_slope_x', slope_x)
+                            # dset_append(data_set_2, 'real_spot_slope_y', slope_y)
+                            # dset_append(data_set_2, 'real_spot_slope', slope)
+                            # dset_append(data_set_2, 'real_spot_slope_err', slope_err)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                        if rms <= config['AO']['tolerance_fact_slopes']:
+                        if strehl >= config['AO']['tolerance_fact_strehl']:
                             break                 
 
                     except Exception as e:
@@ -332,6 +554,7 @@ class AO_Slopes(QObject):
 
                 self.AO_info['slope_AO_2']['loop_num'] = i
                 self.AO_info['slope_AO_2']['residual_phase_err_1'] = self.loop_rms
+                self.AO_info['slope_AO_2']['strehl_ratio'] = self.strehl
 
                 self.info.emit(self.AO_info)
                 self.write.emit()
@@ -363,22 +586,17 @@ class AO_Slopes(QObject):
             # Initialise AO information parameter
             self.AO_info = {'slope_AO_3': {}}
 
-            # Get pseudo-inverse of slope - zernike conversion matrix to translate zernike coefficients into slopes           
-            conv_matrix_inv = np.linalg.pinv(self.mirror_settings['conv_matrix'])
-
             # Calculate modified influence function with partial correction (suppressing tip, tilt, and defocus)
             inf_matrix_slopes = np.concatenate((self.mirror_settings['inf_matrix_slopes'], config['AO']['suppress_gain'] * \
-                self.mirror_settings['inf_matrix_zern'][0 : 2, :]), axis = 0)
+                self.mirror_settings['inf_matrix_zern'][[0, 1, 3], :]), axis = 0)
 
             # Calculate singular value decomposition of modified influence function matrix
             u, s, vh = np.linalg.svd(inf_matrix_slopes, full_matrices = False)
-
             # print('u: {}, s: {}, vh: {}'.format(u, s, vh))
             # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
 
             # Calculate pseudo-inverse of modified influence function matrix to get new control matrix
             control_matrix_slopes = np.linalg.pinv(inf_matrix_slopes)
-
             # print('Shape of new control matrix is:', np.shape(control_matrix_slopes))
         
             # Create new datasets in HDF5 file to store closed-loop AO data and open file
@@ -386,6 +604,7 @@ class AO_Slopes(QObject):
             data_file = h5py.File('data_info.h5', 'a')
             data_set_1 = data_file['AO_img']['slope_AO_3']
             data_set_2 = data_file['AO_info']['slope_AO_3']
+
             self.message.emit('Process started for closed-loop AO via slopes with partial correction...')
 
             # Initialise deformable mirror voltage array
@@ -399,16 +618,92 @@ class AO_Slopes(QObject):
                 if self.loop:
 
                     try:
-                        if config['dummy']:
+                        # Update mirror control voltages
+                        if i == 0:
+                            voltages = config['DM']['vol_bias']
+                        else:
+                            voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(control_matrix_slopes, slope_err))
 
-                            pass
+                            # print('Voltages {}: {}'.format(i, voltages))
+                            print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
+
+                        if config['dummy']:
+                            if config['real_phase']:
+
+                                # Update phase profile, slope data, S-H spot image, and calculate Strehl ratio 
+                                if i == 0:
+
+                                    # Retrieve phase profile
+                                    phase_init = get_mat_dset(self.SB_settings, flag = 1)
+
+                                    # Display correction phase introduced by DM and corrected phase
+                                    self.image.emit(abs(phase_init))
+                                    time.sleep(2)
+
+                                    print('Max and min values of initial phase are: {} um, {} um'.format(np.amax(phase_init), np.amin(phase_init)))
+
+                                    # Calculate strehl ratio of initial phase profile
+                                    strehl_init = self.strehl_calc(phase_init / (config['AO']['lambda'] / (2 * np.pi)))
+                                    self.strehl[i] = strehl_init
+
+                                    print('Strehl ratio of initial phase is:', strehl_init)  
+
+                                    # Retrieve slope data from updated phase profile to use as theoretical centroids for simulation of S-H spots
+                                    spot_cent_slope_x, spot_cent_slope_y = get_mat_dset(self.SB_settings, flag = 2)
+
+                                    # Get simulated S-H spots and append to list
+                                    spot_img = SpotSim(self.SB_settings)
+                                    AO_image, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = spot_cent_slope_x, yc = spot_cent_slope_y)
+                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+
+                                    # print('spot_cent_slope_x:', spot_cent_slope_x)
+                                    # print('spot_cent_slope_y:', spot_cent_slope_y)
+
+                                    phase = phase_init.copy()
+                                    strehl = strehl_init.copy()
+    
+                                else:
+
+                                    # Calculate phase profile introduced by DM
+                                    delta_phase = self.phase_calc(voltages)
+
+                                    # Update phase data
+                                    phase = phase_init - delta_phase
+
+                                    # Display correction phase introduced by DM and corrected phase
+                                    self.image.emit(abs(delta_phase))
+                                    time.sleep(2)
+                                    self.image.emit(abs(phase))
+                                    time.sleep(2)
+
+                                    print('Max and min values of phase are: {} um, {} um'.format(np.amax(phase), np.amin(phase)))
+
+                                    # Calculate strehl ratio of updated phase profile
+                                    strehl = self.strehl_calc(phase / (config['AO']['lambda'] / (2 * np.pi)))
+                                    self.strehl[i] = strehl
+
+                                    print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))
+
+                                    # Retrieve slope data from initial phase profile to use as theoretical centroids for simulation of S-H spots
+                                    spot_cent_slope_x, spot_cent_slope_y = get_slope_from_phase(self.SB_settings, phase)
+                                    
+                                    # Get simulated S-H spots and append to list
+                                    spot_img = SpotSim(self.SB_settings)
+                                    AO_image, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = spot_cent_slope_x, yc = spot_cent_slope_y)
+                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+
+                                    # print('spot_cent_slope_x:', spot_cent_slope_x)
+                                    # print('spot_cent_slope_y:', spot_cent_slope_y)
+                            else:
+
+                                self.done.emit(3)
+                            
                         else:
 
-                            # Update mirror control voltages
-                            if i == 0:
-                                voltages = config['DM']['vol_bias']
-                            else:
-                                voltages -= config['AO']['loop_gain'] * np.dot(control_matrix_slopes, slopes_err)                        
 
                             # Send values vector to mirror
                             self.mirror.Send(voltages)
@@ -429,6 +724,9 @@ class AO_Slopes(QObject):
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 8)
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
 
+                        # print('slope_x:', slope_x)
+                        # print('slope_y:', slope_y)
+
                         # Draw actual S-H spot centroids on image layer
                         AO_image.ravel()[act_cent_coord.astype(int)] = 0
                         self.image.emit(AO_image)
@@ -438,10 +736,10 @@ class AO_Slopes(QObject):
 
                         # Get phase residual (slope residual error) and calculate root mean square (rms) error
                         slope_err = slope.copy()
-                        rms = np.sqrt((slope_err ** 2).mean(axis = 0))[0]
+                        rms = np.sqrt((slope_err ** 2).mean())
                         self.loop_rms[i] = rms
 
-                        print('Root mean square error {} is {}'.format(i + 1, rms))                        
+                        print('Root mean square error {} is {} um (slope value)'.format(i + 1, rms))                        
 
                         # Append data to list
                         if config['dummy']:
@@ -459,7 +757,7 @@ class AO_Slopes(QObject):
                         slope_err = np.append(slope_err, np.zeros([3, 1]), axis = 0)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                        if rms <= config['AO']['tolerance_fact_slopes']:
+                        if strehl >= config['AO']['tolerance_fact_strehl']:
                             break                 
 
                     except Exception as e:
@@ -484,6 +782,7 @@ class AO_Slopes(QObject):
 
                 self.AO_info['slope_AO_3']['loop_num'] = i
                 self.AO_info['slope_AO_3']['residual_phase_err_1'] = self.loop_rms
+                self.AO_info['slope_AO_3']['strehl_ratio'] = self.strehl
 
                 self.info.emit(self.AO_info)
                 self.write.emit()
@@ -509,14 +808,11 @@ class AO_Slopes(QObject):
             self.start.emit()
 
             """
-            Closed-loop AO process to handle partial correction using a FIXED GAIN, iterated until residual phase error is below value given by Marechel 
-            criterion or iteration has reached maximum
+            Closed-loop AO process to handle both obscured S-H spots and partial correction using a FIXED GAIN, iterated until residual 
+            phase error is below value given by Marechel criterion or iteration has reached maximum
             """
             # Initialise AO information parameter
             self.AO_info = {'slope_AO_full': {}}
-
-            # Get pseudo-inverse of slope - zernike conversion matrix to translate zernike coefficients into slopes           
-            conv_matrix_inv = np.linalg.pinv(self.mirror_settings['conv_matrix'])
 
             # Create new datasets in HDF5 file to store closed-loop AO data and open file
             get_dset(self.SB_settings, 'slope_AO_full', flag = 2)
@@ -537,16 +833,91 @@ class AO_Slopes(QObject):
                 if self.loop:
 
                     try:
+                        # Update mirror control voltages
+                        if i == 0:
+                            voltages = config['DM']['vol_bias']
+                        else:
+                            voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(control_matrix_slopes, slope_err))
+
+                            # print('Voltages {}: {}'.format(i, voltages))
+                            print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
+
                         if config['dummy']:
+                            if config['real_phase']:
 
-                            pass
-                        else: 
+                                # Update phase profile, slope data, S-H spot image, and calculate Strehl ratio 
+                                if i == 0:
 
-                            # Update mirror control voltages
-                            if i == 0:
-                                voltages = config['DM']['vol_bias']
+                                    # Retrieve phase profile
+                                    phase_init = get_mat_dset(self.SB_settings, flag = 1)
+
+                                    # Display correction phase introduced by DM and corrected phase
+                                    self.image.emit(abs(phase_init))
+                                    time.sleep(2)
+
+                                    print('Max and min values of initial phase are: {} um, {} um'.format(np.amax(phase_init), np.amin(phase_init)))
+
+                                    # Calculate strehl ratio of initial phase profile
+                                    strehl_init = self.strehl_calc(phase_init / (config['AO']['lambda'] / (2 * np.pi)))
+                                    self.strehl[i] = strehl_init
+
+                                    print('Strehl ratio of initial phase is:', strehl_init)  
+
+                                    # Retrieve slope data from updated phase profile to use as theoretical centroids for simulation of S-H spots
+                                    spot_cent_slope_x, spot_cent_slope_y = get_mat_dset(self.SB_settings, flag = 2)
+
+                                    # Get simulated S-H spots and append to list
+                                    spot_img = SpotSim(self.SB_settings)
+                                    AO_image, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = spot_cent_slope_x, yc = spot_cent_slope_y)
+                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+
+                                    # print('spot_cent_slope_x:', spot_cent_slope_x)
+                                    # print('spot_cent_slope_y:', spot_cent_slope_y)
+
+                                    phase = phase_init.copy()
+                                    strehl = strehl_init.copy()
+    
+                                else:
+
+                                    # Calculate phase profile introduced by DM
+                                    delta_phase = self.phase_calc(voltages)
+
+                                    # Update phase data
+                                    phase = phase_init - delta_phase
+
+                                    # Display correction phase introduced by DM and corrected phase
+                                    self.image.emit(abs(delta_phase))
+                                    time.sleep(2)
+                                    self.image.emit(abs(phase))
+                                    time.sleep(2)
+
+                                    print('Max and min values of phase are: {} um, {} um'.format(np.amax(phase), np.amin(phase)))
+
+                                    # Calculate strehl ratio of updated phase profile
+                                    strehl = self.strehl_calc(phase / (config['AO']['lambda'] / (2 * np.pi)))
+                                    self.strehl[i] = strehl
+
+                                    print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))
+
+                                    # Retrieve slope data from initial phase profile to use as theoretical centroids for simulation of S-H spots
+                                    spot_cent_slope_x, spot_cent_slope_y = get_slope_from_phase(self.SB_settings, phase)
+                                    
+                                    # Get simulated S-H spots and append to list
+                                    spot_img = SpotSim(self.SB_settings)
+                                    AO_image, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = spot_cent_slope_x, yc = spot_cent_slope_y)
+                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+
+                                    # print('spot_cent_slope_x:', spot_cent_slope_x)
+                                    # print('spot_cent_slope_y:', spot_cent_slope_y)
                             else:
-                                voltages -= config['AO']['loop_gain'] * np.dot(control_matrix_slopes, slopes_err)                        
+
+                                self.done.emit(4)
+                            
+                        else: 
 
                             # Send values vector to mirror
                             self.mirror.Send(voltages)
@@ -567,19 +938,28 @@ class AO_Slopes(QObject):
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 10)
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
 
-                        # Remove corresponding elements from slopes and rows from influence function matrix, zernike matrix and zernike derivative matrix
-                        index_remove = np.where(slope_x + self.mirror_settings['act_ref_cent_coord_x'] == 0)[0]
-                        index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
-                        slope_x = np.argwhere(slope_x + self.mirror_settings['act_ref_cent_coord_x'])
-                        slope_y = np.argwhere(slope_y + self.mirror_settings['act_ref_cent_coord_y'])
-                        act_cent_coord = np.delete(act_cent_coord, index_remove, axis = None)
-                        zern_matrix = np.delete(self.mirror_settings['zern_matrix'].copy(), index_remove, axis = 0)
-                        inf_matrix_slopes = np.delete(self.mirror_settings['inf_matrix_slopes'].copy(), index_remove_inf, axis = 0)
-                        diff_matrix = np.delete(self.mirror_settings['diff_matrix'].copy(), index_remove_inf, axis = 0)
+                        # print('slope_x:', slope_x)
+                        # print('slope_y:', slope_y)
 
-                        # print('The number of obscured subapertures is: {}'.format(len(index_remove)))
-                        # print('The shapes of slope_x, slope_y, and inf_matrix_slopes are: {}, {}, and {}'.format(np.shape(slope_x), np.shape(slope_y),\
-                        #     np.shape(inf_matrix_slopes)))
+                        # Remove corresponding elements from slopes and rows from influence function matrix, zernike matrix and zernike derivative matrix
+                        index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'].astype(int) + 1 == 0)[1]
+                        print('Shape index_remove:', np.shape(index_remove))
+                        # print('index_remove:', index_remove)
+                        index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
+                        # print('Shape index_remove_inf:', np.shape(index_remove_inf))
+                        # print('index_remove_inf:', index_remove_inf)
+                        slope_x = np.delete(slope_x, index_remove, axis = 1)
+                        slope_y = np.delete(slope_y, index_remove, axis = 1)
+                        # print('Shape slope_x:', np.shape(slope_x))
+                        # print('Shape slope_y:', np.shape(slope_y))
+                        act_cent_coord = np.delete(act_cent_coord, index_remove, axis = None)
+                        # print('Shape act_cent_coord:', np.shape(act_cent_coord))
+                        zern_matrix = np.delete(self.mirror_settings['zern_matrix'].copy(), index_remove, axis = 0)
+                        # print('Shape zern_matrix:', np.shape(zern_matrix))
+                        inf_matrix_slopes = np.delete(self.mirror_settings['inf_matrix_slopes'].copy(), index_remove_inf, axis = 0)
+                        # print('Shape inf_matrix_slopes:', np.shape(inf_matrix_slopes))
+                        diff_matrix = np.delete(self.mirror_settings['diff_matrix'].copy(), index_remove_inf, axis = 0)
+                        # print('Shape diff_matrix:', np.shape(diff_matrix))
 
                         # Draw actual S-H spot centroids on image layer
                         AO_image.ravel()[act_cent_coord.astype(int)] = 0
@@ -587,54 +967,58 @@ class AO_Slopes(QObject):
 
                         # Recalculate Cholesky decomposition of np.dot(zern_matrix.T, zern_matrix)
                         p_matrix = np.linalg.cholesky(np.dot(zern_matrix.T, zern_matrix))
+                        # print('Shape p_matrix:', np.shape(p_matrix))
 
                         # Recalculate conversion matrix
                         conv_matrix = np.dot(p_matrix, np.linalg.pinv(diff_matrix))
+                        # print('Shape conv_matrix:', np.shape(conv_matrix))
 
                         # Recalculate influence function via zernikes
                         inf_matrix_zern = np.dot(conv_matrix, inf_matrix_slopes)
+                        # print('Shape inf_matrix_zern:', np.shape(inf_matrix_zern))
 
                         # Calculate modified influence function with partial correction (suppressing tip, tilt, and defocus)
-                        inf_matrix_slopes = np.concatenate((inf_matrix_slopes, config['AO']['suppress_gain'] * inf_matrix_zern[0 : 2, :]), axis = 0)
+                        inf_matrix_slopes = np.concatenate((inf_matrix_slopes, config['AO']['suppress_gain'] * inf_matrix_zern[[0, 1, 3], :]), axis = 0)
+                        # print('Shape inf_matrix_slopes:', np.shape(inf_matrix_slopes))
 
                         # Calculate singular value decomposition of modified influence function matrix
                         u, s, vh = np.linalg.svd(inf_matrix_slopes, full_matrices = False)
 
-                        # print('u: {}, s: {}, vh: {}'.format(u, s, vh))
-                        # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
+                        print('u: {}, s: {}, vh: {}'.format(u, s, vh))
+                        print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
 
                         # Recalculate pseudo-inverse of modified influence function matrix to get new control matrix
                         control_matrix_slopes = np.linalg.pinv(inf_matrix_slopes)
 
-                        # print('Shape of new control matrix is:', np.shape(control_matrix_slopes))
+                        print('Shape of new control matrix is:', np.shape(control_matrix_slopes))
 
                         # Concatenate slopes into one slope matrix
                         slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
 
                         # Get phase residual (slope residual error) and calculate root mean square (rms) error
                         slope_err = slope.copy()
-                        rms = np.sqrt((slope_err ** 2).mean(axis = 0))[0]
+                        rms = np.sqrt((slope_err ** 2).mean())
                         self.loop_rms[i] = rms
 
-                        print('Root mean square error {} is {}'.format(i + 1, rms))                        
+                        print('Root mean square error {} is {} pixels (slope value)'.format(i + 1, rms))                        
 
                         # Append data to list
-                        if config['dummy']:
-                            dset_append(data_set_2, 'dummy_spot_slope_x', slope_x)
-                            dset_append(data_set_2, 'dummy_spot_slope_y', slope_y)
-                            dset_append(data_set_2, 'dummy_spot_slope', slope)
-                            dset_append(data_set_2, 'dummy_spot_slope_err', slope_err)
-                        else:
-                            dset_append(data_set_2, 'real_spot_slope_x', slope_x)
-                            dset_append(data_set_2, 'real_spot_slope_y', slope_y)
-                            dset_append(data_set_2, 'real_spot_slope', slope)
-                            dset_append(data_set_2, 'real_spot_slope_err', slope_err)
+                        # if config['dummy']:
+                        #     dset_append(data_set_2, 'dummy_spot_slope_x', slope_x)
+                        #     dset_append(data_set_2, 'dummy_spot_slope_y', slope_y)
+                        #     dset_append(data_set_2, 'dummy_spot_slope', slope)
+                        #     dset_append(data_set_2, 'dummy_spot_slope_err', slope_err)
+                        # else:
+                        #     dset_append(data_set_2, 'real_spot_slope_x', slope_x)
+                        #     dset_append(data_set_2, 'real_spot_slope_y', slope_y)
+                        #     dset_append(data_set_2, 'real_spot_slope', slope)
+                        #     dset_append(data_set_2, 'real_spot_slope_err', slope_err)
 
                         # Append zeros to end of slope error array to ensure dimension is consistent with new control matrix
                         slope_err = np.append(slope_err, np.zeros([3, 1]), axis = 0)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                        if rms <= config['AO']['tolerance_fact_slopes']:
+                        if strehl >= config['AO']['tolerance_fact_strehl']:
                             break                 
 
                     except Exception as e:
@@ -659,6 +1043,7 @@ class AO_Slopes(QObject):
 
                 self.AO_info['slope_AO_full']['loop_num'] = i
                 self.AO_info['slope_AO_full']['residual_phase_err_1'] = self.loop_rms
+                self.AO_info['slope_AO_full']['strehl_ratio'] = self.strehl
 
                 self.info.emit(self.AO_info)
                 self.write.emit()
