@@ -284,7 +284,7 @@ class AO_Zernikes(QObject):
                         rms = np.sqrt((zern_err ** 2).mean())
                         self.loop_rms[i] = rms 
 
-                        print('Root mean square error {} is {}'.format(i + 1, rms))                        
+                        print('Root mean square error {} is {} um (zernike coefficients)'.format(i + 1, rms))                        
 
                         # Append data to list
                         if config['dummy']:
@@ -486,7 +486,7 @@ class AO_Zernikes(QObject):
 
                         # Remove corresponding elements from slopes and rows from influence function matrix, zernike matrix and zernike derivative matrix
                         index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'].astype(int) + 1 == 0)[1]
-                        # print('Shape index_remove:', np.shape(index_remove))
+                        print('Shape index_remove:', np.shape(index_remove))
                         # print('index_remove:', index_remove)
                         index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
                         # print('Shape index_remove_inf:', np.shape(index_remove_inf))
@@ -531,7 +531,7 @@ class AO_Zernikes(QObject):
                         rms = np.sqrt((zern_err ** 2).mean())
                         self.loop_rms[i] = rms
                         
-                        print('Root mean square error {} is {}'.format(i + 1, rms))                        
+                        print('Root mean square error {} is {} um (zernike coefficients)'.format(i + 1, rms))                        
 
                         # Append data to list
                         if config['dummy']:
@@ -626,8 +626,7 @@ class AO_Zernikes(QObject):
                         if i == 0:
                             voltages = config['DM']['vol_bias']
                         else:
-                            zern_err[0 : 2, 0] = 0
-                            zern_err[3, 0] = 0
+                            zern_err[[0, 1, 3], 0] = 0
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
                                 zern_err[:config['AO']['control_coeff_num']] / 2))
 
@@ -746,7 +745,7 @@ class AO_Zernikes(QObject):
                         rms = np.sqrt((zern_err ** 2).mean())
                         self.loop_rms[i] = rms
 
-                        print('Root mean square error {} is {}'.format(i + 1, rms))                        
+                        print('Root mean square error {} is {} um (zernike coefficients)'.format(i + 1, rms))                       
 
                         # Append data to list
                         if config['dummy']:
@@ -841,8 +840,7 @@ class AO_Zernikes(QObject):
                         if i == 0:
                             voltages = config['DM']['vol_bias']
                         else:
-                            zern_err[0 : 2, 0] = 0
-                            zern_err[3, 0] = 0
+                            zern_err[[0, 1, 3], 0] = 0
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
                                 zern_err[:config['AO']['control_coeff_num']] / 2))
 
@@ -949,7 +947,7 @@ class AO_Zernikes(QObject):
 
                         # Remove corresponding elements from slopes and rows from influence function matrix, zernike matrix and zernike derivative matrix
                         index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'].astype(int) + 1 == 0)[1]
-                        # print('Shape index_remove:', np.shape(index_remove))
+                        print('Shape index_remove:', np.shape(index_remove))
                         # print('index_remove:', index_remove)
                         index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
                         # print('Shape index_remove_inf:', np.shape(index_remove_inf))
@@ -994,7 +992,7 @@ class AO_Zernikes(QObject):
                         rms = np.sqrt((zern_err ** 2).mean())
                         self.loop_rms[i] = rms
 
-                        print('Root mean square error {} is {}'.format(i + 1, rms))                        
+                        print('Root mean square error {} is {} um (zernike coefficients)'.format(i + 1, rms))                 
 
                         # Append data to list
                         if config['dummy']:
