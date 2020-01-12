@@ -144,8 +144,7 @@ class Calibration(QObject):
                                 inf_diff(elem_ref_cent_coord_x, elem_ref_cent_coord_y, xc, yc, j, act_diam, False)
                            
                     # Take pixel size and lenslet focal length into account
-                    self.inf_matrix_slopes = self.inf_matrix_slopes / self.SB_settings['pixel_size'] * config['lenslet']['lenslet_focal_length']\
-                        / self.SB_settings['pixel_size']
+                    self.inf_matrix_slopes = self.inf_matrix_slopes / self.SB_settings['pixel_size'] * config['lenslet']['lenslet_focal_length']
 
                     # print('Influence function is:', self.inf_matrix_slopes)
 
