@@ -30,7 +30,7 @@ def get_dset(settings, name, flag = 0):
         """
         Function to create HDF5 dataset with specified shape
         """
-        group.create_dataset(name, (0,) + data.shape, maxshape = (config['DM']['actuator_num'] * 2,) + data.shape, dtype = data.dtype)
+        group.create_dataset(name, (0,) + data.shape, maxshape = (500,) + data.shape, dtype = data.dtype)
 
     # Create dataset shape placeholders
     data_set_img = np.zeros([settings['sensor_width'], settings['sensor_height']])
@@ -118,14 +118,28 @@ def get_mat_dset(settings, flag = 1):
         flag = 2 - retrieve S-H spot slopes from phase data
     """
     # Retrieve phase data from .mat file
-    f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte.mat','r')
-    data = f.get('WrappedPhase')
+    # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte.mat','r')
+    # data = f.get('WrappedPhase')
+    f = h5py.File('sensorbasedAO/UnwrappedPhase_IMG_Blastocyte.mat','r')
+    data = f.get('UnwrappedPhase')
 
     # Interpolate to suitable size
-    data = np.array(data[-4,...]) * config['AO']['lambda'] / (2 * np.pi)  # -4
-    mag_fac = config['search_block']['pupil_diam'] / 7.216 * 4
-    data_interp = sp.ndimage.zoom(data, mag_fac).T
+    """
+    Notes regarding amplitude and frequency of aberrations at different sample positions:
 
+        1) 1, 16, 17, 20, 78, 141, 220 is good for demonstrating both AO_zernikes and AO_slopes (small and smooth);
+        2) 14, 220 is also good for demonstrating how tip, tilt, defocus are the dominant aberrations such that the DM doesn't need to
+            apply any corrections; 
+        2) 80 is good for demonstrating AO_zernikes strehl ratio = 0.796, but not reaching 0.8, therefore not breaking from the loop;
+        3) 100, 220 is good for demonstrating how the final rms slope error differs between AO_slopes_1 and AO_slopes_3 (1 < 3);
+        4) 54 is strongly aberrated in amplitude and gives obscured subapertures;
+        5) 58 brings the spots back well, but strehl ratio is limited to 0.758 due to a strong diagonal aberration
+        6) 91, 92 are so strongly aberrated that the spots are scattered all over the place
+    """
+    data = np.array(data[54,...]) * config['AO']['lambda'] / (2 * np.pi)  
+    mag_fac = config['search_block']['pupil_diam'] / 7.216 * 4
+    data_interp = sp.ndimage.zoom(data, mag_fac).T 
+    
     # Pad image to same dimension as sensor size
     data_pad = np.pad(data_interp, (math.ceil((settings['sensor_height'] - np.shape(data_interp)[0]) / 2),\
         math.ceil((settings['sensor_width'] - np.shape(data_interp)[1]) / 2)), 'constant', constant_values = (0, 0))

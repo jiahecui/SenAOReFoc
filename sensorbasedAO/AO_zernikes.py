@@ -101,7 +101,7 @@ class AO_Zernikes(QObject):
             delta_phase += inf(coord_xx, coord_yy, self.mirror_settings['act_pos_x'], self.mirror_settings['act_pos_y'],\
                 i, self.mirror_settings['act_diam']) * voltages[i]
 
-        delta_phase = delta_phase * pupil_mask * 2
+        delta_phase = delta_phase * pupil_mask
 
         print('Max and min values in delta_phase are: {} um, {} um'.format(np.amax(delta_phase), np.amin(delta_phase)))
 
@@ -166,9 +166,9 @@ class AO_Zernikes(QObject):
                             voltages = config['DM']['vol_bias']
                         else:
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
-                                zern_err[:config['AO']['control_coeff_num']] / 2))
+                                zern_err[:config['AO']['control_coeff_num']]))
 
-                            # print('Voltages {}: {}'.format(i, voltages))
+                            # print('Voltages {}: {}'.format(i, voltages.T))
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
                         if config['dummy']:
@@ -187,10 +187,10 @@ class AO_Zernikes(QObject):
                                     print('Max and min values of initial phase are: {} um, {} um'.format(np.amax(phase_init), np.amin(phase_init)))
 
                                     # Calculate strehl ratio of initial phase profile
-                                    strehl_init = self.strehl_calc(phase_init / (config['AO']['lambda'] / (2 * np.pi)))
-                                    self.strehl[i] = strehl_init
+                                    # strehl_init = self.strehl_calc(phase_init / (config['AO']['lambda'] / (2 * np.pi)))
+                                    # self.strehl[i] = strehl_init
 
-                                    print('Strehl ratio of initial phase is:', strehl_init)  
+                                    # print('Strehl ratio of initial phase is:', strehl_init)  
 
                                     # Retrieve slope data from initial phase profile to use as theoretical centroids for simulation of S-H spots
                                     spot_cent_slope_x, spot_cent_slope_y = get_mat_dset(self.SB_settings, flag = 2)
@@ -206,7 +206,7 @@ class AO_Zernikes(QObject):
                                     # print('spot_cent_slope_y:', spot_cent_slope_y)
 
                                     phase = phase_init.copy()
-                                    strehl = strehl_init.copy()
+                                    # strehl = strehl_init.copy()
 
                                 else:
 
@@ -225,10 +225,10 @@ class AO_Zernikes(QObject):
                                     print('Max and min values of phase are: {} um, {} um'.format(np.amax(phase), np.amin(phase)))
 
                                     # Calculate strehl ratio of updated phase profile
-                                    strehl = self.strehl_calc(phase / (config['AO']['lambda'] / (2 * np.pi)))
-                                    self.strehl[i] = strehl
+                                    # strehl = self.strehl_calc(phase / (config['AO']['lambda'] / (2 * np.pi)))
+                                    # self.strehl[i] = strehl
 
-                                    print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))
+                                    # print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))
 
                                     # Retrieve slope data from updated phase profile to use as theoretical centroids for simulation of S-H spots
                                     spot_cent_slope_x, spot_cent_slope_y = get_slope_from_phase(self.SB_settings, phase)
@@ -282,9 +282,13 @@ class AO_Zernikes(QObject):
                         # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                         zern_err = self.zern_coeff_detect.copy()
                         rms = np.sqrt((zern_err ** 2).mean())
-                        self.loop_rms[i] = rms 
+                        self.loop_rms[i] = rms
+
+                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms) ** 2)
+                        self.strehl[i] = strehl
 
                         print('Root mean square error {} is {} um (zernike coefficients)'.format(i + 1, rms))                        
+                        print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl)) 
 
                         # Append data to list
                         if config['dummy']:
@@ -299,7 +303,7 @@ class AO_Zernikes(QObject):
                             dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                        if strehl >= config['AO']['tolerance_fact_strehl']:
+                        if strehl >= config['AO']['tolerance_fact_strehl'] or rms <= config['AO']['tolerance_fact_zern']:
                             break                 
 
                     except Exception as e:
@@ -380,7 +384,7 @@ class AO_Zernikes(QObject):
                             voltages = config['DM']['vol_bias']
                         else:
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
-                                zern_err[:config['AO']['control_coeff_num']] / 2))
+                                zern_err[:config['AO']['control_coeff_num']]))
 
                             # print('Voltages {}: {}'.format(i, voltages))
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
@@ -401,10 +405,10 @@ class AO_Zernikes(QObject):
                                     print('Max and min values of initial phase are: {} um, {} um'.format(np.amax(phase_init), np.amin(phase_init)))
 
                                     # Calculate strehl ratio of initial phase profile
-                                    strehl_init = self.strehl_calc(phase_init / (config['AO']['lambda'] / (2 * np.pi)))
-                                    self.strehl[i] = strehl_init
+                                    # strehl_init = self.strehl_calc(phase_init / (config['AO']['lambda'] / (2 * np.pi)))
+                                    # self.strehl[i] = strehl_init
 
-                                    print('Strehl ratio of initial phase is:', strehl_init)  
+                                    # print('Strehl ratio of initial phase is:', strehl_init)  
 
                                     # Retrieve slope data from updated phase profile to use as theoretical centroids for simulation of S-H spots
                                     spot_cent_slope_x, spot_cent_slope_y = get_mat_dset(self.SB_settings, flag = 2)
@@ -420,7 +424,7 @@ class AO_Zernikes(QObject):
                                     # print('spot_cent_slope_y:', spot_cent_slope_y)
 
                                     phase = phase_init.copy()
-                                    strehl = strehl_init.copy()
+                                    # strehl = strehl_init.copy()
     
                                 else:
 
@@ -439,10 +443,10 @@ class AO_Zernikes(QObject):
                                     print('Max and min values of phase are: {} um, {} um'.format(np.amax(phase), np.amin(phase)))
 
                                     # Calculate strehl ratio of updated phase profile
-                                    strehl = self.strehl_calc(phase / (config['AO']['lambda'] / (2 * np.pi)))
-                                    self.strehl[i] = strehl
+                                    # strehl = self.strehl_calc(phase / (config['AO']['lambda'] / (2 * np.pi)))
+                                    # self.strehl[i] = strehl
 
-                                    print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))
+                                    # print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))
 
                                     # Retrieve slope data from initial phase profile to use as theoretical centroids for simulation of S-H spots
                                     spot_cent_slope_x, spot_cent_slope_y = get_slope_from_phase(self.SB_settings, phase)
@@ -487,22 +491,22 @@ class AO_Zernikes(QObject):
                         # Remove corresponding elements from slopes and rows from influence function matrix, zernike matrix and zernike derivative matrix
                         index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'].astype(int) + 1 == 0)[1]
                         print('Shape index_remove:', np.shape(index_remove))
-                        # print('index_remove:', index_remove)
+                        print('index_remove:', index_remove)
                         index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
-                        # print('Shape index_remove_inf:', np.shape(index_remove_inf))
-                        # print('index_remove_inf:', index_remove_inf)
+                        print('Shape index_remove_inf:', np.shape(index_remove_inf))
+                        print('index_remove_inf:', index_remove_inf)
                         slope_x = np.delete(slope_x, index_remove, axis = 1)
                         slope_y = np.delete(slope_y, index_remove, axis = 1)
-                        # print('Shape slope_x:', np.shape(slope_x))
-                        # print('Shape slope_y:', np.shape(slope_y))
+                        print('Shape slope_x:', np.shape(slope_x))
+                        print('Shape slope_y:', np.shape(slope_y))
                         act_cent_coord = np.delete(act_cent_coord, index_remove, axis = None)
-                        # print('Shape act_cent_coord:', np.shape(act_cent_coord))
+                        print('Shape act_cent_coord:', np.shape(act_cent_coord))
                         zern_matrix = np.delete(self.mirror_settings['zern_matrix'].copy(), index_remove, axis = 0)
-                        # print('Shape zern_matrix:', np.shape(zern_matrix))
+                        print('Shape zern_matrix:', np.shape(zern_matrix))
                         inf_matrix_slopes = np.delete(self.mirror_settings['inf_matrix_slopes'].copy(), index_remove_inf, axis = 0)
-                        # print('Shape inf_matrix_slopes:', np.shape(inf_matrix_slopes))
+                        print('Shape inf_matrix_slopes:', np.shape(inf_matrix_slopes))
                         diff_matrix = np.delete(self.mirror_settings['diff_matrix'].copy(), index_remove_inf, axis = 0)
-                        # print('Shape diff_matrix:', np.shape(diff_matrix))
+                        print('Shape diff_matrix:', np.shape(diff_matrix))
 
                         # Draw actual S-H spot centroids on image layer
                         AO_image.ravel()[act_cent_coord.astype(int)] = 0
@@ -530,8 +534,12 @@ class AO_Zernikes(QObject):
                         zern_err = self.zern_coeff_detect.copy()
                         rms = np.sqrt((zern_err ** 2).mean())
                         self.loop_rms[i] = rms
-                        
+
+                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms) ** 2)
+                        self.strehl[i] = strehl
+
                         print('Root mean square error {} is {} um (zernike coefficients)'.format(i + 1, rms))                        
+                        print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl)) 
 
                         # Append data to list
                         if config['dummy']:
@@ -546,7 +554,7 @@ class AO_Zernikes(QObject):
                             dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                        if strehl >= config['AO']['tolerance_fact_strehl']:
+                        if strehl >= config['AO']['tolerance_fact_strehl'] or rms <= config['AO']['tolerance_fact_zern']:
                             break                 
 
                     except Exception as e:
@@ -628,9 +636,9 @@ class AO_Zernikes(QObject):
                         else:
                             zern_err[[0, 1, 3], 0] = 0
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
-                                zern_err[:config['AO']['control_coeff_num']] / 2))
+                                zern_err[:config['AO']['control_coeff_num']]))
 
-                            # print('Voltages {}: {}'.format(i, voltages))
+                            print('Voltages {}: {}'.format(i, voltages.T))
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
                         
                         if config['dummy']:
@@ -649,10 +657,10 @@ class AO_Zernikes(QObject):
                                     print('Max and min values of initial phase are: {} um, {} um'.format(np.amax(phase_init), np.amin(phase_init)))
 
                                     # Calculate strehl ratio of initial phase profile
-                                    strehl_init = self.strehl_calc(phase_init / (config['AO']['lambda'] / (2 * np.pi)))
-                                    self.strehl[i] = strehl_init
+                                    # strehl_init = self.strehl_calc(phase_init / (config['AO']['lambda'] / (2 * np.pi)))
+                                    # self.strehl[i] = strehl_init
 
-                                    print('Strehl ratio of initial phase is:', strehl_init)  
+                                    # print('Strehl ratio of initial phase is:', strehl_init)  
 
                                     # Retrieve slope data from initial phase profile to use as theoretical centroids for simulation of S-H spots
                                     spot_cent_slope_x, spot_cent_slope_y = get_mat_dset(self.SB_settings, flag = 2)
@@ -668,7 +676,7 @@ class AO_Zernikes(QObject):
                                     # print('spot_cent_slope_y:', spot_cent_slope_y)
 
                                     phase = phase_init.copy()
-                                    strehl = strehl_init.copy()
+                                    # strehl = strehl_init.copy()
 
                                 else:
                                     # Calculate phase profile introduced by DM
@@ -686,10 +694,10 @@ class AO_Zernikes(QObject):
                                     print('Max and min values of phase are: {} um, {} um'.format(np.amax(phase), np.amin(phase)))
 
                                     # Calculate strehl ratio of updated phase profile
-                                    strehl = self.strehl_calc(phase / (config['AO']['lambda'] / (2 * np.pi)))
-                                    self.strehl[i] = strehl
+                                    # strehl = self.strehl_calc(phase / (config['AO']['lambda'] / (2 * np.pi)))
+                                    # self.strehl[i] = strehl
 
-                                    print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))
+                                    # print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))
 
                                     # Retrieve slope data from updated phase profile to use as theoretical centroids for simulation of S-H spots
                                     spot_cent_slope_x, spot_cent_slope_y = get_slope_from_phase(self.SB_settings, phase)
@@ -742,10 +750,15 @@ class AO_Zernikes(QObject):
 
                         # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                         zern_err = self.zern_coeff_detect.copy()
+                        zern_err[[0, 1, 3], 0] = 0
                         rms = np.sqrt((zern_err ** 2).mean())
                         self.loop_rms[i] = rms
 
-                        print('Root mean square error {} is {} um (zernike coefficients)'.format(i + 1, rms))                       
+                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms) ** 2)
+                        self.strehl[i] = strehl
+
+                        print('Root mean square error {} is {} um (zernike coefficients)'.format(i + 1, rms))                        
+                        print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))                     
 
                         # Append data to list
                         if config['dummy']:
@@ -760,7 +773,7 @@ class AO_Zernikes(QObject):
                             dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                        if strehl >= config['AO']['tolerance_fact_strehl']:
+                        if strehl >= config['AO']['tolerance_fact_strehl'] or rms <= config['AO']['tolerance_fact_zern']:
                             break                 
 
                     except Exception as e:
@@ -842,7 +855,7 @@ class AO_Zernikes(QObject):
                         else:
                             zern_err[[0, 1, 3], 0] = 0
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
-                                zern_err[:config['AO']['control_coeff_num']] / 2))
+                                zern_err[:config['AO']['control_coeff_num']]))
 
                             # print('Voltages {}: {}'.format(i, voltages))
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
@@ -863,10 +876,10 @@ class AO_Zernikes(QObject):
                                     print('Max and min values of initial phase are: {} um, {} um'.format(np.amax(phase_init), np.amin(phase_init)))
 
                                     # Calculate strehl ratio of initial phase profile
-                                    strehl_init = self.strehl_calc(phase_init / (config['AO']['lambda'] / (2 * np.pi)))
-                                    self.strehl[i] = strehl_init
+                                    # strehl_init = self.strehl_calc(phase_init / (config['AO']['lambda'] / (2 * np.pi)))
+                                    # self.strehl[i] = strehl_init
 
-                                    print('Strehl ratio of initial phase is:', strehl_init)  
+                                    # print('Strehl ratio of initial phase is:', strehl_init)  
 
                                     # Retrieve slope data from updated phase profile to use as theoretical centroids for simulation of S-H spots
                                     spot_cent_slope_x, spot_cent_slope_y = get_mat_dset(self.SB_settings, flag = 2)
@@ -882,7 +895,7 @@ class AO_Zernikes(QObject):
                                     # print('spot_cent_slope_y:', spot_cent_slope_y)
 
                                     phase = phase_init.copy()
-                                    strehl = strehl_init.copy()
+                                    # strehl = strehl_init.copy()
     
                                 else:
 
@@ -901,10 +914,10 @@ class AO_Zernikes(QObject):
                                     print('Max and min values of phase are: {} um, {} um'.format(np.amax(phase), np.amin(phase)))
 
                                     # Calculate strehl ratio of updated phase profile
-                                    strehl = self.strehl_calc(phase / (config['AO']['lambda'] / (2 * np.pi)))
-                                    self.strehl[i] = strehl
+                                    # strehl = self.strehl_calc(phase / (config['AO']['lambda'] / (2 * np.pi)))
+                                    # self.strehl[i] = strehl
 
-                                    print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))
+                                    # print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))
 
                                     # Retrieve slope data from initial phase profile to use as theoretical centroids for simulation of S-H spots
                                     spot_cent_slope_x, spot_cent_slope_y = get_slope_from_phase(self.SB_settings, phase)
@@ -920,7 +933,7 @@ class AO_Zernikes(QObject):
                                     # print('spot_cent_slope_y:', spot_cent_slope_y)
                             else:
 
-                                self.done.emit(2)
+                                self.done.emit(4)
                         else:
 
                             # Send values vector to mirror
@@ -989,10 +1002,15 @@ class AO_Zernikes(QObject):
 
                         # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                         zern_err = self.zern_coeff_detect.copy()
+                        zern_err[[0, 1, 3], 0] = 0
                         rms = np.sqrt((zern_err ** 2).mean())
                         self.loop_rms[i] = rms
 
-                        print('Root mean square error {} is {} um (zernike coefficients)'.format(i + 1, rms))                 
+                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms) ** 2)
+                        self.strehl[i] = strehl
+
+                        print('Root mean square error {} is {} um (zernike coefficients)'.format(i + 1, rms))                        
+                        print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))                  
 
                         # Append data to list
                         if config['dummy']:

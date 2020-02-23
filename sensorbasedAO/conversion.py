@@ -138,9 +138,6 @@ class Conversion(QObject):
 
                 svd_check_conv = np.dot(self.conv_matrix, self.diff_matrix)
 
-                # Modify unit of conversion matrix from None to um / pixel in order to convert from pixels -> um during slope - zernike conversion
-                self.conv_matrix = self.conv_matrix * self.SB_settings['pixel_size']
-
                 self.message.emit('Zernike matrix and slope - zernike conversion matrix retrieved.')
                 # print('Conversion matrix is:', self.conv_matrix)
                 # print('Shape of conversion matrix is:', np.shape(self.conv_matrix))

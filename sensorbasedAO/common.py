@@ -69,11 +69,11 @@ def get_slope_from_phase(settings, phase):
                 len(SB_pix_coord_y), math.ceil(SB_pix_coord_x[j])], 1)[0] 
 
         # Calculate average wavefront tilt within each search block
-        a_x_ave = -np.mean(a_x) / settings['pixel_size']
-        a_y_ave = -np.mean(a_y) / settings['pixel_size']
+        a_x_ave = -np.mean(a_x) #/ settings['pixel_size']
+        a_y_ave = -np.mean(a_y) #/ settings['pixel_size']
 
         # Calculate S-H spot centroid position along x and y axis
-        slope_x[i] = a_x_ave * config['lenslet']['lenslet_focal_length'] / settings['pixel_size']
-        slope_y[i] = a_y_ave * config['lenslet']['lenslet_focal_length'] / settings['pixel_size']
+        slope_x[i] = a_x_ave / settings['pixel_size'] * config['lenslet']['lenslet_focal_length'] 
+        slope_y[i] = a_y_ave / settings['pixel_size'] * config['lenslet']['lenslet_focal_length'] 
 
     return slope_x, slope_y

@@ -31,7 +31,7 @@ DM:
   actuator_num: 69
   pitch: 1500  # um
   aperture: 10.5  # mm
-  coupling_fac: 0.13  # Inter-actuator coupling factor
+  coupling_fac: 0.3  # Inter-actuator coupling factor
   vol_min: -1  # V
   vol_max: 1
   vol_bias: 0
@@ -44,31 +44,33 @@ relay:
 
 lenslet:
   lenslet_pitch: 500  # um
-  lenslet_focal_length: 45000  # um
+  lenslet_focal_length: 25000  # um
 
 search_block:
   div_elem: 5  # Number of elements in each dimension of a search block
+  int_thres: 50  # Maximum intensity threshold within search block below which S-H spot will be considered as obscured
   outline_int: 255  # uint8
   pupil_diam: 7.216  # mm 7.216 8.4
 
 image:
   noise: 0
   threshold: 0  # Percentage of maximum pixel used for thresholding an image
-  dynamic_num: 2  # Number of cycles to use for centroiding with a dynamic range
+  dynamic_num: 1  # Number of cycles to use for centroiding with a dynamic range
   normalise: 1  # 0-normalise off, 1-normalise on
   norm_min: 0  # Below which will clip to 0, uint8
   norm_max: 255  # Above which will clip to 1, uint8
   rescale: 1  # 0-rescale off, 1-rescale on
 
 AO:
-  recon_coeff_num: 60
-  control_coeff_num: 37
-  loop_gain: 0.1  # Fixed loop gain for closed-loop control
-  loop_max: 50  # Maximum number of loops for closed-loop control
-  lambda: 0.83  # um
-  tolerance_fact_zern: 0.06  # RMS error tolerance factor via zernikes, = lambda / 14 um
-  tolerance_fact_slopes: 0.001
-  tolerance_fact_strehl: 0.81
+  recon_coeff_num: 100
+  control_coeff_num: 45  # Eighth order Zernike mode ~ 9th-55, 10th-66
+  loop_gain: 0.9  # Fixed loop gain for closed-loop control, 0.6
+  loop_max: 4  # Maximum number of loops for closed-loop control
+  suppress_gain: 1000  # Gain factor used to suppress certain zernike modes
+  lambda: 0.63  # um
+  tolerance_fact_zern: 0.045  # RMS error tolerance factor via zernikes, = lambda / 14 um
+  tolerance_fact_slopes: 0.5
+  tolerance_fact_strehl: 0.8
   momentum: 
 
 dummy: 1  # Flag for whether to run in dummy mode, 0-real mode, 1-dummy mode

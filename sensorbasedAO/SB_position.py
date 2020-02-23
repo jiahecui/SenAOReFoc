@@ -82,25 +82,27 @@ class Positioning(QObject):
 
             # Acquire S-H spot image, use simulated Gaussian profile S-H spot image, or use real phase data
             if self.acquire:
-
-                # Acquire image
-                if config['dummy']:
-                    if config['real_phase']:
-                        # Retrieve slope data and S-H spot image from real phase data
-                        slope_x, slope_y = get_mat_dset(self.SB_settings, flag = 2)
-                        spot_img = SpotSim(self.SB_settings)
-                        self._image, self.spot_cent_x, self.spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = slope_x, yc = slope_y)
+                try:
+                    # Acquire image
+                    if config['dummy']:
+                        if config['real_phase']:
+                            # Retrieve slope data and S-H spot image from real phase data
+                            slope_x, slope_y = get_mat_dset(self.SB_settings, flag = 2)
+                            spot_img = SpotSim(self.SB_settings)
+                            self._image, self.spot_cent_x, self.spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = slope_x, yc = slope_y)
+                        else:
+                            # Retrieve simulated Gaussian profile spots
+                            spot_img = SpotSim(self.SB_settings)
+                            self._image, self.spot_cent_x, self.spot_cent_y = spot_img.SH_spot_sim(centred = 0)
                     else:
-                        # Retrieve simulated Gaussian profile spots
-                        spot_img = SpotSim(self.SB_settings)
-                        self._image, self.spot_cent_x, self.spot_cent_y = spot_img.SH_spot_sim(centred = 0)
-                else:
-                    self._image = acq_image(self.sensor, self.sensor_width, self.sensor_height, acq_mode = 0)               
-                               
-                # Image thresholding to remove background
-                self._image = self._image - config['image']['threshold'] * np.amax(self._image)
-                self._image[self._image < 0] = 0
-                self.image.emit(self._image)
+                        self._image = acq_image(self.sensor, self.sensor_width, self.sensor_height, acq_mode = 0)               
+                                
+                    # Image thresholding to remove background
+                    self._image = self._image - config['image']['threshold'] * np.amax(self._image)
+                    self._image[self._image < 0] = 0
+                    self.image.emit(self._image)
+                except Exception as e:
+                    print(e)
             else:
 
                 self.done.emit()

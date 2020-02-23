@@ -175,6 +175,9 @@ class Calibration(QObject):
                         self.slope_x[2 * i + 1, :] = np.dot(self.inf_matrix_slopes, voltages_temp)[:self.SB_settings['act_ref_cent_num']]
                         self.slope_y[2 * i + 1, :] = np.dot(self.inf_matrix_slopes, voltages_temp)[self.SB_settings['act_ref_cent_num']:]
 
+                    print('Largest and smallest slope value for unit voltage along x axis: {}, {}'.format(np.amax(self.slope_x), np.amin(self.slope_x)))
+                    print('Largest and smallest slope value for unit voltage along y axis: {}, {}'.format(np.amax(self.slope_y), np.amin(self.slope_y)))
+
                     self.message.emit('DM calibration process finished.')
                     # print('Control matrix is:', self.control_matrix_slopes)
                     # print('Shape of control matrix is:', np.shape(self.control_matrix_slopes))
