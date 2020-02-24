@@ -54,7 +54,8 @@ class AO_Zernikes(QObject):
         self.zern_coeff = np.zeros([config['AO']['control_coeff_num'], 1])
         
         # Initialise array to record root mean square error and strehl ratio after each iteration
-        self.loop_rms = np.zeros(config['AO']['loop_max'])
+        self.loop_rms_zern = np.zeros(config['AO']['loop_max'])
+        self.loop_rms_zern_part = np.zeros(config['AO']['loop_max'])
         self.strehl = np.zeros(config['AO']['loop_max'])
 
         super().__init__()
@@ -281,13 +282,18 @@ class AO_Zernikes(QObject):
 
                         # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                         zern_err = self.zern_coeff_detect.copy()
-                        rms = np.sqrt((zern_err ** 2).mean())
-                        self.loop_rms[i] = rms
+                        zern_err_part = self.zern_coeff_detect.copy()
+                        zern_err_part[[0, 1, 3], 0] = 0
+                        rms_zern = np.sqrt((zern_err ** 2).mean())
+                        rms_zern_part = np.sqrt((zern_err_part ** 2).mean())
+                        self.loop_rms_zern[i] = rms_zern
+                        self.loop_rms_zern_part[i] = rms_zern_part
 
-                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms) ** 2)
+                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern) ** 2)
                         self.strehl[i] = strehl
 
-                        print('Root mean square error {} is {} um (zernike coefficients)'.format(i + 1, rms))                        
+                        print('Full zernike root mean square error {} is {} um'.format(i + 1, rms_zern))
+                        print('Partial zernike root mean square error {} is {} um'.format(i + 1, rms_zern_part))                        
                         print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl)) 
 
                         # Append data to list
@@ -303,7 +309,7 @@ class AO_Zernikes(QObject):
                             dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                        if strehl >= config['AO']['tolerance_fact_strehl'] or rms <= config['AO']['tolerance_fact_zern']:
+                        if strehl >= config['AO']['tolerance_fact_strehl'] or rms_zern <= config['AO']['tolerance_fact_zern']:
                             break                 
 
                     except Exception as e:
@@ -316,7 +322,7 @@ class AO_Zernikes(QObject):
             data_file.close()
 
             self.message.emit('Process complete.')
-            print('Final root mean square error of detected wavefront is: {} microns'.format(rms))
+            print('Final root mean square error of detected wavefront is: {} microns'.format(rms_zern))
 
             prev2 = time.perf_counter()
             print('Time for closed-loop AO process is:', (prev2 - prev1))
@@ -327,7 +333,8 @@ class AO_Zernikes(QObject):
             if self.log:
 
                 self.AO_info['zern_AO_1']['loop_num'] = i + 1
-                self.AO_info['zern_AO_1']['residual_phase_err_1'] = self.loop_rms
+                self.AO_info['zern_AO_1']['residual_phase_err_zern'] = self.loop_rms_zern
+                self.AO_info['zern_AO_1']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['zern_AO_1']['strehl_ratio'] = self.strehl
 
                 self.info.emit(self.AO_info)
@@ -489,39 +496,46 @@ class AO_Zernikes(QObject):
                         # print('slope_y:', slope_y)
 
                         # Remove corresponding elements from slopes and rows from influence function matrix, zernike matrix and zernike derivative matrix
-                        index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'].astype(int) + 1 == 0)[1]
+                        if config['dummy'] == 1:
+                            index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'].astype(int) + 1 == 0)[1]
+                        else:
+                            index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'] == 0)[1]
                         print('Shape index_remove:', np.shape(index_remove))
                         print('index_remove:', index_remove)
                         index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
-                        print('Shape index_remove_inf:', np.shape(index_remove_inf))
-                        print('index_remove_inf:', index_remove_inf)
+                        # print('Shape index_remove_inf:', np.shape(index_remove_inf))
+                        # print('index_remove_inf:', index_remove_inf)
                         slope_x = np.delete(slope_x, index_remove, axis = 1)
                         slope_y = np.delete(slope_y, index_remove, axis = 1)
-                        print('Shape slope_x:', np.shape(slope_x))
-                        print('Shape slope_y:', np.shape(slope_y))
+                        # print('Shape slope_x:', np.shape(slope_x))
+                        # print('Shape slope_y:', np.shape(slope_y))
                         act_cent_coord = np.delete(act_cent_coord, index_remove, axis = None)
-                        print('Shape act_cent_coord:', np.shape(act_cent_coord))
-                        zern_matrix = np.delete(self.mirror_settings['zern_matrix'].copy(), index_remove, axis = 0)
-                        print('Shape zern_matrix:', np.shape(zern_matrix))
+                        # print('Shape act_cent_coord:', np.shape(act_cent_coord))
+                        # zern_matrix = np.delete(self.mirror_settings['zern_matrix'].copy(), index_remove, axis = 0)
+                        # print('Shape zern_matrix:', np.shape(zern_matrix))
                         inf_matrix_slopes = np.delete(self.mirror_settings['inf_matrix_slopes'].copy(), index_remove_inf, axis = 0)
-                        print('Shape inf_matrix_slopes:', np.shape(inf_matrix_slopes))
-                        diff_matrix = np.delete(self.mirror_settings['diff_matrix'].copy(), index_remove_inf, axis = 0)
-                        print('Shape diff_matrix:', np.shape(diff_matrix))
+                        # print('Shape inf_matrix_slopes:', np.shape(inf_matrix_slopes))
+                        # diff_matrix = np.delete(self.mirror_settings['diff_matrix'].copy(), index_remove_inf, axis = 0)
+                        # print('Shape diff_matrix:', np.shape(diff_matrix))
+                        conv_matrix = np.delete(self.mirror_settings['conv_matrix'].copy(), index_remove_inf, axis = 1)
+                        # print('Shape conv_matrix:', np.shape(conv_matrix))
 
+                        """
                         # Draw actual S-H spot centroids on image layer
                         AO_image.ravel()[act_cent_coord.astype(int)] = 0
                         self.image.emit(AO_image)
 
                         # Recalculate Cholesky decomposition of np.dot(zern_matrix.T, zern_matrix)
                         p_matrix = np.linalg.cholesky(np.dot(zern_matrix.T, zern_matrix))
-                        # print('Shape p_matrix:', np.shape(p_matrix))
+                        print('Shape p_matrix:', np.shape(p_matrix))
 
                         # Recalculate conversion matrix
                         conv_matrix = np.dot(p_matrix, np.linalg.pinv(diff_matrix))
-                        # print('Shape conv_matrix:', np.shape(conv_matrix))
+                        print('Shape conv_matrix:', np.shape(conv_matrix))
+                        """
 
                         # Recalculate control function via zernikes
-                        control_matrix_zern = np.linalg.pinv(np.dot(conv_matrix, inf_matrix_slopes))
+                        control_matrix_zern = np.linalg.pinv(np.dot(conv_matrix, inf_matrix_slopes))[:, :config['AO']['control_coeff_num']]
                         # print('Shape control_matrix_zern:', np.shape(control_matrix_zern))
 
                         # Concatenate slopes into one slope matrix
@@ -532,13 +546,18 @@ class AO_Zernikes(QObject):
 
                         # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                         zern_err = self.zern_coeff_detect.copy()
-                        rms = np.sqrt((zern_err ** 2).mean())
-                        self.loop_rms[i] = rms
+                        zern_err_part = self.zern_coeff_detect.copy()
+                        zern_err_part[[0, 1, 3], 0] = 0
+                        rms_zern = np.sqrt((zern_err ** 2).mean())
+                        rms_zern_part = np.sqrt((zern_err_part ** 2).mean())
+                        self.loop_rms_zern[i] = rms_zern
+                        self.loop_rms_zern_part[i] = rms_zern_part
 
-                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms) ** 2)
+                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern) ** 2)
                         self.strehl[i] = strehl
 
-                        print('Root mean square error {} is {} um (zernike coefficients)'.format(i + 1, rms))                        
+                        print('Full zernike root mean square error {} is {} um'.format(i + 1, rms_zern))
+                        print('Partial zernike root mean square error {} is {} um'.format(i + 1, rms_zern_part))                        
                         print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl)) 
 
                         # Append data to list
@@ -554,7 +573,7 @@ class AO_Zernikes(QObject):
                             dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                        if strehl >= config['AO']['tolerance_fact_strehl'] or rms <= config['AO']['tolerance_fact_zern']:
+                        if strehl >= config['AO']['tolerance_fact_strehl'] or rms_zern <= config['AO']['tolerance_fact_zern']:
                             break                 
 
                     except Exception as e:
@@ -567,7 +586,7 @@ class AO_Zernikes(QObject):
             data_file.close()
 
             self.message.emit('Process complete.')
-            print('Final root mean square error of detected wavefront is: {} microns'.format(rms))
+            print('Final root mean square error of detected wavefront is: {} microns'.format(rms_zern))
 
             prev2 = time.perf_counter()
             print('Time for closed-loop AO process is:', (prev2 - prev1))
@@ -578,7 +597,8 @@ class AO_Zernikes(QObject):
             if self.log:
 
                 self.AO_info['zern_AO_2']['loop_num'] = i
-                self.AO_info['zern_AO_2']['residual_phase_err_1'] = self.loop_rms
+                self.AO_info['zern_AO_2']['residual_phase_err_zern'] = self.loop_rms_zern
+                self.AO_info['zern_AO_2']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['zern_AO_2']['strehl_ratio'] = self.strehl
 
                 self.info.emit(self.AO_info)
@@ -634,11 +654,10 @@ class AO_Zernikes(QObject):
                         if i == 0:
                             voltages = config['DM']['vol_bias']
                         else:
-                            zern_err[[0, 1, 3], 0] = 0
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
-                                zern_err[:config['AO']['control_coeff_num']]))
+                                zern_err_part[:config['AO']['control_coeff_num']]))
 
-                            print('Voltages {}: {}'.format(i, voltages.T))
+                            # print('Voltages {}: {}'.format(i, voltages.T))
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
                         
                         if config['dummy']:
@@ -750,14 +769,18 @@ class AO_Zernikes(QObject):
 
                         # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                         zern_err = self.zern_coeff_detect.copy()
-                        zern_err[[0, 1, 3], 0] = 0
-                        rms = np.sqrt((zern_err ** 2).mean())
-                        self.loop_rms[i] = rms
+                        zern_err_part = self.zern_coeff_detect.copy()
+                        zern_err_part[[0, 1, 3], 0] = 0
+                        rms_zern = np.sqrt((zern_err ** 2).mean())
+                        rms_zern_part = np.sqrt((zern_err_part ** 2).mean())
+                        self.loop_rms_zern[i] = rms_zern
+                        self.loop_rms_zern_part[i] = rms_zern_part
 
-                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms) ** 2)
+                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern) ** 2)
                         self.strehl[i] = strehl
 
-                        print('Root mean square error {} is {} um (zernike coefficients)'.format(i + 1, rms))                        
+                        print('Full zernike root mean square error {} is {} um'.format(i + 1, rms_zern))
+                        print('Partial zernike root mean square error {} is {} um'.format(i + 1, rms_zern_part))                        
                         print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))                     
 
                         # Append data to list
@@ -773,7 +796,7 @@ class AO_Zernikes(QObject):
                             dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                        if strehl >= config['AO']['tolerance_fact_strehl'] or rms <= config['AO']['tolerance_fact_zern']:
+                        if strehl >= config['AO']['tolerance_fact_strehl'] or rms_zern <= config['AO']['tolerance_fact_zern']:
                             break                 
 
                     except Exception as e:
@@ -786,7 +809,7 @@ class AO_Zernikes(QObject):
             data_file.close()
 
             self.message.emit('Process complete.')
-            print('Final root mean square error of detected wavefront is: {} microns'.format(rms))
+            print('Final root mean square error of detected wavefront is: {} microns'.format(rms_zern))
 
             prev2 = time.perf_counter()
             print('Time for closed-loop AO process is:', (prev2 - prev1))
@@ -797,7 +820,8 @@ class AO_Zernikes(QObject):
             if self.log:
 
                 self.AO_info['zern_AO_3']['loop_num'] = i
-                self.AO_info['zern_AO_3']['residual_phase_err_1'] = self.loop_rms
+                self.AO_info['zern_AO_3']['residual_phase_err_zern'] = self.loop_rms_zern
+                self.AO_info['zern_AO_3']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['zern_AO_3']['strehl_ratio'] = self.strehl
 
                 self.info.emit(self.AO_info)
@@ -853,9 +877,8 @@ class AO_Zernikes(QObject):
                         if i == 0:
                             voltages = config['DM']['vol_bias']
                         else:
-                            zern_err[[0, 1, 3], 0] = 0
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
-                                zern_err[:config['AO']['control_coeff_num']]))
+                                zern_err_part[:config['AO']['control_coeff_num']]))
 
                             # print('Voltages {}: {}'.format(i, voltages))
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
@@ -959,9 +982,12 @@ class AO_Zernikes(QObject):
                         # print('slope_y:', slope_y)
 
                         # Remove corresponding elements from slopes and rows from influence function matrix, zernike matrix and zernike derivative matrix
-                        index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'].astype(int) + 1 == 0)[1]
+                        if config['dummy'] == 1:
+                            index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'].astype(int) + 1 == 0)[1]
+                        else:
+                            index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'] == 0)[1]
                         print('Shape index_remove:', np.shape(index_remove))
-                        # print('index_remove:', index_remove)
+                        print('index_remove:', index_remove)
                         index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
                         # print('Shape index_remove_inf:', np.shape(index_remove_inf))
                         # print('index_remove_inf:', index_remove_inf)
@@ -971,17 +997,20 @@ class AO_Zernikes(QObject):
                         # print('Shape slope_y:', np.shape(slope_y))
                         act_cent_coord = np.delete(act_cent_coord, index_remove, axis = None)
                         # print('Shape act_cent_coord:', np.shape(act_cent_coord))
-                        zern_matrix = np.delete(self.mirror_settings['zern_matrix'].copy(), index_remove, axis = 0)
+                        # zern_matrix = np.delete(self.mirror_settings['zern_matrix'].copy(), index_remove, axis = 0)
                         # print('Shape zern_matrix:', np.shape(zern_matrix))
                         inf_matrix_slopes = np.delete(self.mirror_settings['inf_matrix_slopes'].copy(), index_remove_inf, axis = 0)
                         # print('Shape inf_matrix_slopes:', np.shape(inf_matrix_slopes))
-                        diff_matrix = np.delete(self.mirror_settings['diff_matrix'].copy(), index_remove_inf, axis = 0)
+                        # diff_matrix = np.delete(self.mirror_settings['diff_matrix'].copy(), index_remove_inf, axis = 0)
                         # print('Shape diff_matrix:', np.shape(diff_matrix))
+                        conv_matrix = np.delete(self.mirror_settings['conv_matrix'].copy(), index_remove_inf, axis = 1)
+                        # print('Shape conv_matrix:', np.shape(conv_matrix))
 
                         # Draw actual S-H spot centroids on image layer
                         AO_image.ravel()[act_cent_coord.astype(int)] = 0
                         self.image.emit(AO_image)
 
+                        """
                         # Recalculate Cholesky decomposition of np.dot(zern_matrix.T, zern_matrix)
                         p_matrix = np.linalg.cholesky(np.dot(zern_matrix.T, zern_matrix))
                         # print('Shape p_matrix:', np.shape(p_matrix))
@@ -993,6 +1022,7 @@ class AO_Zernikes(QObject):
                         # Recalculate control function via zernikes
                         control_matrix_zern = np.linalg.pinv(np.dot(conv_matrix, inf_matrix_slopes))
                         # print('Shape control_matrix_zern:', np.shape(control_matrix_zern))
+                        """
 
                         # Concatenate slopes into one slope matrix
                         slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
@@ -1002,14 +1032,18 @@ class AO_Zernikes(QObject):
 
                         # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                         zern_err = self.zern_coeff_detect.copy()
-                        zern_err[[0, 1, 3], 0] = 0
-                        rms = np.sqrt((zern_err ** 2).mean())
-                        self.loop_rms[i] = rms
+                        zern_err_part = self.zern_coeff_detect.copy()
+                        zern_err_part[[0, 1, 3], 0] = 0
+                        rms_zern = np.sqrt((zern_err ** 2).mean())
+                        rms_zern_part = np.sqrt((zern_err_part ** 2).mean())
+                        self.loop_rms_zern[i] = rms_zern
+                        self.loop_rms_zern_part[i] = rms_zern_part
 
-                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms) ** 2)
+                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern) ** 2)
                         self.strehl[i] = strehl
 
-                        print('Root mean square error {} is {} um (zernike coefficients)'.format(i + 1, rms))                        
+                        print('Full zernike root mean square error {} is {} um'.format(i + 1, rms_zern))
+                        print('Partial zernike root mean square error {} is {} um'.format(i + 1, rms_zern_part))                        
                         print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))                  
 
                         # Append data to list
@@ -1025,7 +1059,7 @@ class AO_Zernikes(QObject):
                             dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                        if strehl >= config['AO']['tolerance_fact_strehl']:
+                        if strehl >= config['AO']['tolerance_fact_strehl'] or rms_zern <= config['AO']['tolerance_fact_zern']:
                             break                 
 
                     except Exception as e:
@@ -1038,7 +1072,7 @@ class AO_Zernikes(QObject):
             data_file.close()
 
             self.message.emit('Process complete.')
-            print('Final root mean square error of detected wavefront is: {} microns'.format(rms))
+            print('Final root mean square error of detected wavefront is: {} microns'.format(rms_zern))
 
             prev2 = time.perf_counter()
             print('Time for closed-loop AO process is:', (prev2 - prev1))
@@ -1049,7 +1083,8 @@ class AO_Zernikes(QObject):
             if self.log:
 
                 self.AO_info['zern_AO_full']['loop_num'] = i
-                self.AO_info['zern_AO_full']['residual_phase_err_1'] = self.loop_rms
+                self.AO_info['zern_AO_full']['residual_phase_err_zern'] = self.loop_rms_zern
+                self.AO_info['zern_AO_full']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['zern_AO_full']['strehl_ratio'] = self.strehl
 
                 self.info.emit(self.AO_info)

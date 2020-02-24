@@ -30,7 +30,7 @@ def get_dset(settings, name, flag = 0):
         """
         Function to create HDF5 dataset with specified shape
         """
-        group.create_dataset(name, (0,) + data.shape, maxshape = (500,) + data.shape, dtype = data.dtype)
+        group.create_dataset(name, (0,) + data.shape, maxshape = (100,) + data.shape, dtype = data.dtype)
 
     # Create dataset shape placeholders
     data_set_img = np.zeros([settings['sensor_width'], settings['sensor_height']])
@@ -133,10 +133,14 @@ def get_mat_dset(settings, flag = 1):
         2) 80 is good for demonstrating AO_zernikes strehl ratio = 0.796, but not reaching 0.8, therefore not breaking from the loop;
         3) 100, 220 is good for demonstrating how the final rms slope error differs between AO_slopes_1 and AO_slopes_3 (1 < 3);
         4) 54 is strongly aberrated in amplitude and gives obscured subapertures;
-        5) 58 brings the spots back well, but strehl ratio is limited to 0.758 due to a strong diagonal aberration
-        6) 91, 92 are so strongly aberrated that the spots are scattered all over the place
+        5) 58 brings the spots back well, but strehl ratio is limited to 0.758 due to a strong diagonal aberration;
+        6) 91, 92 are so strongly aberrated that the spots are scattered all over the place;
+        7) 176 is good for demonstrating how AO_slopes brings strehl ratio to 0.82, but AO_zernikes only reaches 0.79;
+        8) 99, 100 is good for demonstration of large but smooth amplitude phase variation -> correctable to 0.81;
+        9) 102 is good for demonstration of relatively small and smooth phase variation -> only correctable to 0.55 for AO_zernikes,
+            0.51 for AO_slopes
     """
-    data = np.array(data[54,...]) * config['AO']['lambda'] / (2 * np.pi)  
+    data = np.array(data[105,...]) * config['AO']['lambda'] / (2 * np.pi)  
     mag_fac = config['search_block']['pupil_diam'] / 7.216 * 4
     data_interp = sp.ndimage.zoom(data, mag_fac).T 
     

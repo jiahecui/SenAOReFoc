@@ -51,7 +51,9 @@ class AO_Slopes(QObject):
         self.mirror = mirror
         
         # Initialise array to record root mean square error and strehl ratio after each iteration
-        self.loop_rms = np.zeros(config['AO']['loop_max'])
+        self.loop_rms_slopes = np.zeros(config['AO']['loop_max'])
+        self.loop_rms_zern = np.zeros(config['AO']['loop_max'])
+        self.loop_rms_zern_part = np.zeros(config['AO']['loop_max'])
         self.strehl = np.zeros(config['AO']['loop_max'])
 
         super().__init__()
@@ -164,7 +166,7 @@ class AO_Slopes(QObject):
                         else:
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_slopes'], slope_err))
                             
-                            print('Voltages {}: {}'.format(i, voltages.T))
+                            # print('Voltages {}: {}'.format(i, voltages.T))
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
                         if config['dummy']:
@@ -276,21 +278,27 @@ class AO_Slopes(QObject):
                         # Get phase residual (slope residual error) and calculate root mean square (rms) error
                         slope_err = slope.copy()
                         rms_slope = np.sqrt((slope_err ** 2).mean())
-                        self.loop_rms[i] = rms_slope
+                        self.loop_rms_slopes[i] = rms_slope
 
-                        print('Root mean square error of slope value {} is {} pixels (slope value)'.format(i + 1, rms_slope))
+                        print('Slope root mean square error {} is {} pixels'.format(i + 1, rms_slope))
 
                         # Get detected zernike coefficients from slope matrix
                         self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
 
                         # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                         zern_err = self.zern_coeff_detect.copy()
+                        zern_err_part = self.zern_coeff_detect.copy()
+                        zern_err_part[[0, 1, 3], 0] = 0
                         rms_zern = np.sqrt((zern_err ** 2).mean())
+                        rms_zern_part = np.sqrt((zern_err_part ** 2).mean())
+                        self.loop_rms_zern[i] = rms_zern
+                        self.loop_rms_zern_part[i] = rms_zern_part
 
                         strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern) ** 2)
                         self.strehl[i] = strehl
 
-                        print('Root mean square error {} is {} um (zernike coefficients)'.format(i + 1, rms_zern))                        
+                        print('Full zernike root mean square error {} is {} um'.format(i + 1, rms_zern))
+                        print('Partial zernike root mean square error {} is {} um'.format(i + 1, rms_zern_part))                        
                         print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))                        
 
                         # Append data to list
@@ -299,11 +307,13 @@ class AO_Slopes(QObject):
                             dset_append(data_set_2, 'dummy_spot_slope_y', slope_y)
                             dset_append(data_set_2, 'dummy_spot_slope', slope)
                             dset_append(data_set_2, 'dummy_spot_slope_err', slope_err)
+                            dset_append(data_set_2, 'dummy_spot_zern_err', zern_err)
                         else:
                             dset_append(data_set_2, 'real_spot_slope_x', slope_x)
                             dset_append(data_set_2, 'real_spot_slope_y', slope_y)
                             dset_append(data_set_2, 'real_spot_slope', slope)
                             dset_append(data_set_2, 'real_spot_slope_err', slope_err)
+                            dset_append(data_set_2, 'dummy_spot_zern_err', zern_err)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
                         if strehl >= config['AO']['tolerance_fact_strehl']:
@@ -330,7 +340,9 @@ class AO_Slopes(QObject):
             if self.log:
 
                 self.AO_info['slope_AO_1']['loop_num'] = i + 1
-                self.AO_info['slope_AO_1']['residual_phase_err_1'] = self.loop_rms
+                self.AO_info['slope_AO_1']['residual_phase_err_slopes'] = self.loop_rms_slopes
+                self.AO_info['slope_AO_1']['residual_phase_err_zern'] = self.loop_rms_zern
+                self.AO_info['slope_AO_1']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['slope_AO_1']['strehl_ratio'] = self.strehl
 
                 self.info.emit(self.AO_info)
@@ -491,9 +503,12 @@ class AO_Slopes(QObject):
                         # print('slope_y:', slope_y)
 
                         # Remove corresponding elements from slopes and rows from influence function matrix
-                        index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'].astype(int) + 1 == 0)[1]
+                        if config['dummy'] == 1:
+                            index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'].astype(int) + 1 == 0)[1]
+                        else:
+                            index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'] == 0)[1]
                         print('Shape index_remove:', np.shape(index_remove))
-                        # print('index_remove:', index_remove)
+                        print('index_remove:', index_remove)
                         index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
                         # print('Shape index_remove_inf:', np.shape(index_remove_inf))
                         # print('index_remove_inf:', index_remove_inf)
@@ -527,34 +542,42 @@ class AO_Slopes(QObject):
                         # Get phase residual (slope residual error) and calculate root mean square (rms) error
                         slope_err = slope.copy()
                         rms_slope = np.sqrt((slope_err ** 2).mean())
-                        self.loop_rms[i] = rms_slope
+                        self.loop_rms_slopes[i] = rms_slope
 
-                        print('Root mean square error of slope value {} is {} pixels (slope value)'.format(i + 1, rms_slope))
+                        print('Slope root mean square error {} is {} pixels'.format(i + 1, rms_slope))
 
                         # Get detected zernike coefficients from slope matrix
                         self.zern_coeff_detect = np.dot(conv_matrix, slope)
 
                         # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                         zern_err = self.zern_coeff_detect.copy()
+                        zern_err_part = self.zern_coeff_detect.copy()
+                        zern_err_part[[0, 1, 3], 0] = 0
                         rms_zern = np.sqrt((zern_err ** 2).mean())
+                        rms_zern_part = np.sqrt((zern_err_part ** 2).mean())
+                        self.loop_rms_zern[i] = rms_zern
+                        self.loop_rms_zern_part[i] = rms_zern_part
 
                         strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern) ** 2)
                         self.strehl[i] = strehl
 
-                        print('Root mean square error {} is {} um (zernike coefficients)'.format(i + 1, rms_zern))                        
+                        print('Full zernike root mean square error {} is {} um'.format(i + 1, rms_zern))
+                        print('Partial zernike root mean square error {} is {} um'.format(i + 1, rms_zern_part))                        
                         print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))                             
 
                         # Append data to list
-                        # if config['dummy']:
+                        if config['dummy']:
                             # dset_append(data_set_2, 'dummy_spot_slope_x', slope_x)
                             # dset_append(data_set_2, 'dummy_spot_slope_y', slope_y)
                             # dset_append(data_set_2, 'dummy_spot_slope', slope)
                             # dset_append(data_set_2, 'dummy_spot_slope_err', slope_err)
-                        # else:
+                            dset_append(data_set_2, 'dummy_spot_zern_err', zern_err)
+                        else:
                             # dset_append(data_set_2, 'real_spot_slope_x', slope_x)
                             # dset_append(data_set_2, 'real_spot_slope_y', slope_y)
                             # dset_append(data_set_2, 'real_spot_slope', slope)
                             # dset_append(data_set_2, 'real_spot_slope_err', slope_err)
+                            dset_append(data_set_2, 'dummy_spot_zern_err', zern_err)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
                         if strehl >= config['AO']['tolerance_fact_strehl']:
@@ -581,7 +604,9 @@ class AO_Slopes(QObject):
             if self.log:
 
                 self.AO_info['slope_AO_2']['loop_num'] = i
-                self.AO_info['slope_AO_2']['residual_phase_err_1'] = self.loop_rms
+                self.AO_info['slope_AO_2']['residual_phase_err_slopes'] = self.loop_rms_slopes
+                self.AO_info['slope_AO_2']['residual_phase_err_zern'] = self.loop_rms_zern
+                self.AO_info['slope_AO_2']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['slope_AO_2']['strehl_ratio'] = self.strehl
 
                 self.info.emit(self.AO_info)
@@ -652,7 +677,7 @@ class AO_Slopes(QObject):
                         else:
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(control_matrix_slopes, slope_err))
 
-                            print('Voltages {}: {}'.format(i, voltages.T))
+                            # print('Voltages {}: {}'.format(i, voltages.T))
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
                         if config['dummy']:
@@ -764,22 +789,27 @@ class AO_Slopes(QObject):
                         # Get phase residual (slope residual error) and calculate root mean square (rms) error
                         slope_err = slope.copy()
                         rms_slope = np.sqrt((slope_err ** 2).mean())
-                        self.loop_rms[i] = rms_slope
+                        self.loop_rms_slopes[i] = rms_slope
 
-                        print('Root mean square error of slope value {} is {} pixels (slope value)'.format(i + 1, rms_slope))
+                        print('Slope root mean square error {} is {} pixels'.format(i + 1, rms_slope))
 
                         # Get detected zernike coefficients from slope matrix
                         self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
 
                         # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                         zern_err = self.zern_coeff_detect.copy()
-                        zern_err[[0, 1, 3], 0] = 0
+                        zern_err_part = self.zern_coeff_detect.copy()
+                        zern_err_part[[0, 1, 3], 0] = 0
                         rms_zern = np.sqrt((zern_err ** 2).mean())
+                        rms_zern_part = np.sqrt((zern_err_part ** 2).mean())
+                        self.loop_rms_zern[i] = rms_zern
+                        self.loop_rms_zern_part[i] = rms_zern_part
 
                         strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern) ** 2)
                         self.strehl[i] = strehl
 
-                        print('Root mean square error {} is {} um (zernike coefficients)'.format(i + 1, rms_zern))                        
+                        print('Full root mean square error {} is {} um'.format(i + 1, rms_zern))
+                        print('Partial root mean square error {} is {} um'.format(i + 1, rms_zern_part))                        
                         print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))                               
 
                         # Append data to list
@@ -788,11 +818,13 @@ class AO_Slopes(QObject):
                             dset_append(data_set_2, 'dummy_spot_slope_y', slope_y)
                             dset_append(data_set_2, 'dummy_spot_slope', slope)
                             dset_append(data_set_2, 'dummy_spot_slope_err', slope_err)
+                            dset_append(data_set_2, 'dummy_spot_zern_err', zern_err)
                         else:
                             dset_append(data_set_2, 'real_spot_slope_x', slope_x)
                             dset_append(data_set_2, 'real_spot_slope_y', slope_y)
                             dset_append(data_set_2, 'real_spot_slope', slope)
                             dset_append(data_set_2, 'real_spot_slope_err', slope_err)
+                            dset_append(data_set_2, 'dummy_spot_zern_err', zern_err)
 
                         # Append zeros to end of slope error array to ensure dimension is consistent with new control matrix
                         slope_err = np.append(slope_err, np.zeros([3, 1]), axis = 0)
@@ -822,7 +854,9 @@ class AO_Slopes(QObject):
             if self.log:
 
                 self.AO_info['slope_AO_3']['loop_num'] = i
-                self.AO_info['slope_AO_3']['residual_phase_err_1'] = self.loop_rms
+                self.AO_info['slope_AO_3']['residual_phase_err_slopes'] = self.loop_rms_slopes
+                self.AO_info['slope_AO_3']['residual_phase_err_zern'] = self.loop_rms_zern
+                self.AO_info['slope_AO_3']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['slope_AO_3']['strehl_ratio'] = self.strehl
 
                 self.info.emit(self.AO_info)
@@ -982,10 +1016,13 @@ class AO_Slopes(QObject):
                         # print('slope_x:', slope_x)
                         # print('slope_y:', slope_y)
 
-                        # Remove corresponding elements from slopes and rows from influence function matrix, zernike matrix and zernike derivative matrix
-                        index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'].astype(int) + 1 == 0)[1]
+                        # Remove corresponding elements from slopes and rows from influence function matrix
+                        if config['dummy'] == 1:
+                            index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'].astype(int) + 1 == 0)[1]
+                        else:
+                            index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'] == 0)[1]
                         print('Shape index_remove:', np.shape(index_remove))
-                        # print('index_remove:', index_remove)
+                        print('index_remove:', index_remove)
                         index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
                         # print('Shape index_remove_inf:', np.shape(index_remove_inf))
                         # print('index_remove_inf:', index_remove_inf)
@@ -995,42 +1032,26 @@ class AO_Slopes(QObject):
                         # print('Shape slope_y:', np.shape(slope_y))
                         act_cent_coord = np.delete(act_cent_coord, index_remove, axis = None)
                         # print('Shape act_cent_coord:', np.shape(act_cent_coord))
-                        zern_matrix = np.delete(self.mirror_settings['zern_matrix'].copy(), index_remove, axis = 0)
-                        # print('Shape zern_matrix:', np.shape(zern_matrix))
                         inf_matrix_slopes = np.delete(self.mirror_settings['inf_matrix_slopes'].copy(), index_remove_inf, axis = 0)
                         # print('Shape inf_matrix_slopes:', np.shape(inf_matrix_slopes))
-                        diff_matrix = np.delete(self.mirror_settings['diff_matrix'].copy(), index_remove_inf, axis = 0)
-                        # print('Shape diff_matrix:', np.shape(diff_matrix))
+                        conv_matrix = np.delete(self.mirror_settings['conv_matrix'].copy(), index_remove_inf, axis = 1)
+                        # print('Shape conv_matrix:', np.shape(conv_matrix))
 
                         # Draw actual S-H spot centroids on image layer
                         AO_image.ravel()[act_cent_coord.astype(int)] = 0
                         self.image.emit(AO_image)
 
-                        # Recalculate Cholesky decomposition of np.dot(zern_matrix.T, zern_matrix)
-                        p_matrix = np.linalg.cholesky(np.dot(zern_matrix.T, zern_matrix))
-                        # print('Shape p_matrix:', np.shape(p_matrix))
-
-                        # Recalculate conversion matrix
-                        conv_matrix = np.dot(p_matrix, np.linalg.pinv(diff_matrix))
-                        # print('Shape conv_matrix:', np.shape(conv_matrix))
-
-                        # Recalculate influence function via zernikes
-                        inf_matrix_zern = np.dot(conv_matrix, inf_matrix_slopes)
-                        # print('Shape inf_matrix_zern:', np.shape(inf_matrix_zern))
-
                         # Calculate modified influence function with partial correction (suppressing tip, tilt, and defocus)
-                        inf_matrix_slopes = np.concatenate((inf_matrix_slopes, config['AO']['suppress_gain'] * inf_matrix_zern[[0, 1, 3], :]), axis = 0)
-                        # print('Shape inf_matrix_slopes:', np.shape(inf_matrix_slopes))
+                        inf_matrix_slopes = np.concatenate((inf_matrix_slopes, config['AO']['suppress_gain'] * \
+                            self.mirror_settings['inf_matrix_zern'][[0, 1, 3], :]), axis = 0)
 
                         # Calculate singular value decomposition of modified influence function matrix
                         u, s, vh = np.linalg.svd(inf_matrix_slopes, full_matrices = False)
-
                         # print('u: {}, s: {}, vh: {}'.format(u, s, vh))
                         # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
 
                         # Recalculate pseudo-inverse of modified influence function matrix to get new control matrix
                         control_matrix_slopes = np.linalg.pinv(inf_matrix_slopes)
-
                         # print('Shape of new control matrix is:', np.shape(control_matrix_slopes))
 
                         # Concatenate slopes into one slope matrix
@@ -1039,35 +1060,42 @@ class AO_Slopes(QObject):
                         # Get phase residual (slope residual error) and calculate root mean square (rms) error
                         slope_err = slope.copy()
                         rms_slope = np.sqrt((slope_err ** 2).mean())
-                        self.loop_rms[i] = rms_slope
+                        self.loop_rms_slopes[i] = rms_slope
 
-                        print('Root mean square error of slope value {} is {} pixels (slope value)'.format(i + 1, rms_slope))
+                        print('Slope root mean square error {} is {} pixels'.format(i + 1, rms_slope))
 
                         # Get detected zernike coefficients from slope matrix
                         self.zern_coeff_detect = np.dot(conv_matrix, slope)
 
                         # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                         zern_err = self.zern_coeff_detect.copy()
-                        zern_err[[0, 1, 3], 0] = 0
+                        zern_err_part = self.zern_coeff_detect.copy()
+                        zern_err_part[[0, 1, 3], 0] = 0
                         rms_zern = np.sqrt((zern_err ** 2).mean())
+                        rms_zern_part = np.sqrt((zern_err_part ** 2).mean())
+                        self.loop_rms_zern[i] = rms_zern
+                        self.loop_rms_zern_part[i] = rms_zern_part
 
                         strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern) ** 2)
                         self.strehl[i] = strehl
 
-                        print('Root mean square error {} is {} um (zernike coefficients)'.format(i + 1, rms_zern))                        
+                        print('Full zernike root mean square error {} is {} um'.format(i + 1, rms_zern))
+                        print('Partial zernike root mean square error {} is {} um'.format(i + 1, rms_zern_part))                        
                         print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))                        
-
+                        
                         # Append data to list
-                        # if config['dummy']:
-                        #     dset_append(data_set_2, 'dummy_spot_slope_x', slope_x)
-                        #     dset_append(data_set_2, 'dummy_spot_slope_y', slope_y)
-                        #     dset_append(data_set_2, 'dummy_spot_slope', slope)
-                        #     dset_append(data_set_2, 'dummy_spot_slope_err', slope_err)
-                        # else:
-                        #     dset_append(data_set_2, 'real_spot_slope_x', slope_x)
-                        #     dset_append(data_set_2, 'real_spot_slope_y', slope_y)
-                        #     dset_append(data_set_2, 'real_spot_slope', slope)
-                        #     dset_append(data_set_2, 'real_spot_slope_err', slope_err)
+                        if config['dummy']:
+                            # dset_append(data_set_2, 'dummy_spot_slope_x', slope_x)
+                            # dset_append(data_set_2, 'dummy_spot_slope_y', slope_y)
+                            # dset_append(data_set_2, 'dummy_spot_slope', slope)
+                            # dset_append(data_set_2, 'dummy_spot_slope_err', slope_err)
+                            dset_append(data_set_2, 'dummy_spot_zern_err', zern_err)
+                        else:
+                            # dset_append(data_set_2, 'real_spot_slope_x', slope_x)
+                            # dset_append(data_set_2, 'real_spot_slope_y', slope_y)
+                            # dset_append(data_set_2, 'real_spot_slope', slope)
+                            # dset_append(data_set_2, 'real_spot_slope_err', slope_err)
+                            dset_append(data_set_2, 'dummy_spot_zern_err', zern_err)
 
                         # Append zeros to end of slope error array to ensure dimension is consistent with new control matrix
                         slope_err = np.append(slope_err, np.zeros([3, 1]), axis = 0)
@@ -1097,7 +1125,9 @@ class AO_Slopes(QObject):
             if self.log:
 
                 self.AO_info['slope_AO_full']['loop_num'] = i
-                self.AO_info['slope_AO_full']['residual_phase_err_1'] = self.loop_rms
+                self.AO_info['slope_AO_full']['residual_phase_err_slopes'] = self.loop_rms_slopes
+                self.AO_info['slope_AO_full']['residual_phase_err_zern'] = self.loop_rms_zern
+                self.AO_info['slope_AO_full']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['slope_AO_full']['strehl_ratio'] = self.strehl
 
                 self.info.emit(self.AO_info)

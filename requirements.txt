@@ -11,3 +11,4 @@ pyyaml
 Click
 random
 scipy
+h5py

@@ -185,10 +185,10 @@ def acq_centroid(settings, flag = 0):
                 # Calculate centroid positions within search area
                 if flag in [5, 6, 9, 10]:
 
-                    print(np.amax(image_crop))
                     # If subaperture removal function is to be incorporated, remove those subapertures within which maximum pixel value is below a certain value
                     if np.amax(image_crop) < config['search_block']['int_thres']:
                         # If aperture is obscured, set sum_x, sum_y to 0
+                        print(np.amax(image_crop))
                         sum_x, sum_y = (0 for i in range(2))
                         sum_pix = 1
                     else:                     
@@ -243,13 +243,13 @@ def acq_centroid(settings, flag = 0):
         slope_x_list.append(slope_x)
         slope_y_list.append(slope_y)
 
-        print('Act_cent_coord_x:', act_cent_coord_x)
-        print('Act_cent_coord_y:', act_cent_coord_y)
-        print('Error along x axis:', error_x)
-        print('Error along y axis:', error_y)
-        print('Average position error is {}'.format(error_tot))
-        print('Slope along x axis:', slope_x)
-        print('Slope along y axis:', slope_y)
+        # print('Act_cent_coord_x:', act_cent_coord_x)
+        # print('Act_cent_coord_y:', act_cent_coord_y)
+        # print('Error along x axis:', error_x)
+        # print('Error along y axis:', error_y)
+        # print('Average position error is {}'.format(error_tot))
+        # print('Slope along x axis:', slope_x)
+        # print('Slope along y axis:', slope_y)
 
     # Close HDF5 file
     data_file.close()
