@@ -48,7 +48,7 @@ lenslet:
 
 search_block:
   div_elem: 5  # Number of elements in each dimension of a search block
-  int_thres: 200  # Maximum intensity threshold within search block below which S-H spot will be considered as obscured
+  int_thres: 50  # Maximum intensity threshold within search block below which S-H spot will be considered as obscured
   outline_int: 255  # uint8
   pupil_diam: 7.216  # mm 7.216 8.4
 

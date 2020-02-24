@@ -138,6 +138,9 @@ class Conversion(QObject):
 
                 svd_check_conv = np.dot(self.conv_matrix, self.diff_matrix)
 
+                # Convert zern_matrix from radians to um
+                self.zern_matrix = self.zern_matrix * config['AO']['lambda'] / (2 * np.pi)   
+
                 self.message.emit('Zernike matrix and slope - zernike conversion matrix retrieved.')
                 # print('Conversion matrix is:', self.conv_matrix)
                 # print('Shape of conversion matrix is:', np.shape(self.conv_matrix))

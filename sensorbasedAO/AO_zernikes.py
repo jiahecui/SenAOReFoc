@@ -511,31 +511,42 @@ class AO_Zernikes(QObject):
                         # print('Shape slope_y:', np.shape(slope_y))
                         act_cent_coord = np.delete(act_cent_coord, index_remove, axis = None)
                         # print('Shape act_cent_coord:', np.shape(act_cent_coord))
-                        # zern_matrix = np.delete(self.mirror_settings['zern_matrix'].copy(), index_remove, axis = 0)
+                        zern_matrix = np.delete(self.mirror_settings['zern_matrix'].copy(), index_remove, axis = 0)
                         # print('Shape zern_matrix:', np.shape(zern_matrix))
                         inf_matrix_slopes = np.delete(self.mirror_settings['inf_matrix_slopes'].copy(), index_remove_inf, axis = 0)
                         # print('Shape inf_matrix_slopes:', np.shape(inf_matrix_slopes))
-                        # diff_matrix = np.delete(self.mirror_settings['diff_matrix'].copy(), index_remove_inf, axis = 0)
+                        diff_matrix = np.delete(self.mirror_settings['diff_matrix'].copy(), index_remove_inf, axis = 0)
                         # print('Shape diff_matrix:', np.shape(diff_matrix))
-                        conv_matrix = np.delete(self.mirror_settings['conv_matrix'].copy(), index_remove_inf, axis = 1)
-                        # print('Shape conv_matrix:', np.shape(conv_matrix))
 
-                        """
                         # Draw actual S-H spot centroids on image layer
                         AO_image.ravel()[act_cent_coord.astype(int)] = 0
                         self.image.emit(AO_image)
 
                         # Recalculate Cholesky decomposition of np.dot(zern_matrix.T, zern_matrix)
                         p_matrix = np.linalg.cholesky(np.dot(zern_matrix.T, zern_matrix))
-                        print('Shape p_matrix:', np.shape(p_matrix))
+
+                        # Check whether p_matrix is a lower or upper triangular matrix, if lower -> transpose to upper
+                        if np.allclose(p_matrix, np.tril(p_matrix)):
+                            # print('p_matrix is lower triangular matrix')
+                            p_matrix = p_matrix.T
+                        # print('Shape p_matrix:', np.shape(p_matrix))
 
                         # Recalculate conversion matrix
                         conv_matrix = np.dot(p_matrix, np.linalg.pinv(diff_matrix))
-                        print('Shape conv_matrix:', np.shape(conv_matrix))
-                        """
+                        # print('Shape conv_matrix:', np.shape(conv_matrix))
 
-                        # Recalculate control function via zernikes
-                        control_matrix_zern = np.linalg.pinv(np.dot(conv_matrix, inf_matrix_slopes))[:, :config['AO']['control_coeff_num']]
+                        # Recalculate influence function via zernikes
+                        inf_matrix_zern = np.dot(conv_matrix, inf_matrix_slopes)[:config['AO']['control_coeff_num'], :]
+                        # print('Shape inf_matrix_zern:', np.shape(inf_matrix_zern))
+
+                        # Get singular value decomposition of influence function matrix
+                        u, s, vh = np.linalg.svd(inf_matrix_zern, full_matrices = False)
+
+                        # print('u: {}, s: {}, vh: {}'.format(u, s, vh))
+                        # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
+                        
+                        # Recalculate pseudo inverse of influence function matrix to get updated control matrix via zernikes
+                        control_matrix_zern = np.linalg.pinv(inf_matrix_zern)
                         # print('Shape control_matrix_zern:', np.shape(control_matrix_zern))
 
                         # Concatenate slopes into one slope matrix
@@ -997,33 +1008,44 @@ class AO_Zernikes(QObject):
                         # print('Shape slope_y:', np.shape(slope_y))
                         act_cent_coord = np.delete(act_cent_coord, index_remove, axis = None)
                         # print('Shape act_cent_coord:', np.shape(act_cent_coord))
-                        # zern_matrix = np.delete(self.mirror_settings['zern_matrix'].copy(), index_remove, axis = 0)
+                        zern_matrix = np.delete(self.mirror_settings['zern_matrix'].copy(), index_remove, axis = 0)
                         # print('Shape zern_matrix:', np.shape(zern_matrix))
                         inf_matrix_slopes = np.delete(self.mirror_settings['inf_matrix_slopes'].copy(), index_remove_inf, axis = 0)
                         # print('Shape inf_matrix_slopes:', np.shape(inf_matrix_slopes))
-                        # diff_matrix = np.delete(self.mirror_settings['diff_matrix'].copy(), index_remove_inf, axis = 0)
+                        diff_matrix = np.delete(self.mirror_settings['diff_matrix'].copy(), index_remove_inf, axis = 0)
                         # print('Shape diff_matrix:', np.shape(diff_matrix))
-                        conv_matrix = np.delete(self.mirror_settings['conv_matrix'].copy(), index_remove_inf, axis = 1)
-                        # print('Shape conv_matrix:', np.shape(conv_matrix))
 
                         # Draw actual S-H spot centroids on image layer
                         AO_image.ravel()[act_cent_coord.astype(int)] = 0
                         self.image.emit(AO_image)
 
-                        """
                         # Recalculate Cholesky decomposition of np.dot(zern_matrix.T, zern_matrix)
                         p_matrix = np.linalg.cholesky(np.dot(zern_matrix.T, zern_matrix))
+
+                        # Check whether p_matrix is a lower or upper triangular matrix, if lower -> transpose to upper
+                        if np.allclose(p_matrix, np.tril(p_matrix)):
+                            # print('p_matrix is lower triangular matrix')
+                            p_matrix = p_matrix.T
                         # print('Shape p_matrix:', np.shape(p_matrix))
 
                         # Recalculate conversion matrix
                         conv_matrix = np.dot(p_matrix, np.linalg.pinv(diff_matrix))
                         # print('Shape conv_matrix:', np.shape(conv_matrix))
 
-                        # Recalculate control function via zernikes
-                        control_matrix_zern = np.linalg.pinv(np.dot(conv_matrix, inf_matrix_slopes))
-                        # print('Shape control_matrix_zern:', np.shape(control_matrix_zern))
-                        """
+                        # Recalculate influence function via zernikes
+                        inf_matrix_zern = np.dot(conv_matrix, inf_matrix_slopes)[:config['AO']['control_coeff_num'], :]
+                        # print('Shape inf_matrix_zern:', np.shape(inf_matrix_zern))
 
+                        # Get singular value decomposition of influence function matrix
+                        u, s, vh = np.linalg.svd(inf_matrix_zern, full_matrices = False)
+
+                        # print('u: {}, s: {}, vh: {}'.format(u, s, vh))
+                        # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
+                        
+                        # Recalculate pseudo inverse of influence function matrix to get updated control matrix via zernikes
+                        control_matrix_zern = np.linalg.pinv(inf_matrix_zern)
+                        # print('Shape control_matrix_zern:', np.shape(control_matrix_zern))
+                        
                         # Concatenate slopes into one slope matrix
                         slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
 

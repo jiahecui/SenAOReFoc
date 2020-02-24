@@ -140,7 +140,7 @@ def get_mat_dset(settings, flag = 1):
         9) 102 is good for demonstration of relatively small and smooth phase variation -> only correctable to 0.55 for AO_zernikes,
             0.51 for AO_slopes
     """
-    data = np.array(data[105,...]) * config['AO']['lambda'] / (2 * np.pi)  
+    data = np.array(data[92,...]) * config['AO']['lambda'] / (2 * np.pi)  
     mag_fac = config['search_block']['pupil_diam'] / 7.216 * 4
     data_interp = sp.ndimage.zoom(data, mag_fac).T 
     

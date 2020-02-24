@@ -18,7 +18,7 @@
 venv/
 
 # datafile
-data_text/
+data/
 
 # sample data
 MatlabCodeForExtractPhase/
