@@ -119,7 +119,7 @@ def get_mat_dset(settings, flag = 1):
     """
     # Retrieve phase data from .mat file
     # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte.mat','r')
-    # data = f.get('WrappedPhase')
+    # data = f.get('WrappedPhase') 
     f = h5py.File('sensorbasedAO/UnwrappedPhase_IMG_Blastocyte.mat','r')
     data = f.get('UnwrappedPhase')
 
@@ -139,10 +139,12 @@ def get_mat_dset(settings, flag = 1):
         8) 99, 100 is good for demonstration of large but smooth amplitude phase variation -> correctable to 0.81;
         9) 102 is good for demonstration of relatively small and smooth phase variation -> only correctable to 0.55 for AO_zernikes,
             0.51 for AO_slopes
+        10) Many turbid positions can demonstrate that AO_zernikes_2 is very robust and could bring the strehl ratio back to > 0.81, 
+            while AO_slopes_2 can't (strehl < 0.4?): 91, 92, 176, 102, 49, 50, 54, 57
     """
-    data = np.array(data[92,...]) * config['AO']['lambda'] / (2 * np.pi)  
+    data = np.array(data[1,...]) * config['AO']['lambda'] / (2 * np.pi)  
     mag_fac = config['search_block']['pupil_diam'] / 7.216 * 4
-    data_interp = sp.ndimage.zoom(data, mag_fac).T 
+    data_interp = sp.ndimage.zoom(data, mag_fac).T * 3
     
     # Pad image to same dimension as sensor size
     data_pad = np.pad(data_interp, (math.ceil((settings['sensor_height'] - np.shape(data_interp)[0]) / 2),\
