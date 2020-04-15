@@ -17,6 +17,7 @@ from sensor import SENSOR
 from image_acquisition import acq_image
 from spot_sim import SpotSim
 from HDF5_dset import get_mat_dset
+from common import fft_spot_from_phase
 
 logger = log.get_logger(__name__)
 
@@ -87,9 +88,11 @@ class Positioning(QObject):
                     if config['dummy']:
                         if config['real_phase']:
                             # Retrieve slope data and S-H spot image from real phase data
-                            slope_x, slope_y = get_mat_dset(self.SB_settings, flag = 2)
-                            spot_img = SpotSim(self.SB_settings)
-                            self._image, self.spot_cent_x, self.spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = slope_x, yc = slope_y)
+                            phase = get_mat_dset(self.SB_settings, flag = 1)
+                            self._image = fft_spot_from_phase(self.SB_settings, phase)
+                            # slope_x, slope_y = get_mat_dset(self.SB_settings, flag = 2)
+                            # spot_img = SpotSim(self.SB_settings)
+                            # self._image, self.spot_cent_x, self.spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = slope_x, yc = slope_y)
                         else:
                             # Retrieve simulated Gaussian profile spots
                             spot_img = SpotSim(self.SB_settings)
