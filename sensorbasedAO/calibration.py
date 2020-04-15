@@ -51,7 +51,7 @@ class Calibration(QObject):
         
         super().__init__()
 
-    def act_coord(self, act_diam):
+    def act_coord_1(self, act_diam):
         """
         Calculates actuator position coordinates according to DM geometry (Alpao69)
         """
@@ -86,6 +86,30 @@ class Calibration(QObject):
 
         return xc, yc
 
+    def act_coord_2(self, act_diam):
+        """
+        Calculates actuator position coordinates according to DM geometry (Boston140)
+        """
+        xc, yc = (np.zeros(config['DM']['actuator_num']) for i in range(2))
+
+        for i in range(10):
+
+            xc[i] = (-5 - 0.5) * act_diam
+            xc[config['DM']['actuator_num'] - 1 - i] = (5 + 0.5) * act_diam
+            yc[i] = (4 + 0.5 - i) * act_diam
+            yc[config['DM']['actuator_num'] - 1 - i] = (-4 - 0.5 + i) * act_diam
+
+        for i in range(120):
+
+            if i in [11,23,35,47,59] or i > 59:
+                xc[10 + i] = (int(((10 + i) - config['DM']['actuator_num'] // 2) // 12) + 0.5) * act_diam
+            else:
+                xc[10 + i] = (int(((10 + i) - (config['DM']['actuator_num'] // 2 - 1)) // 12) + 0.5) * act_diam
+
+            yc[10 + i] = (-(i % 12) + (5 + 0.5)) * act_diam
+
+        return xc, yc
+
     @Slot(object)
     def run(self):
         try:
@@ -107,7 +131,8 @@ class Calibration(QObject):
                 act_diam = config['search_block']['pupil_diam'] / config['DM']['aperture'] * config['DM']['pitch'] / self.SB_settings['pixel_size']
 
                 # Get actuator coordinates
-                xc, yc = self.act_coord(act_diam)
+                xc, yc = self.act_coord_1(act_diam)
+                # xc, yc = self.act_coord_2(act_diam)
 
                 # Get size of individual elements within each search block
                 self.elem_size = self.SB_settings['SB_diam'] / config['search_block']['div_elem']

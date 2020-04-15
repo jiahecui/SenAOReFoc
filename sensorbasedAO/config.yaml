@@ -28,9 +28,13 @@ camera:
     
 DM:
   SN: "HSDM69-15-014"
-  actuator_num: 69
-  pitch: 1500  # um
-  aperture: 10.5  # mm
+  # actuator_num: 140  # Boston
+  # pitch: 400  # um  
+  # aperture: 4.4  # mm  
+  # coupling_fac: 0.15  # Inter-actuator coupling factor
+  actuator_num: 69  # Alpao
+  pitch: 1500
+  aperture: 10.5
   coupling_fac: 0.3  # Inter-actuator coupling factor
   vol_min: -1  # V
   vol_max: 1
@@ -44,13 +48,13 @@ relay:
 
 lenslet:
   lenslet_pitch: 500  # um
-  lenslet_focal_length: 25000  # um
+  lenslet_focal_length: 25000  # um  # Alpao 25000  # Boston 15000 for unwrapped phase
 
 search_block:
   div_elem: 5  # Number of elements in each dimension of a search block
   int_thres: 50  # Maximum intensity threshold within search block below which S-H spot will be considered as obscured
   outline_int: 255  # uint8
-  pupil_diam: 7.216  # mm 7.216 8.4
+  pupil_diam: 7.216  # mm  # Alpao 7.216  # Boston 10.1
 
 image:
   noise: 0
@@ -62,10 +66,10 @@ image:
   rescale: 1  # 0-rescale off, 1-rescale on
 
 AO:
-  recon_coeff_num: 100
-  control_coeff_num: 46  # Eighth order Zernike mode ~ 9th-55, 10th-66, 11th-78, 12th-91
-  loop_gain: 0.9  # Fixed loop gain for closed-loop control, 0.6
-  loop_max: 5  # Maximum number of loops for closed-loop control
+  recon_coeff_num: 60  # Alpao 60
+  control_coeff_num: 46  # Alpao 46  # Eighth order Zernike mode ~ 9th-55, 10th-66, 11th-78, 12th-91
+  loop_gain: 0.8  # Fixed loop gain for closed-loop control, 0.6
+  loop_max: 10  # Maximum number of loops for closed-loop control
   suppress_gain: 1000  # Gain factor used to suppress certain zernike modes
   lambda: 0.63  # um
   tolerance_fact_zern: 0.045  # RMS error tolerance factor via zernikes, = lambda / 14 um

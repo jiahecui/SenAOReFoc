@@ -118,14 +118,29 @@ def get_mat_dset(settings, flag = 1):
         flag = 2 - retrieve S-H spot slopes from phase data
     """
     # Retrieve phase data from .mat file
-    # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte.mat','r')
-    # data = f.get('WrappedPhase') 
-    f = h5py.File('sensorbasedAO/UnwrappedPhase_IMG_Blastocyte.mat','r')
-    data = f.get('UnwrappedPhase')
+    # f = h5py.File('sensorbasedAO/UnwrappedPhase_IMG_Blastocyte1_Bottom.mat','r')
+    # f = h5py.File('sensorbasedAO/UnwrappedPhase_IMG_Blastocyte1_Top.mat','r')
+    # f = h5py.File('sensorbasedAO/UnwrappedPhase_IMG_Blastocyte2_Bottom.mat','r')
+    # f = h5py.File('sensorbasedAO/UnwrappedPhase_IMG_Blastocyte2_Top.mat','r')
+    # f = h5py.File('sensorbasedAO/UnwrappedPhase_IMG_Brain30Gly_Bottom.mat','r')
+    # f = h5py.File('sensorbasedAO/UnwrappedPhase_IMG_Brain90PBS_Bottom.mat','r')
+    # f = h5py.File('sensorbasedAO/UnwrappedPhase_IMG_MouseOocyte.mat','r')
+    
+    # data = f.get('UnwrappedPhase')
+
+    # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte1_Bottom.mat','r')
+    # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte1_Top.mat','r')
+    # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte2_Bottom.mat','r')
+    # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte2_Top.mat','r')
+    # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Brain30Gly_Bottom.mat','r')
+    f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Brain90PBS_Bottom.mat','r')
+    # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_MouseOocyte.mat','r')
+
+    data = f.get('WrappedPhase')
 
     # Interpolate to suitable size
     """
-    Notes regarding amplitude and frequency of aberrations at different sample positions:
+    Notes regarding amplitude and frequency of aberrations at different sample positions for UnwrappedPhase_IMG_Blastocyte1_Bottom:
 
         1) 1, 16, 17, 20, 78, 141, 220 is good for demonstrating both AO_zernikes and AO_slopes (small and smooth);
         2) 14, 220 is also good for demonstrating how tip, tilt, defocus are the dominant aberrations such that the DM doesn't need to
@@ -142,9 +157,9 @@ def get_mat_dset(settings, flag = 1):
         10) Many turbid positions can demonstrate that AO_zernikes_2 is very robust and could bring the strehl ratio back to > 0.81, 
             while AO_slopes_2 can't (strehl < 0.4?): 91, 92, 176, 102, 49, 50, 54, 57
     """
-    data = np.array(data[1,...]) * config['AO']['lambda'] / (2 * np.pi)  
+    data = np.array(data[143,...]) * config['AO']['lambda'] / (2 * np.pi)  
     mag_fac = config['search_block']['pupil_diam'] / 7.216 * 4
-    data_interp = sp.ndimage.zoom(data, mag_fac).T * 3
+    data_interp = sp.ndimage.zoom(data, mag_fac).T 
     
     # Pad image to same dimension as sensor size
     data_pad = np.pad(data_interp, (math.ceil((settings['sensor_height'] - np.shape(data_interp)[0]) / 2),\
