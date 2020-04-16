@@ -11,7 +11,7 @@ camera:
   SN: "26883050"
   dataformat: "XI_MONO16"
   data_min: 0  # Minimum image output value
-  data_max: 1023  # Maximum image output value for dataformat
+  data_max: 255  # Maximum image output value for dataformat 1023 for actual camera
   exposure: 4000  # us
   auto_gain: 0  # Flag for whether to use automatic exposure / gain mode, 0-auto_gain off, 1-auto_gain on
   exp_priority: 0.8  # exposure n, gain (1 - n)
@@ -28,10 +28,10 @@ camera:
     
 DM:
   SN: "HSDM69-15-014"
-  # actuator_num: 140  # Boston
-  # pitch: 400  # um  
-  # aperture: 4.4  # mm  
-  # coupling_fac: 0.15  # Inter-actuator coupling factor
+  actuator_num: 140  # Boston
+  pitch: 400  # um  
+  aperture: 4.4  # mm  
+  coupling_fac: 0.15  # Inter-actuator coupling factor
   actuator_num: 69  # Alpao
   pitch: 1500
   aperture: 10.5
@@ -52,7 +52,8 @@ lenslet:
 
 search_block:
   div_elem: 5  # Number of elements in each dimension of a search block
-  int_thres: 50  # Maximum intensity threshold within search block below which S-H spot will be considered as obscured
+  int_thres: 50  # Minimum intensity threshold within search block below which S-H spot will be considered as obscured
+  sharp_thres: 0.002  # Minimum sharpness threshold within search block below which S-H spot will be considered as obscured
   outline_int: 255  # uint8
   pupil_diam: 7.216  # mm  # Alpao 7.216  # Boston 10.1
 
@@ -66,8 +67,8 @@ image:
   rescale: 1  # 0-rescale off, 1-rescale on
 
 AO:
-  recon_coeff_num: 60  # Alpao 60
-  control_coeff_num: 46  # Alpao 46  # Eighth order Zernike mode ~ 9th-55, 10th-66, 11th-78, 12th-91
+  recon_coeff_num: 60  # Alpao 60  # Boston 70
+  control_coeff_num: 46  # Alpao 46  # Boston 55  # Eighth order Zernike mode ~ 9th-55, 10th-66, 11th-78, 12th-91
   loop_gain: 0.8  # Fixed loop gain for closed-loop control, 0.6
   loop_max: 10  # Maximum number of loops for closed-loop control
   suppress_gain: 1000  # Gain factor used to suppress certain zernike modes
