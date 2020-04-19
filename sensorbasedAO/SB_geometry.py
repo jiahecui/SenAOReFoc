@@ -40,7 +40,10 @@ class Setup_SB(QObject):
         self.outline_int = config['search_block']['outline_int']
 
         # Get pupil diameter
-        self.pupil_diam = config['search_block']['pupil_diam'] * 1e3
+        if config['DM']['DM_num'] == 0:
+            self.pupil_diam = config['search_block']['pupil_diam_0'] * 1e3
+        elif config['DM']['DM_num'] == 1:
+            self.pupil_diam = config['search_block']['pupil_diam_1'] * 1e3
         self.pupil_rad = self.pupil_diam / 2
 
         # Initialise search block information parameter
@@ -105,27 +108,18 @@ class Setup_SB(QObject):
                 for j in range(self.SB_across_width):
                     self.ref_cent_coord[i * self.SB_across_width + j] = self.ref_cent_y[i].astype(int) * \
                         self.sensor_width + self.ref_cent_x[j].astype(int)
-
-            # Set reference centroids
-            self.SB_layer_2D.ravel()[self.ref_cent_coord.astype(int)] = self.outline_int
         
             # Get arrays for outlining search blocks
             ref_row_outline = np.arange(SB_offset_y, SB_final_y + 1, self.SB_diam).astype(int)
             ref_column_outline = np.arange(SB_offset_x, SB_final_x + 1, self.SB_diam).astype(int)
 
-            # print('Ref_row_outline: {}, ref_column_outline: {}'.format(ref_row_outline, ref_column_outline))
-
             # Outline search blocks
             self.SB_layer_2D[ref_row_outline, int(SB_offset_x) : int(SB_final_x)] = self.outline_int
             self.SB_layer_2D[int(SB_offset_y) : int(SB_final_y), ref_column_outline] = self.outline_int
 
-            # print(self.SB_layer_2D.ravel()[self.ref_cent_coord[1].astype(int) - 25 : self.ref_cent_coord[1].astype(int) + 25])
-
             # Display search blocks and reference centroids
             if self.register:
 
-                # im = PIL.Image.fromarray(self.SB_layer_2D, 'L')
-                # im.show()
                 self.layer.emit(self.SB_layer_2D)
                 time.sleep(1)
             else:
@@ -144,7 +138,7 @@ class Setup_SB(QObject):
             # Get number of spots within pupil diameter
             self.spots_across_diam = self.pupil_diam // self.lenslet_pitch
 
-            # Get reference centroids within pupil diameter
+            # Get actual serach block reference centroids within pupil diameter
             if (self.spots_across_diam % 2 == 0 and self.sensor_width % 2 == 0) or \
                 (self.spots_across_diam % 2 == 1 and self.sensor_width % 2 == 1):
 
@@ -166,11 +160,9 @@ class Setup_SB(QObject):
                             self.act_ref_cent_coord_x.append(i)
                             self.act_ref_cent_coord_y.append(j)
 
-            # Draw actual search block reference centroids
             (self.act_ref_cent_coord, self.act_ref_cent_coord_x, self.act_ref_cent_coord_y) = \
                 map(np.array, (self.act_ref_cent_coord, self.act_ref_cent_coord_x, self.act_ref_cent_coord_y))
             self.act_ref_cent_num = len(self.act_ref_cent_coord)
-            self.SB_layer_2D.ravel()[self.act_ref_cent_coord.astype(int)] = self.outline_int
 
             print("Number of search blocks within pupil is: {}".format(self.act_ref_cent_num))
         
@@ -208,8 +200,6 @@ class Setup_SB(QObject):
                     # Outline right
                     self.SB_layer_2D[int(self.act_ref_cent_coord_y[i] - self.SB_rad + 1) : int(self.act_ref_cent_coord_y[i] + self.SB_rad), \
                         int(self.act_ref_cent_coord_x[i] + self.SB_rad)] = self.outline_int
-            
-            # print(self.SB_layer_2D.ravel()[self.act_ref_cent_coord[4].astype(int) - 50 : self.act_ref_cent_coord[4].astype(int) + 50])
 
             # Draw pupil circle on search block layer
             plot_point_num = int(self.pupil_rad * 2 // self.pixel_size * 10)
@@ -233,8 +223,6 @@ class Setup_SB(QObject):
             # Display actual search blocks and reference centroids
             if self.calculate:
 
-                # im = PIL.Image.fromarray(self.SB_layer_2D, 'L')
-                # im.show()
                 self.layer.emit(self.SB_layer_2D)
                 self.message.emit('Search block geometry initialised.')
                 time.sleep(1)

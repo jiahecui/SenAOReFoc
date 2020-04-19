@@ -39,6 +39,12 @@ class Conversion(QObject):
         self.act_ref_cent_coord_x = self.SB_settings['act_ref_cent_coord_x']
         self.act_ref_cent_coord_y = self.SB_settings['act_ref_cent_coord_y']
 
+        # Choose working DM along with its parameters
+        if config['DM']['DM_num'] == 0:
+            self.pupil_diam = config['search_block']['pupil_diam_0']
+        elif config['DM']['DM_num'] == 1:
+            self.pupil_diam = config['search_block']['pupil_diam_1']
+
         # Initialise conversion matrix information parameter
         self.conv_info = {}
 
@@ -65,7 +71,7 @@ class Conversion(QObject):
             if self.norm_coords:
 
                 # Get rescale factor between normalised coordinates and actual coordinates
-                self.rescale = 2 / (config['search_block']['pupil_diam'] * 1e3 / self.SB_settings['pixel_size'])
+                self.rescale = 2 / (self.pupil_diam * 1e3 / self.SB_settings['pixel_size'])
 
                 # Get normalised search block radius
                 self.norm_rad = self.SB_rad * self.rescale
@@ -118,8 +124,7 @@ class Conversion(QObject):
                     # print('Elem_ref_cent_coord_x:', elem_ref_cent_coord_x)
                     # print('Elem_ref_cent_coord_y:', elem_ref_cent_coord_y)
 
-                    # Get averaged x and y values and derivatives of the jth Zernike polynomial to fill zernike matrix and 
-                    # zernike derivative matrix respectively 
+                    # Get averaged x and y values and derivatives of the jth Zernike polynomial to fill zernike matrix and zernike derivative matrix
                     for j in range(config['AO']['recon_coeff_num']):
 
                         self.zern_matrix[i, j] = zern(elem_ref_cent_coord_x, elem_ref_cent_coord_y, j + 1)

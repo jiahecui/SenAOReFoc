@@ -32,11 +32,17 @@ class Calibration_Zern(QObject):
         # Get mirror settings
         self.mirror_settings = settings['mirror_info']
 
+        # Choose working DM along with its parameters
+        if config['DM']['DM_num'] == 0:
+            self.actuator_num = config['DM0']['actuator_num']
+        elif config['DM']['DM_num'] == 1:
+            self.actuator_num = config['DM1']['actuator_num']
+
         # Initialise deformable mirror information parameter
         self.mirror_info = {}
 
         # Initialise influence function matrix
-        self.inf_matrix_zern = np.zeros([config['AO']['control_coeff_num'], config['DM']['actuator_num']])
+        self.inf_matrix_zern = np.zeros([config['AO']['control_coeff_num'], self.actuator_num])
         
         super().__init__()
 
@@ -68,7 +74,7 @@ class Calibration_Zern(QObject):
                 self.slope = np.concatenate((self.slope_x.T, self.slope_y.T), axis = 0)
 
                 # Fill influence function matrix by multiplying each column in slopes matrix with the conversion matrix
-                for i in range(config['DM']['actuator_num']):
+                for i in range(self.actuator_num):
 
                     self.inf_matrix_zern[:, i] = \
                         np.dot(self.conv_matrix, (self.slope[:, 2 * i] - self.slope[:, 2 * i + 1]))[:config['AO']['control_coeff_num']] \

@@ -52,7 +52,10 @@ def acq_centroid(settings, flag = 0):
     axis_options = {0 : 'dummy_spot_cent_x', 1 : 'dummy_spot_cent_y'}
 
     if flag == 1:
-        image_num = 2 * config['DM']['actuator_num']
+        if config['DM']['DM_num'] == 0:
+            image_num = 2 * config['DM0']['actuator_num']
+        elif config['DM']['DM_num'] == 1:
+            image_num = 2 * config['DM1']['actuator_num']
     else:
         image_num = 1
 
@@ -102,15 +105,15 @@ def acq_centroid(settings, flag = 0):
                 if n == 0:
                     # Get 2D coords of pixels in each search block that need to be summed
                     if settings['odd_pix']:
-                        SB_pix_coord_x = np.arange(math.ceil(math.ceil(act_ref_cent_coord_x[i]) - SB_rad) + 1, \
-                            (math.ceil(math.ceil(act_ref_cent_coord_x[i]) - SB_rad) + 1) + settings['SB_diam'] - 2)
-                        SB_pix_coord_y = np.arange(math.ceil(math.ceil(act_ref_cent_coord_y[i]) - SB_rad) + 1, \
-                            (math.ceil(math.ceil(act_ref_cent_coord_y[i]) - SB_rad) + 1) + settings['SB_diam'] - 2)
+                        SB_pix_coord_x = np.arange(math.ceil(math.ceil(act_ref_cent_coord_x[i]) - SB_rad), \
+                            (math.ceil(math.ceil(act_ref_cent_coord_x[i]) - SB_rad) + settings['SB_diam']))
+                        SB_pix_coord_y = np.arange(math.ceil(math.ceil(act_ref_cent_coord_y[i]) - SB_rad), \
+                            (math.ceil(math.ceil(act_ref_cent_coord_y[i]) - SB_rad) + settings['SB_diam']))
                     else:
-                        SB_pix_coord_x = np.arange(math.ceil(math.ceil(act_ref_cent_coord_x[i]) - SB_rad) + 2, \
-                            (math.ceil(math.ceil(act_ref_cent_coord_x[i]) - SB_rad) + 2) + settings['SB_diam'] - 3)
-                        SB_pix_coord_y = np.arange(math.ceil(math.ceil(act_ref_cent_coord_y[i]) - SB_rad) + 2, \
-                            (math.ceil(math.ceil(act_ref_cent_coord_y[i]) - SB_rad) + 2) + settings['SB_diam'] - 3)
+                        SB_pix_coord_x = np.arange(math.ceil(math.ceil(act_ref_cent_coord_x[i]) - SB_rad) + 1, \
+                            (math.ceil(math.ceil(act_ref_cent_coord_x[i]) - SB_rad) + settings['SB_diam']))
+                        SB_pix_coord_y = np.arange(math.ceil(math.ceil(act_ref_cent_coord_y[i]) - SB_rad) + 1, \
+                            (math.ceil(math.ceil(act_ref_cent_coord_y[i]) - SB_rad) + settings['SB_diam']))
                 else:
                     """
                     Two methods for setting the dynamic range
@@ -143,37 +146,31 @@ def acq_centroid(settings, flag = 0):
                             5 cycles of dynamic range.                                 
                     """
                     # Method 1: Judge the position of S-H spot centroid relative to centre of search block and decrease dynamic range
-                    if act_cent_coord_x[i] > act_ref_cent_coord_x[i]:
-                        SB_pix_coord_x = SB_pix_coord_x[1:]
-                    elif act_cent_coord_x[i] < act_ref_cent_coord_x[i]:
-                        SB_pix_coord_x = SB_pix_coord_x[:-1]
-                    else:
-                        SB_pix_coord_x = SB_pix_coord_x[1:-1]
+                    # if act_cent_coord_x[i] > act_ref_cent_coord_x[i]:
+                    #     SB_pix_coord_x = SB_pix_coord_x[1:]
+                    # elif act_cent_coord_x[i] < act_ref_cent_coord_x[i]:
+                    #     SB_pix_coord_x = SB_pix_coord_x[:-1]
+                    # else:
+                    #     SB_pix_coord_x = SB_pix_coord_x[1:-1]
 
-                    if act_cent_coord_y[i] > act_ref_cent_coord_y[i]:
-                        SB_pix_coord_y = SB_pix_coord_y[1:]
-                    elif act_cent_coord_y[i] < act_ref_cent_coord_y[i]:
-                        SB_pix_coord_y = SB_pix_coord_y[:-1]
-                    else:
-                        SB_pix_coord_y = SB_pix_coord_y[1:-1]
+                    # if act_cent_coord_y[i] > act_ref_cent_coord_y[i]:
+                    #     SB_pix_coord_y = SB_pix_coord_y[1:]
+                    # elif act_cent_coord_y[i] < act_ref_cent_coord_y[i]:
+                    #     SB_pix_coord_y = SB_pix_coord_y[:-1]
+                    # else:
+                    #     SB_pix_coord_y = SB_pix_coord_y[1:-1]
 
                     # Method 2: Centre new search area on centroid calculated during previous cycle while shrinking search area at the same time
-                    # if settings['odd_pix']:
-                    #     SB_pix_coord_x = np.arange(math.ceil(math.ceil(act_cent_coord_x[i]) - SB_rad) + 1 + n, \
-                    #         math.ceil(math.ceil(act_cent_coord_x[i]) - SB_rad) + settings['SB_diam'] - 2 - 2 * n)
-                    #     SB_pix_coord_y = np.arange(math.ceil(math.ceil(act_cent_coord_y[i]) - SB_rad) + 1 + n, \
-                    #         math.ceil(math.ceil(act_cent_coord_y[i]) - SB_rad) + settings['SB_diam'] - 2 - 2 * n)
-                    # else:
-                    #     SB_pix_coord_x = np.arange(math.ceil(math.ceil(act_cent_coord_x[i]) - SB_rad) + 2 + n, \
-                    #         math.ceil(math.ceil(act_cent_coord_x[i]) - SB_rad) + settings['SB_diam'] - 2 - 2 * n)
-                    #     SB_pix_coord_y = np.arange(math.ceil(math.ceil(act_cent_coord_y[i]) - SB_rad) + 1 + n, \
-                    #         math.ceil(math.ceil(act_cent_coord_y[i]) - SB_rad) + settings['SB_diam'] - 2 - 2 * n)
-
-                # if i == 0:
-                #     print('SB_pixel_coord_x_{}_{}: {}'.format(i, n, SB_pix_coord_x))
-                #     print('SB_pixel_coord_y_{}_{}: {}'.format(i, n, SB_pix_coord_y))
-                #     print('Length of pixel coord along x axis for cycle {}: {}'.format(n, len(SB_pix_coord_x)))
-                #     print('Length of pixel coord along y axis for cycle {}: {}'.format(n, len(SB_pix_coord_y)))              
+                    if settings['odd_pix']:
+                        SB_pix_coord_x = np.arange(math.ceil(math.ceil(act_cent_coord_x[i]) - SB_rad) + n, \
+                            math.ceil(math.ceil(act_cent_coord_x[i]) - SB_rad) + settings['SB_diam'] - n)
+                        SB_pix_coord_y = np.arange(math.ceil(math.ceil(act_cent_coord_y[i]) - SB_rad) + n, \
+                            math.ceil(math.ceil(act_cent_coord_y[i]) - SB_rad) + settings['SB_diam'] - n)
+                    else:
+                        SB_pix_coord_x = np.arange(math.ceil(math.ceil(act_cent_coord_x[i]) - SB_rad) + 1 + n, \
+                            math.ceil(math.ceil(act_cent_coord_x[i]) - SB_rad) + settings['SB_diam'] - n)
+                        SB_pix_coord_y = np.arange(math.ceil(math.ceil(act_cent_coord_y[i]) - SB_rad) + 1 + n, \
+                            math.ceil(math.ceil(act_cent_coord_y[i]) - SB_rad) + settings['SB_diam'] - n)        
 
                 """
                 Calculate actual S-H spot centroids by using centre of gravity (CoG) method
@@ -185,13 +182,14 @@ def acq_centroid(settings, flag = 0):
                 # Calculate centroid positions within search area
                 if flag in [5, 6, 9, 10]:
 
-                    # If subaperture removal function is to be incorporated, remove those subapertures within which maximum pixel value is below a certain value
-                    if np.amax(image_crop) < config['search_block']['int_thres']:
+                    # Obscured subaperture removal function incorporated
+                    if image_crop.sum() == 0 or (image_crop ** 2).sum() / (image_crop.sum()) ** 2 < config['search_block']['sharp_thres']:
+                        
                         # If aperture is obscured, set sum_x, sum_y to 0
-                        print(np.amax(image_crop))
                         sum_x, sum_y = (0 for i in range(2))
                         sum_pix = 1
                     else:                     
+                        
                         # If aperture isn't obscured, calculate centroid using CoG method
                         xx, yy = np.meshgrid(np.arange(SB_pix_coord_x[0], SB_pix_coord_x[0] + len(SB_pix_coord_x)), \
                             np.arange(SB_pix_coord_y[0], SB_pix_coord_y[0] + len(SB_pix_coord_y)))
@@ -201,7 +199,7 @@ def acq_centroid(settings, flag = 0):
                         sum_pix = image_crop.sum()
                 else:
 
-                    # If subaperture removal function is not incorporated, calculate centroid using CoG method
+                    # Obscured subaperture removal function not incorporated, calculate centroid using CoG method
                     xx, yy = np.meshgrid(np.arange(SB_pix_coord_x[0], SB_pix_coord_x[0] + len(SB_pix_coord_x)), \
                         np.arange(SB_pix_coord_y[0], SB_pix_coord_y[0] + len(SB_pix_coord_y)))
 

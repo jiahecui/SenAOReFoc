@@ -128,17 +128,38 @@ def get_mat_dset(settings, flag = 1):
     
     # data = f.get('UnwrappedPhase')
 
-    # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte1_Bottom.mat','r')
+    f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte1_Bottom.mat','r')
     # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte1_Top.mat','r')
     # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte2_Bottom.mat','r')
     # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte2_Top.mat','r')
     # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Brain30Gly_Bottom.mat','r')
-    f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Brain90PBS_Bottom.mat','r')
+    # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Brain90PBS_Bottom.mat','r')
     # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_MouseOocyte.mat','r')
 
     data = f.get('WrappedPhase')
 
+    # Choose working DM along with its parameters
+    if config['DM']['DM_num'] == 0:
+        pupil_diam = config['search_block']['pupil_diam_0']
+    elif config['DM']['DM_num'] == 1:
+        pupil_diam = config['search_block']['pupil_diam_1']
+    
     # Interpolate to suitable size
+    data = np.array(data[54,...]) * config['AO']['lambda'] / (2 * np.pi)  
+    mag_fac = pupil_diam / 7.216 * 4
+    data_interp = sp.ndimage.zoom(data, mag_fac).T 
+    
+    # Pad image to same dimension as sensor size
+    data_pad = np.pad(data_interp, (math.ceil((settings['sensor_height'] - np.shape(data_interp)[0]) / 2),\
+        math.ceil((settings['sensor_width'] - np.shape(data_interp)[1]) / 2)), 'constant', constant_values = (0, 0))
+
+    if flag == 0:
+        return data_interp
+    elif flag == 1:
+        return data_pad 
+    else:
+        return get_slope_from_phase(settings, data_pad)
+
     """
     Notes regarding amplitude and frequency of aberrations at different sample positions for UnwrappedPhase_IMG_Blastocyte1_Bottom:
 
@@ -157,17 +178,3 @@ def get_mat_dset(settings, flag = 1):
         10) Many turbid positions can demonstrate that AO_zernikes_2 is very robust and could bring the strehl ratio back to > 0.81, 
             while AO_slopes_2 can't (strehl < 0.4?): 91, 92, 176, 102, 49, 50, 54, 57
     """
-    data = np.array(data[143,...]) * config['AO']['lambda'] / (2 * np.pi)  
-    mag_fac = config['search_block']['pupil_diam'] / 7.216 * 4
-    data_interp = sp.ndimage.zoom(data, mag_fac).T 
-    
-    # Pad image to same dimension as sensor size
-    data_pad = np.pad(data_interp, (math.ceil((settings['sensor_height'] - np.shape(data_interp)[0]) / 2),\
-        math.ceil((settings['sensor_width'] - np.shape(data_interp)[1]) / 2)), 'constant', constant_values = (0, 0))
-
-    if flag == 0:
-        return data_interp
-    elif flag == 1:
-        return data_pad 
-    else:
-        return get_slope_from_phase(settings, data_pad)

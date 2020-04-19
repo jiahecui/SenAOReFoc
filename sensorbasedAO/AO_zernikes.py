@@ -17,7 +17,7 @@ from image_acquisition import acq_image
 from centroid_acquisition import acq_centroid
 from spot_sim import SpotSim
 from gaussian_inf import inf
-from common import get_slope_from_phase
+from common import get_slope_from_phase, fft_spot_from_phase
 
 logger = log.get_logger(__name__)
 
@@ -50,13 +50,21 @@ class AO_Zernikes(QObject):
         # Get mirror instance
         self.mirror = mirror
 
+        # Choose working DM along with its parameters
+        if config['DM']['DM_num'] == 0:
+            self.actuator_num = config['DM0']['actuator_num']
+            self.pupil_diam = config['search_block']['pupil_diam_0']
+        elif config['DM']['DM_num'] == 1:
+            self.actuator_num = config['DM1']['actuator_num']
+            self.pupil_diam = config['search_block']['pupil_diam_1']
+
         # Initialise zernike coefficient array
         self.zern_coeff = np.zeros([config['AO']['control_coeff_num'], 1])
         
         # Initialise array to record root mean square error and strehl ratio after each iteration
-        self.loop_rms_zern = np.zeros(config['AO']['loop_max'])
-        self.loop_rms_zern_part = np.zeros(config['AO']['loop_max'])
-        self.strehl = np.zeros(config['AO']['loop_max'])
+        self.loop_rms_zern = np.zeros(config['AO']['loop_max'] + 1)
+        self.loop_rms_zern_part = np.zeros(config['AO']['loop_max'] + 1)
+        self.strehl = np.zeros(config['AO']['loop_max'] + 1)
 
         super().__init__()
 
@@ -98,7 +106,7 @@ class AO_Zernikes(QObject):
         # Calculate Gaussian distribution influence function value introduced by each actuator at each pixel
         delta_phase = np.zeros([self.SB_settings['sensor_width'], self.SB_settings['sensor_width']])
 
-        for i in range(config['DM']['actuator_num']):
+        for i in range(self.actuator_num):
             delta_phase += inf(coord_xx, coord_yy, self.mirror_settings['act_pos_x'], self.mirror_settings['act_pos_y'],\
                 i, self.mirror_settings['act_diam']) * voltages[i]
 
@@ -122,7 +130,7 @@ class AO_Zernikes(QObject):
         Retrieves boolean pupil mask for round aperture
         """
         pupil_mask = np.sqrt((coord_xx * self.SB_settings['pixel_size']) ** 2 + \
-            (coord_yy * self.SB_settings['pixel_size']) ** 2) <= config['search_block']['pupil_diam'] * 1e3 / 2
+            (coord_yy * self.SB_settings['pixel_size']) ** 2) <= self.pupil_diam * 1e3 / 2
         
         return pupil_mask
         
@@ -152,16 +160,17 @@ class AO_Zernikes(QObject):
             self.message.emit('Process started for closed-loop AO via Zernikes...')
 
             # Initialise deformable mirror voltage array
-            voltages = np.zeros(config['DM']['actuator_num'])
+            voltages = np.zeros(self.actuator_num)
 
             prev1 = time.perf_counter()
 
-            # Run closed-loop control until residual phase error is below a certain value or iteration has reached specified maximum
-            for i in range(config['AO']['loop_max']):
+            # Run closed-loop control until tolerance value or maximum loop iteration is reached
+            for i in range(config['AO']['loop_max'] + 1):
                 
                 if self.loop:
 
                     try:
+                        
                         # Update mirror control voltages
                         if i == 0:
                             voltages = config['DM']['vol_bias']
@@ -169,45 +178,29 @@ class AO_Zernikes(QObject):
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
                                 zern_err[:config['AO']['control_coeff_num']]))
 
-                            # print('Voltages {}: {}'.format(i, voltages.T))
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
                         if config['dummy']:
                             if config['real_phase']:
 
-                                # Update phase profile, slope data, S-H spot image, and calculate Strehl ratio 
+                                # Update phase profile and retrieve S-H spot image 
                                 if i == 0:
 
                                     # Retrieve phase profile
                                     phase_init = get_mat_dset(self.SB_settings, flag = 1)
 
-                                    # Display correction phase introduced by DM and corrected phase
+                                    # Display initial phase
                                     self.image.emit(abs(phase_init))
-                                    time.sleep(2)
 
-                                    print('Max and min values of initial phase are: {} um, {} um'.format(np.amax(phase_init), np.amin(phase_init)))
-
-                                    # Calculate strehl ratio of initial phase profile
-                                    # strehl_init = self.strehl_calc(phase_init / (config['AO']['lambda'] / (2 * np.pi)))
-                                    # self.strehl[i] = strehl_init
-
-                                    # print('Strehl ratio of initial phase is:', strehl_init)  
-
-                                    # Retrieve slope data from initial phase profile to use as theoretical centroids for simulation of S-H spots
-                                    spot_cent_slope_x, spot_cent_slope_y = get_mat_dset(self.SB_settings, flag = 2)
+                                    print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
 
                                     # Get simulated S-H spots and append to list
-                                    spot_img = SpotSim(self.SB_settings)
-                                    AO_image, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = spot_cent_slope_x, yc = spot_cent_slope_y)
+                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
                                     dset_append(data_set_1, 'dummy_AO_img', AO_image)
                                     dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
                                     dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
 
-                                    # print('spot_cent_slope_x:', spot_cent_slope_x)
-                                    # print('spot_cent_slope_y:', spot_cent_slope_y)
-
                                     phase = phase_init.copy()
-                                    # strehl = strehl_init.copy()
 
                                 else:
 
@@ -217,32 +210,17 @@ class AO_Zernikes(QObject):
                                     # Update phase data
                                     phase = phase_init - delta_phase
 
-                                    # Display correction phase introduced by DM and corrected phase
-                                    self.image.emit(abs(delta_phase))
-                                    time.sleep(2)
+                                    # Display corrected phase
                                     self.image.emit(abs(phase))
-                                    time.sleep(2)
 
-                                    print('Max and min values of phase are: {} um, {} um'.format(np.amax(phase), np.amin(phase)))
-
-                                    # Calculate strehl ratio of updated phase profile
-                                    # strehl = self.strehl_calc(phase / (config['AO']['lambda'] / (2 * np.pi)))
-                                    # self.strehl[i] = strehl
-
-                                    # print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))
-
-                                    # Retrieve slope data from updated phase profile to use as theoretical centroids for simulation of S-H spots
-                                    spot_cent_slope_x, spot_cent_slope_y = get_slope_from_phase(self.SB_settings, phase)
+                                    print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
 
                                     # Get simulated S-H spots and append to list
-                                    spot_img = SpotSim(self.SB_settings)
-                                    AO_image, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = spot_cent_slope_x, yc = spot_cent_slope_y)
+                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
                                     dset_append(data_set_1, 'dummy_AO_img', AO_image)
                                     dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
                                     dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
-                                    
-                                    # print('spot_cent_slope_x:', spot_cent_slope_x)
-                                    # print('spot_cent_slope_y:', spot_cent_slope_y)
+
                             else:
 
                                 self.done.emit(1)
@@ -292,9 +270,9 @@ class AO_Zernikes(QObject):
                         strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern) ** 2)
                         self.strehl[i] = strehl
 
-                        print('Full zernike root mean square error {} is {} um'.format(i + 1, rms_zern))
-                        print('Partial zernike root mean square error {} is {} um'.format(i + 1, rms_zern_part))                        
-                        print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl)) 
+                        print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
+                        print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
+                        print('Strehl ratio of phase {} is: {} \n'.format(i, strehl)) 
 
                         # Append data to list
                         if config['dummy']:
@@ -322,17 +300,17 @@ class AO_Zernikes(QObject):
             data_file.close()
 
             self.message.emit('Process complete.')
-            print('Final root mean square error of detected wavefront is: {} microns'.format(rms_zern))
+            print('Final root mean square error of detected wavefront is: {} um'.format(rms_zern))
 
             prev2 = time.perf_counter()
-            print('Time for closed-loop AO process is:', (prev2 - prev1))
+            print('Time for closed-loop AO process is: {} s'.format(prev2 - prev1))
 
             """
             Returns closed-loop AO information into self.AO_info
             """             
             if self.log:
 
-                self.AO_info['zern_AO_1']['loop_num'] = i + 1
+                self.AO_info['zern_AO_1']['loop_num'] = i
                 self.AO_info['zern_AO_1']['residual_phase_err_zern'] = self.loop_rms_zern
                 self.AO_info['zern_AO_1']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['zern_AO_1']['strehl_ratio'] = self.strehl
@@ -376,16 +354,17 @@ class AO_Zernikes(QObject):
             self.message.emit('Process started for closed-loop AO via Zernikes with obscured subapertures...')
 
             # Initialise deformable mirror voltage array
-            voltages = np.zeros(config['DM']['actuator_num'])
+            voltages = np.zeros(self.actuator_num)
 
             prev1 = time.perf_counter()
 
-            # Run closed-loop control until residual phase error is below a certain value or iteration has reached specified maximum
-            for i in range(config['AO']['loop_max']):
+            # Run closed-loop control until tolerance value or maximum loop iteration is reached
+            for i in range(config['AO']['loop_max'] + 1):
                 
                 if self.loop:
 
                     try:
+
                         # Update mirror control voltages
                         if i == 0:
                             voltages = config['DM']['vol_bias']
@@ -393,45 +372,29 @@ class AO_Zernikes(QObject):
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
                                 zern_err[:config['AO']['control_coeff_num']]))
 
-                            # print('Voltages {}: {}'.format(i, voltages))
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
                         if config['dummy']:
                             if config['real_phase']:
 
-                                # Update phase profile, slope data, S-H spot image, and calculate Strehl ratio 
+                                # Update phase profile and retrieve S-H spot image 
                                 if i == 0:
 
                                     # Retrieve phase profile
                                     phase_init = get_mat_dset(self.SB_settings, flag = 1)
 
-                                    # Display correction phase introduced by DM and corrected phase
+                                    # Display initial phase
                                     self.image.emit(abs(phase_init))
-                                    time.sleep(2)
 
-                                    print('Max and min values of initial phase are: {} um, {} um'.format(np.amax(phase_init), np.amin(phase_init)))
-
-                                    # Calculate strehl ratio of initial phase profile
-                                    # strehl_init = self.strehl_calc(phase_init / (config['AO']['lambda'] / (2 * np.pi)))
-                                    # self.strehl[i] = strehl_init
-
-                                    # print('Strehl ratio of initial phase is:', strehl_init)  
-
-                                    # Retrieve slope data from updated phase profile to use as theoretical centroids for simulation of S-H spots
-                                    spot_cent_slope_x, spot_cent_slope_y = get_mat_dset(self.SB_settings, flag = 2)
+                                    print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
 
                                     # Get simulated S-H spots and append to list
-                                    spot_img = SpotSim(self.SB_settings)
-                                    AO_image, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = spot_cent_slope_x, yc = spot_cent_slope_y)
+                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
                                     dset_append(data_set_1, 'dummy_AO_img', AO_image)
                                     dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
                                     dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
 
-                                    # print('spot_cent_slope_x:', spot_cent_slope_x)
-                                    # print('spot_cent_slope_y:', spot_cent_slope_y)
-
                                     phase = phase_init.copy()
-                                    # strehl = strehl_init.copy()
     
                                 else:
 
@@ -441,32 +404,17 @@ class AO_Zernikes(QObject):
                                     # Update phase data
                                     phase = phase_init - delta_phase
 
-                                    # Display correction phase introduced by DM and corrected phase
-                                    self.image.emit(abs(delta_phase))
-                                    time.sleep(2)
+                                    # Display corrected phase
                                     self.image.emit(abs(phase))
-                                    time.sleep(2)
 
-                                    print('Max and min values of phase are: {} um, {} um'.format(np.amax(phase), np.amin(phase)))
-
-                                    # Calculate strehl ratio of updated phase profile
-                                    # strehl = self.strehl_calc(phase / (config['AO']['lambda'] / (2 * np.pi)))
-                                    # self.strehl[i] = strehl
-
-                                    # print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))
-
-                                    # Retrieve slope data from initial phase profile to use as theoretical centroids for simulation of S-H spots
-                                    spot_cent_slope_x, spot_cent_slope_y = get_slope_from_phase(self.SB_settings, phase)
+                                    print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
                                     
                                     # Get simulated S-H spots and append to list
-                                    spot_img = SpotSim(self.SB_settings)
-                                    AO_image, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = spot_cent_slope_x, yc = spot_cent_slope_y)
+                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
                                     dset_append(data_set_1, 'dummy_AO_img', AO_image)
                                     dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
                                     dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
 
-                                    # print('spot_cent_slope_x:', spot_cent_slope_x)
-                                    # print('spot_cent_slope_y:', spot_cent_slope_y)
                             else:
 
                                 self.done.emit(2)
@@ -500,8 +448,8 @@ class AO_Zernikes(QObject):
                             index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'].astype(int) + 1 == 0)[1]
                         else:
                             index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'] == 0)[1]
-                        print('Shape index_remove:', np.shape(index_remove))
-                        print('index_remove:', index_remove)
+                        print('Number of obscured subapertures:', np.size(index_remove))
+                        print('Index of obscured subapertures:', index_remove)
                         index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
                         # print('Shape index_remove_inf:', np.shape(index_remove_inf))
                         # print('index_remove_inf:', index_remove_inf)
@@ -527,8 +475,8 @@ class AO_Zernikes(QObject):
 
                         # Check whether p_matrix is a lower or upper triangular matrix, if lower -> transpose to upper
                         if np.allclose(p_matrix, np.tril(p_matrix)):
-                            # print('p_matrix is lower triangular matrix')
                             p_matrix = p_matrix.T
+                            # print('p_matrix is lower triangular matrix')
                         # print('Shape p_matrix:', np.shape(p_matrix))
 
                         # Recalculate conversion matrix
@@ -567,20 +515,14 @@ class AO_Zernikes(QObject):
                         strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern) ** 2)
                         self.strehl[i] = strehl
 
-                        print('Full zernike root mean square error {} is {} um'.format(i + 1, rms_zern))
-                        print('Partial zernike root mean square error {} is {} um'.format(i + 1, rms_zern_part))                        
-                        print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl)) 
+                        print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
+                        print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
+                        print('Strehl ratio of phase {} is: {} \n'.format(i, strehl)) 
 
                         # Append data to list
                         if config['dummy']:
-                        #     dset_append(data_set_2, 'dummy_spot_slope_x', slope_x)
-                        #     dset_append(data_set_2, 'dummy_spot_slope_y', slope_y)
-                        #     dset_append(data_set_2, 'dummy_spot_slope', slope)
                             dset_append(data_set_2, 'dummy_spot_zern_err', zern_err)
                         else:
-                        #     dset_append(data_set_2, 'real_spot_slope_x', slope_x)
-                        #     dset_append(data_set_2, 'real_spot_slope_y', slope_y)
-                        #     dset_append(data_set_2, 'real_spot_slope', slope)
                             dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
@@ -597,10 +539,10 @@ class AO_Zernikes(QObject):
             data_file.close()
 
             self.message.emit('Process complete.')
-            print('Final root mean square error of detected wavefront is: {} microns'.format(rms_zern))
+            print('Final root mean square error of detected wavefront is: {} um'.format(rms_zern))
 
             prev2 = time.perf_counter()
-            print('Time for closed-loop AO process is:', (prev2 - prev1))
+            print('Time for closed-loop AO process is: {} s'.format(prev2 - prev1))
 
             """
             Returns closed-loop AO information into self.AO_info
@@ -651,16 +593,17 @@ class AO_Zernikes(QObject):
             self.message.emit('Process started for closed-loop AO via Zernikes with partial correction...')
 
             # Initialise deformable mirror voltage array
-            voltages = np.zeros(config['DM']['actuator_num'])
+            voltages = np.zeros(self.actuator_num)
 
             prev1 = time.perf_counter()
 
-            # Run closed-loop control until residual phase error is below a certain value or iteration has reached specified maximum
-            for i in range(config['AO']['loop_max']):
+            # Run closed-loop control until tolerance value or maximum loop iteration is reached
+            for i in range(config['AO']['loop_max'] + 1):
                 
                 if self.loop:
 
                     try:
+
                         # Update mirror control voltages
                         if i == 0:
                             voltages = config['DM']['vol_bias']
@@ -668,45 +611,29 @@ class AO_Zernikes(QObject):
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
                                 zern_err_part[:config['AO']['control_coeff_num']]))
 
-                            # print('Voltages {}: {}'.format(i, voltages.T))
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
                         
                         if config['dummy']:
                             if config['real_phase']:
 
-                                # Update phase profile, slope data, S-H spot image, and calculate Strehl ratio 
+                                # Update phase profile and retrieve S-H spot image 
                                 if i == 0:
 
                                     # Retrieve phase profile
                                     phase_init = get_mat_dset(self.SB_settings, flag = 1)
 
-                                    # Display correction phase introduced by DM and corrected phase
+                                    # Display initial phase
                                     self.image.emit(abs(phase_init))
-                                    time.sleep(2)
 
-                                    print('Max and min values of initial phase are: {} um, {} um'.format(np.amax(phase_init), np.amin(phase_init)))
-
-                                    # Calculate strehl ratio of initial phase profile
-                                    # strehl_init = self.strehl_calc(phase_init / (config['AO']['lambda'] / (2 * np.pi)))
-                                    # self.strehl[i] = strehl_init
-
-                                    # print('Strehl ratio of initial phase is:', strehl_init)  
-
-                                    # Retrieve slope data from initial phase profile to use as theoretical centroids for simulation of S-H spots
-                                    spot_cent_slope_x, spot_cent_slope_y = get_mat_dset(self.SB_settings, flag = 2)
+                                    print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
 
                                     # Get simulated S-H spots and append to list
-                                    spot_img = SpotSim(self.SB_settings)
-                                    AO_image, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = spot_cent_slope_x, yc = spot_cent_slope_y)
+                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
                                     dset_append(data_set_1, 'dummy_AO_img', AO_image)
                                     dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
                                     dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
 
-                                    # print('spot_cent_slope_x:', spot_cent_slope_x)
-                                    # print('spot_cent_slope_y:', spot_cent_slope_y)
-
                                     phase = phase_init.copy()
-                                    # strehl = strehl_init.copy()
 
                                 else:
                                     # Calculate phase profile introduced by DM
@@ -715,32 +642,17 @@ class AO_Zernikes(QObject):
                                     # Update phase data
                                     phase = phase_init - delta_phase
 
-                                    # Display correction phase introduced by DM and corrected phase
-                                    self.image.emit(abs(delta_phase))
-                                    time.sleep(2)
+                                    # Display corrected phase
                                     self.image.emit(abs(phase))
-                                    time.sleep(2)
 
-                                    print('Max and min values of phase are: {} um, {} um'.format(np.amax(phase), np.amin(phase)))
-
-                                    # Calculate strehl ratio of updated phase profile
-                                    # strehl = self.strehl_calc(phase / (config['AO']['lambda'] / (2 * np.pi)))
-                                    # self.strehl[i] = strehl
-
-                                    # print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))
-
-                                    # Retrieve slope data from updated phase profile to use as theoretical centroids for simulation of S-H spots
-                                    spot_cent_slope_x, spot_cent_slope_y = get_slope_from_phase(self.SB_settings, phase)
+                                    print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
 
                                     # Get simulated S-H spots and append to list
-                                    spot_img = SpotSim(self.SB_settings)
-                                    AO_image, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = spot_cent_slope_x, yc = spot_cent_slope_y)
+                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
                                     dset_append(data_set_1, 'dummy_AO_img', AO_image)
                                     dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
                                     dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
 
-                                    # print('spot_cent_slope_x:', spot_cent_slope_x)
-                                    # print('spot_cent_slope_y:', spot_cent_slope_y)
                             else:
 
                                 self.done.emit(3)
@@ -790,9 +702,9 @@ class AO_Zernikes(QObject):
                         strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern) ** 2)
                         self.strehl[i] = strehl
 
-                        print('Full zernike root mean square error {} is {} um'.format(i + 1, rms_zern))
-                        print('Partial zernike root mean square error {} is {} um'.format(i + 1, rms_zern_part))                        
-                        print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))                     
+                        print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
+                        print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
+                        print('Strehl ratio of phase {} is: {} \n'.format(i, strehl))                     
 
                         # Append data to list
                         if config['dummy']:
@@ -820,10 +732,10 @@ class AO_Zernikes(QObject):
             data_file.close()
 
             self.message.emit('Process complete.')
-            print('Final root mean square error of detected wavefront is: {} microns'.format(rms_zern))
+            print('Final root mean square error of detected wavefront is: {} um'.format(rms_zern))
 
             prev2 = time.perf_counter()
-            print('Time for closed-loop AO process is:', (prev2 - prev1))
+            print('Time for closed-loop AO process is: {} s'.format(prev2 - prev1))
 
             """
             Returns closed-loop AO information into self.AO_info
@@ -874,16 +786,17 @@ class AO_Zernikes(QObject):
             self.message.emit('Process started for full closed-loop AO via Zernikes...')
 
             # Initialise deformable mirror voltage array
-            voltages = np.zeros(config['DM']['actuator_num'])
+            voltages = np.zeros(self.actuator_num)
 
             prev1 = time.perf_counter()
 
-            # Run closed-loop control until residual phase error is below a certain value or iteration has reached specified maximum
-            for i in range(config['AO']['loop_max']):
+            # Run closed-loop control until tolerance value or maximum loop iteration is reached
+            for i in range(config['AO']['loop_max'] + 1):
                 
                 if self.loop:
 
                     try:
+
                         # Update mirror control voltages
                         if i == 0:
                             voltages = config['DM']['vol_bias']
@@ -891,45 +804,29 @@ class AO_Zernikes(QObject):
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
                                 zern_err_part[:config['AO']['control_coeff_num']]))
 
-                            # print('Voltages {}: {}'.format(i, voltages))
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
                         if config['dummy']:
                             if config['real_phase']:
 
-                                # Update phase profile, slope data, S-H spot image, and calculate Strehl ratio 
+                                # Update phase profile and retrieve S-H spot image 
                                 if i == 0:
 
                                     # Retrieve phase profile
                                     phase_init = get_mat_dset(self.SB_settings, flag = 1)
 
-                                    # Display correction phase introduced by DM and corrected phase
+                                    # Display initial phase
                                     self.image.emit(abs(phase_init))
-                                    time.sleep(2)
 
-                                    print('Max and min values of initial phase are: {} um, {} um'.format(np.amax(phase_init), np.amin(phase_init)))
-
-                                    # Calculate strehl ratio of initial phase profile
-                                    # strehl_init = self.strehl_calc(phase_init / (config['AO']['lambda'] / (2 * np.pi)))
-                                    # self.strehl[i] = strehl_init
-
-                                    # print('Strehl ratio of initial phase is:', strehl_init)  
-
-                                    # Retrieve slope data from updated phase profile to use as theoretical centroids for simulation of S-H spots
-                                    spot_cent_slope_x, spot_cent_slope_y = get_mat_dset(self.SB_settings, flag = 2)
+                                    print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
 
                                     # Get simulated S-H spots and append to list
-                                    spot_img = SpotSim(self.SB_settings)
-                                    AO_image, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = spot_cent_slope_x, yc = spot_cent_slope_y)
+                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
                                     dset_append(data_set_1, 'dummy_AO_img', AO_image)
                                     dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
                                     dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
 
-                                    # print('spot_cent_slope_x:', spot_cent_slope_x)
-                                    # print('spot_cent_slope_y:', spot_cent_slope_y)
-
                                     phase = phase_init.copy()
-                                    # strehl = strehl_init.copy()
     
                                 else:
 
@@ -939,32 +836,17 @@ class AO_Zernikes(QObject):
                                     # Update phase data
                                     phase = phase_init - delta_phase
 
-                                    # Display correction phase introduced by DM and corrected phase
-                                    self.image.emit(abs(delta_phase))
-                                    time.sleep(2)
+                                    # Display corrected phase
                                     self.image.emit(abs(phase))
-                                    time.sleep(2)
 
-                                    print('Max and min values of phase are: {} um, {} um'.format(np.amax(phase), np.amin(phase)))
-
-                                    # Calculate strehl ratio of updated phase profile
-                                    # strehl = self.strehl_calc(phase / (config['AO']['lambda'] / (2 * np.pi)))
-                                    # self.strehl[i] = strehl
-
-                                    # print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))
-
-                                    # Retrieve slope data from initial phase profile to use as theoretical centroids for simulation of S-H spots
-                                    spot_cent_slope_x, spot_cent_slope_y = get_slope_from_phase(self.SB_settings, phase)
+                                    print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
                                     
                                     # Get simulated S-H spots and append to list
-                                    spot_img = SpotSim(self.SB_settings)
-                                    AO_image, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = spot_cent_slope_x, yc = spot_cent_slope_y)
+                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
                                     dset_append(data_set_1, 'dummy_AO_img', AO_image)
                                     dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
                                     dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
 
-                                    # print('spot_cent_slope_x:', spot_cent_slope_x)
-                                    # print('spot_cent_slope_y:', spot_cent_slope_y)
                             else:
 
                                 self.done.emit(4)
@@ -997,8 +879,8 @@ class AO_Zernikes(QObject):
                             index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'].astype(int) + 1 == 0)[1]
                         else:
                             index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'] == 0)[1]
-                        print('Shape index_remove:', np.shape(index_remove))
-                        print('index_remove:', index_remove)
+                        print('Number of obscured subapertures:', np.size(index_remove))
+                        print('Index of obscured subapertures:', index_remove)
                         index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
                         # print('Shape index_remove_inf:', np.shape(index_remove_inf))
                         # print('index_remove_inf:', index_remove_inf)
@@ -1024,8 +906,8 @@ class AO_Zernikes(QObject):
 
                         # Check whether p_matrix is a lower or upper triangular matrix, if lower -> transpose to upper
                         if np.allclose(p_matrix, np.tril(p_matrix)):
-                            # print('p_matrix is lower triangular matrix')
                             p_matrix = p_matrix.T
+                            # print('p_matrix is lower triangular matrix')
                         # print('Shape p_matrix:', np.shape(p_matrix))
 
                         # Recalculate conversion matrix
@@ -1064,20 +946,14 @@ class AO_Zernikes(QObject):
                         strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern) ** 2)
                         self.strehl[i] = strehl
 
-                        print('Full zernike root mean square error {} is {} um'.format(i + 1, rms_zern))
-                        print('Partial zernike root mean square error {} is {} um'.format(i + 1, rms_zern_part))                        
-                        print('Strehl ratio of phase {} is: {}'.format(i + 1, strehl))                  
+                        print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
+                        print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
+                        print('Strehl ratio of phase {} is: {} \n'.format(i, strehl))                  
 
                         # Append data to list
                         if config['dummy']:
-                            # dset_append(data_set_2, 'dummy_spot_slope_x', slope_x)
-                            # dset_append(data_set_2, 'dummy_spot_slope_y', slope_y)
-                            # dset_append(data_set_2, 'dummy_spot_slope', slope)
                             dset_append(data_set_2, 'dummy_spot_zern_err', zern_err)
                         else:
-                            # dset_append(data_set_2, 'real_spot_slope_x', slope_x)
-                            # dset_append(data_set_2, 'real_spot_slope_y', slope_y)
-                            # dset_append(data_set_2, 'real_spot_slope', slope)
                             dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
@@ -1094,10 +970,10 @@ class AO_Zernikes(QObject):
             data_file.close()
 
             self.message.emit('Process complete.')
-            print('Final root mean square error of detected wavefront is: {} microns'.format(rms_zern))
+            print('Final root mean square error of detected wavefront is: {} um'.format(rms_zern))
 
             prev2 = time.perf_counter()
-            print('Time for closed-loop AO process is:', (prev2 - prev1))
+            print('Time for closed-loop AO process is: {} s'.format(prev2 - prev1))
 
             """
             Returns closed-loop AO information into self.AO_info

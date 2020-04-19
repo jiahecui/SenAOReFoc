@@ -43,11 +43,23 @@ class Calibration(QObject):
         # Get mirror instance
         self.mirror = mirror
 
+        # Choose working DM along with its parameters
+        if config['DM']['DM_num'] == 0:
+            self.actuator_num = config['DM0']['actuator_num']
+            self.pitch = config['DM0']['pitch']
+            self.aperture = config['DM0']['aperture']
+            self.pupil_diam = config['search_block']['pupil_diam_0']
+        elif config['DM']['DM_num'] == 1:
+            self.actuator_num = config['DM1']['actuator_num']
+            self.pitch = config['DM1']['pitch']
+            self.aperture = config['DM1']['aperture']
+            self.pupil_diam = config['search_block']['pupil_diam_1']
+
         # Initialise deformable mirror information parameter
         self.mirror_info = {}
 
         # Initialise influence function matrix
-        self.inf_matrix_slopes = np.zeros([2 * self.SB_settings['act_ref_cent_num'], config['DM']['actuator_num']])
+        self.inf_matrix_slopes = np.zeros([2 * self.SB_settings['act_ref_cent_num'], self.actuator_num])
         
         super().__init__()
 
@@ -55,34 +67,34 @@ class Calibration(QObject):
         """
         Calculates actuator position coordinates according to DM geometry (Alpao69)
         """
-        xc, yc = (np.zeros(config['DM']['actuator_num']) for i in range(2))
+        xc, yc = (np.zeros(self.actuator_num) for i in range(2))
 
         for i in range(5):
 
             xc[i] = -4 * act_diam
-            xc[config['DM']['actuator_num'] - 1 - i] = 4 * act_diam
+            xc[self.actuator_num - 1 - i] = 4 * act_diam
             yc[i] = (2 - i) * act_diam
-            yc[config['DM']['actuator_num'] - 1 - i] = (-2 + i) * act_diam
+            yc[self.actuator_num - 1 - i] = (-2 + i) * act_diam
 
         for i in range(7):
 
             xc[5 + i] = -3 * act_diam
-            xc[config['DM']['actuator_num'] - 6 - i] = 3 * act_diam
+            xc[self.actuator_num - 6 - i] = 3 * act_diam
             yc[5 + i] = (3 - i) * act_diam
-            yc[config['DM']['actuator_num'] - 6 - i] = (-3 + i) * act_diam
+            yc[self.actuator_num - 6 - i] = (-3 + i) * act_diam
 
         for i in range(9):
 
             xc[12 + i] = -2 * act_diam
             xc[21 + i] = -act_diam
             xc[30 + i] = 0
-            xc[config['DM']['actuator_num'] - 13 - i] = 2 * act_diam
-            xc[config['DM']['actuator_num'] - 22 - i] = act_diam
+            xc[self.actuator_num - 13 - i] = 2 * act_diam
+            xc[self.actuator_num - 22 - i] = act_diam
             yc[12 + i] = (4 - i) * act_diam
             yc[21 + i] = (4 - i) * act_diam
             yc[30 + i] = (4 - i) * act_diam
-            yc[config['DM']['actuator_num'] - 13 - i] = (-4 + i) * act_diam
-            yc[config['DM']['actuator_num'] - 22 - i] = (-4 + i) * act_diam
+            yc[self.actuator_num - 13 - i] = (-4 + i) * act_diam
+            yc[self.actuator_num - 22 - i] = (-4 + i) * act_diam
 
         return xc, yc
 
@@ -90,21 +102,21 @@ class Calibration(QObject):
         """
         Calculates actuator position coordinates according to DM geometry (Boston140)
         """
-        xc, yc = (np.zeros(config['DM']['actuator_num']) for i in range(2))
+        xc, yc = (np.zeros(self.actuator_num) for i in range(2))
 
         for i in range(10):
 
             xc[i] = (-5 - 0.5) * act_diam
-            xc[config['DM']['actuator_num'] - 1 - i] = (5 + 0.5) * act_diam
+            xc[self.actuator_num - 1 - i] = (5 + 0.5) * act_diam
             yc[i] = (4 + 0.5 - i) * act_diam
-            yc[config['DM']['actuator_num'] - 1 - i] = (-4 - 0.5 + i) * act_diam
+            yc[self.actuator_num - 1 - i] = (-4 - 0.5 + i) * act_diam
 
         for i in range(120):
 
             if i in [11,23,35,47,59] or i > 59:
-                xc[10 + i] = (int(((10 + i) - config['DM']['actuator_num'] // 2) // 12) + 0.5) * act_diam
+                xc[10 + i] = (int(((10 + i) - self.actuator_num // 2) // 12) + 0.5) * act_diam
             else:
-                xc[10 + i] = (int(((10 + i) - (config['DM']['actuator_num'] // 2 - 1)) // 12) + 0.5) * act_diam
+                xc[10 + i] = (int(((10 + i) - (self.actuator_num // 2 - 1)) // 12) + 0.5) * act_diam
 
             yc[10 + i] = (-(i % 12) + (5 + 0.5)) * act_diam
 
@@ -127,12 +139,14 @@ class Calibration(QObject):
                 """
                 Get DM control matrix via slopes by modeling influence function of each actuator as a Gaussian function
                 """
-                # Get DM parameters
-                act_diam = config['search_block']['pupil_diam'] / config['DM']['aperture'] * config['DM']['pitch'] / self.SB_settings['pixel_size']
+                # Get diameter spacing of one actuator
+                act_diam = self.pupil_diam / self.aperture * self.pitch / self.SB_settings['pixel_size']
 
                 # Get actuator coordinates
-                xc, yc = self.act_coord_1(act_diam)
-                # xc, yc = self.act_coord_2(act_diam)
+                if config['DM']['DM_num'] == 0:
+                    xc, yc = self.act_coord_1(act_diam)
+                elif config['DM']['DM_num'] == 1:
+                    xc, yc = self.act_coord_2(act_diam)
 
                 # Get size of individual elements within each search block
                 self.elem_size = self.SB_settings['SB_diam'] / config['search_block']['div_elem']
@@ -162,7 +176,7 @@ class Calibration(QObject):
                             self.centred_ref_cent_coord_y[i] + self.SB_settings['SB_rad'] - self.elem_size / 2, self.elem_size)
 
                         # Get averaged derivatives of the modeled Gaussian influence function
-                        for j in range(config['DM']['actuator_num']):
+                        for j in range(self.actuator_num):
                            
                             self.inf_matrix_slopes[i, j] = inf_diff(elem_ref_cent_coord_x, elem_ref_cent_coord_y, xc, yc, j, act_diam, True)
                             self.inf_matrix_slopes[i + self.SB_settings['act_ref_cent_num'], j] = \
@@ -185,10 +199,10 @@ class Calibration(QObject):
                     svd_check_slopes = np.dot(self.control_matrix_slopes, self.inf_matrix_slopes)
 
                     # Get corresponding slope values generated with a unit voltage and calculated influence function matrix
-                    voltages = np.zeros(config['DM']['actuator_num'])
-                    self.slope_x, self.slope_y = (np.zeros([2 * config['DM']['actuator_num'], self.SB_settings['act_ref_cent_num']]) for i in range(2))
+                    voltages = np.zeros(self.actuator_num)
+                    self.slope_x, self.slope_y = (np.zeros([2 * self.actuator_num, self.SB_settings['act_ref_cent_num']]) for i in range(2))
 
-                    for i in range(config['DM']['actuator_num']):
+                    for i in range(self.actuator_num):
 
                         voltages_temp = voltages.copy()
 
@@ -214,7 +228,7 @@ class Calibration(QObject):
                 Time for one calibration cycle for all actuators with image acquisition, but without centroiding: 56.686575999
                 """
                 # Initialise deformable mirror voltage array
-                voltages = np.zeros(config['DM']['actuator_num'])
+                voltages = np.zeros(self.actuator_num)
                 
                 prev1 = time.perf_counter()
 
@@ -225,7 +239,7 @@ class Calibration(QObject):
                 
                 # Poke each actuator first in to vol_max, then to vol_min
                 self.message.emit('DM calibration process started...')
-                for i in range(config['DM']['actuator_num']):
+                for i in range(self.actuator_num):
 
                     if self.calibrate:                    
 
@@ -321,7 +335,7 @@ class Calibration(QObject):
                 # Fill influence function matrix with acquired slopes
                 if self.calc_inf:
                     
-                    for i in range(config['DM']['actuator_num']):
+                    for i in range(self.actuator_num):
 
                         self.inf_matrix_slopes[:self.SB_settings['act_ref_cent_num'], i] = \
                             (self.slope_x[2 * i] - self.slope_x[2 * i + 1]) / (config['DM']['vol_max'] - config['DM']['vol_min'])
