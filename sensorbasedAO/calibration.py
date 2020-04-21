@@ -134,7 +134,7 @@ class Calibration(QObject):
             # Start thread
             self.start.emit()
 
-            if config['real_phase']:
+            if config['dummy']:
 
                 """
                 Get DM control matrix via slopes by modeling influence function of each actuator as a Gaussian function
@@ -256,11 +256,7 @@ class Calibration(QObject):
                             time.sleep(config['DM']['settling_time'])
                             
                             # Acquire S-H spot image and display
-                            if config['dummy']:
-                                spot_img = SpotSim(self.SB_settings)
-                                image_max, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1)
-                            else:
-                                image_max = acq_image(self.sensor, self.SB_settings['sensor_width'], self.SB_settings['sensor_height'], acq_mode = 0)
+                            image_max = acq_image(self.sensor, self.SB_settings['sensor_width'], self.SB_settings['sensor_height'], acq_mode = 0)
 
                             # Image thresholding to remove background
                             image_max = image_max - config['image']['threshold'] * np.amax(image_max)
@@ -268,12 +264,7 @@ class Calibration(QObject):
                             self.image.emit(image_max)
 
                             # Append image to list
-                            if config['dummy']:
-                                dset_append(data_set, 'dummy_calib_img', image_max)
-                                dset_append(data_set, 'dummy_spot_cent_x', spot_cent_x)
-                                dset_append(data_set, 'dummy_spot_cent_y', spot_cent_y)
-                            else:
-                                dset_append(data_set, 'real_calib_img', image_max)
+                            dset_append(data_set, 'real_calib_img', image_max)
 
                             # Apply lowest voltage
                             voltages[i] = config['DM']['vol_min']
@@ -285,11 +276,7 @@ class Calibration(QObject):
                             time.sleep(config['DM']['settling_time'])
 
                             # Acquire S-H spot image and display
-                            if config['dummy']:
-                                spot_img = SpotSim(self.SB_settings)
-                                image_min, spot_cent_x, spot_cent_y = spot_img.SH_spot_sim(centred = 1)
-                            else:
-                                image_min = acq_image(self.sensor, self.SB_settings['sensor_width'], self.SB_settings['sensor_height'], acq_mode = 0)
+                            image_min = acq_image(self.sensor, self.SB_settings['sensor_width'], self.SB_settings['sensor_height'], acq_mode = 0)
 
                             # Image thresholding to remove background
                             image_min = image_min - config['image']['threshold'] * np.amax(image_min)
@@ -297,12 +284,7 @@ class Calibration(QObject):
                             self.image.emit(image_min)
 
                             # Append image to list
-                            if config['dummy']:
-                                dset_append(data_set, 'dummy_calib_img', image_min)
-                                dset_append(data_set, 'dummy_spot_cent_x', spot_cent_x)
-                                dset_append(data_set, 'dummy_spot_cent_y', spot_cent_y)
-                            else:
-                                dset_append(data_set, 'real_calib_img', image_min)
+                            dset_append(data_set, 'real_calib_img', image_min)
 
                             # Set actuator back to bias voltage
                             voltages[i] = config['DM']['vol_bias']
@@ -377,7 +359,7 @@ class Calibration(QObject):
                 self.mirror_info['calib_slope_y'] = self.slope_y
                 self.mirror_info['svd_check_slopes'] = svd_check_slopes
                 
-                if config['real_phase']:
+                if config['dummy']:
                     self.mirror_info['act_pos_x'] = xc
                     self.mirror_info['act_pos_y'] = yc
                     self.mirror_info['act_diam'] = act_diam

@@ -18,6 +18,7 @@ from image_acquisition import acq_image
 from spot_sim import SpotSim
 from HDF5_dset import get_mat_dset
 from common import fft_spot_from_phase
+from zernike_phase import zern_phase
 
 logger = log.get_logger(__name__)
 
@@ -96,9 +97,10 @@ class Positioning(QObject):
                         # self._image, self.spot_cent_x, self.spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = slope_x, yc = slope_y)
                     else:
                         
-                        # Retrieve simulated Gaussian profile spots
-                        spot_img = SpotSim(self.SB_settings)
-                        self._image, self.spot_cent_x, self.spot_cent_y = spot_img.SH_spot_sim(centred = 0)
+                        # Retrieve zernike phase map and S-H spot image
+                        zern_array =  self.SB_settings['zernike_array_test']
+                        phase = zern_phase(self.SB_settings, zern_array)
+                        self._image, self.spot_cent_x, self.spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
                 else:
                     self._image = acq_image(self.sensor, self.sensor_width, self.sensor_height, acq_mode = 0)               
                             

@@ -15,9 +15,9 @@ from config import config
 from HDF5_dset import dset_append, get_dset, get_mat_dset
 from image_acquisition import acq_image
 from centroid_acquisition import acq_centroid
-from spot_sim import SpotSim
 from gaussian_inf import inf
 from common import get_slope_from_phase, fft_spot_from_phase
+from zernike_phase import zern_phase
 
 logger = log.get_logger(__name__)
 
@@ -64,7 +64,7 @@ class AO_Zernikes(QObject):
         # Initialise array to record root mean square error and strehl ratio after each iteration
         self.loop_rms_zern = np.zeros(config['AO']['loop_max'] + 1)
         self.loop_rms_zern_part = np.zeros(config['AO']['loop_max'] + 1)
-        self.strehl = np.zeros(config['AO']['loop_max'] + 1)
+        self.strehl, self.strehl_2 = (np.zeros(config['AO']['loop_max'] + 1) for i in range(2))
 
         super().__init__()
 
@@ -82,14 +82,14 @@ class AO_Zernikes(QObject):
         phase_ave = np.mean(phase[pupil_mask])
         phase_delta = (phase - phase_ave) * pupil_mask
 
-        # print('Max and min values in phase before subtracting average: {}, {}'.format(np.amax(phase), np.amin(phase)))
-        # print('Max and min values in phase after subtracting average: {}, {}'.format(np.amax(phase_delta), np.amin(phase_delta)))
-        # print('phase_ave', phase_ave)
+        print('Max and min values in phase before subtracting average: {}, {}'.format(np.amax(phase), np.amin(phase)))
+        print('Max and min values in phase after subtracting average: {}, {}'.format(np.amax(phase_delta), np.amin(phase_delta)))
+        print('phase_ave', phase_ave)
 
         # Calculate Strehl ratio estimated using only the statistics of the phase deviation, according to Mahajan
         phase_delta_2 = phase_delta ** 2 * pupil_mask
         sigma_2 = np.mean(phase_delta_2[pupil_mask])
-        strehl = np.exp(-sigma_2)
+        strehl = np.exp(-(2 * np.pi / config['AO']['lambda']) ** 2 * sigma_2)
 
         return strehl
 
@@ -223,7 +223,47 @@ class AO_Zernikes(QObject):
 
                             else:
 
-                                self.done.emit(1)
+                                # Generate zernike phase map from input zernike coefficient array
+                                if i == 0:
+                                    
+                                    # Retrieve input zernike coefficient array
+                                    zern_array =  self.SB_settings['zernike_array_test']
+                                    
+                                    # Retrieve phase profile
+                                    phase_init = zern_phase(self.SB_settings, zern_array)
+
+                                    # Display initial phase
+                                    self.image.emit(phase_init)
+
+                                    print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
+
+                                    # Get simulated S-H spots and append to list
+                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
+                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+
+                                    phase = phase_init.copy()
+
+                                else:
+
+                                    # Calculate phase profile introduced by DM
+                                    delta_phase = self.phase_calc(voltages)
+
+                                    # Update phase data
+                                    phase = phase_init - delta_phase
+
+                                    # Display corrected phase
+                                    self.image.emit(phase)
+
+                                    print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
+
+                                    # Get simulated S-H spots and append to list
+                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
+                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+
                         else:
 
                             # Send values vector to mirror
@@ -262,17 +302,20 @@ class AO_Zernikes(QObject):
                         zern_err = self.zern_coeff_detect.copy()
                         zern_err_part = self.zern_coeff_detect.copy()
                         zern_err_part[[0, 1, 3], 0] = 0
-                        rms_zern = np.sqrt((zern_err ** 2).mean())
-                        rms_zern_part = np.sqrt((zern_err_part ** 2).mean())
+                        rms_zern = np.sqrt((zern_err ** 2).sum())
+                        rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
                         self.loop_rms_zern[i] = rms_zern
                         self.loop_rms_zern_part[i] = rms_zern_part
 
-                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern) ** 2)
+                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
+                        strehl_2 = self.strehl_calc(phase)
                         self.strehl[i] = strehl
+                        self.strehl_2[i] = strehl_2
 
                         print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
                         print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
-                        print('Strehl ratio of phase {} is: {} \n'.format(i, strehl)) 
+                        print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
+                        print('Strehl ratio {} from phase profile is: {} \n'.format(i, strehl_2))
 
                         # Append data to list
                         if config['dummy']:
@@ -314,6 +357,7 @@ class AO_Zernikes(QObject):
                 self.AO_info['zern_AO_1']['residual_phase_err_zern'] = self.loop_rms_zern
                 self.AO_info['zern_AO_1']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['zern_AO_1']['strehl_ratio'] = self.strehl
+                self.AO_info['zern_AO_1']['strehl_ratio_2'] = self.strehl_2
 
                 self.info.emit(self.AO_info)
                 self.write.emit()
@@ -417,7 +461,46 @@ class AO_Zernikes(QObject):
 
                             else:
 
-                                self.done.emit(2)
+                                # Generate zernike phase map from input zernike coefficient array
+                                if i == 0:
+                                    
+                                    # Retrieve input zernike coefficient array
+                                    zern_array =  self.SB_settings['zernike_array_test']
+                                    
+                                    # Retrieve phase profile
+                                    phase_init = zern_phase(self.SB_settings, zern_array)
+
+                                    # Display initial phase
+                                    self.image.emit(phase_init)
+
+                                    print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
+
+                                    # Get simulated S-H spots and append to list
+                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
+                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+
+                                    phase = phase_init.copy()
+
+                                else:
+
+                                    # Calculate phase profile introduced by DM
+                                    delta_phase = self.phase_calc(voltages)
+
+                                    # Update phase data
+                                    phase = phase_init - delta_phase
+
+                                    # Display corrected phase
+                                    self.image.emit(phase)
+
+                                    print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
+
+                                    # Get simulated S-H spots and append to list
+                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
+                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
 
                         else:                     
 
@@ -507,17 +590,20 @@ class AO_Zernikes(QObject):
                         zern_err = self.zern_coeff_detect.copy()
                         zern_err_part = self.zern_coeff_detect.copy()
                         zern_err_part[[0, 1, 3], 0] = 0
-                        rms_zern = np.sqrt((zern_err ** 2).mean())
-                        rms_zern_part = np.sqrt((zern_err_part ** 2).mean())
+                        rms_zern = np.sqrt((zern_err ** 2).sum())
+                        rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
                         self.loop_rms_zern[i] = rms_zern
                         self.loop_rms_zern_part[i] = rms_zern_part
 
-                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern) ** 2)
+                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
+                        strehl_2 = self.strehl_calc(phase)
                         self.strehl[i] = strehl
+                        self.strehl_2[i] = strehl_2
 
                         print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
                         print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
-                        print('Strehl ratio of phase {} is: {} \n'.format(i, strehl)) 
+                        print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
+                        print('Strehl ratio {} from phase profile is: {} \n'.format(i, strehl_2))) 
 
                         # Append data to list
                         if config['dummy']:
@@ -553,6 +639,7 @@ class AO_Zernikes(QObject):
                 self.AO_info['zern_AO_2']['residual_phase_err_zern'] = self.loop_rms_zern
                 self.AO_info['zern_AO_2']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['zern_AO_2']['strehl_ratio'] = self.strehl
+                self.AO_info['zern_AO_2']['strehl_ratio_2'] = self.strehl_2
 
                 self.info.emit(self.AO_info)
                 self.write.emit()
@@ -655,7 +742,46 @@ class AO_Zernikes(QObject):
 
                             else:
 
-                                self.done.emit(3)
+                                # Generate zernike phase map from input zernike coefficient array
+                                if i == 0:
+                                    
+                                    # Retrieve input zernike coefficient array
+                                    zern_array =  self.SB_settings['zernike_array_test']
+                                    
+                                    # Retrieve phase profile
+                                    phase_init = zern_phase(self.SB_settings, zern_array)
+
+                                    # Display initial phase
+                                    self.image.emit(phase_init)
+
+                                    print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
+
+                                    # Get simulated S-H spots and append to list
+                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
+                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+
+                                    phase = phase_init.copy()
+
+                                else:
+
+                                    # Calculate phase profile introduced by DM
+                                    delta_phase = self.phase_calc(voltages)
+
+                                    # Update phase data
+                                    phase = phase_init - delta_phase
+
+                                    # Display corrected phase
+                                    self.image.emit(phase)
+
+                                    print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
+
+                                    # Get simulated S-H spots and append to list
+                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
+                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
                         else:
 
                             # Send values vector to mirror
@@ -694,17 +820,20 @@ class AO_Zernikes(QObject):
                         zern_err = self.zern_coeff_detect.copy()
                         zern_err_part = self.zern_coeff_detect.copy()
                         zern_err_part[[0, 1, 3], 0] = 0
-                        rms_zern = np.sqrt((zern_err ** 2).mean())
-                        rms_zern_part = np.sqrt((zern_err_part ** 2).mean())
+                        rms_zern = np.sqrt((zern_err ** 2).sum())
+                        rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
                         self.loop_rms_zern[i] = rms_zern
                         self.loop_rms_zern_part[i] = rms_zern_part
 
-                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern) ** 2)
+                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
+                        strehl_2 = self.strehl_calc(phase)
                         self.strehl[i] = strehl
+                        self.strehl_2[i] = strehl_2
 
                         print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
                         print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
-                        print('Strehl ratio of phase {} is: {} \n'.format(i, strehl))                     
+                        print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
+                        print('Strehl ratio {} from phase profile is: {} \n'.format(i, strehl_2))                     
 
                         # Append data to list
                         if config['dummy']:
@@ -746,6 +875,7 @@ class AO_Zernikes(QObject):
                 self.AO_info['zern_AO_3']['residual_phase_err_zern'] = self.loop_rms_zern
                 self.AO_info['zern_AO_3']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['zern_AO_3']['strehl_ratio'] = self.strehl
+                self.AO_info['zern_AO_3']['strehl_ratio_2'] = self.strehl_2
 
                 self.info.emit(self.AO_info)
                 self.write.emit()
@@ -816,7 +946,7 @@ class AO_Zernikes(QObject):
                                     phase_init = get_mat_dset(self.SB_settings, flag = 1)
 
                                     # Display initial phase
-                                    self.image.emit(abs(phase_init))
+                                    self.image.emit(phase_init)
 
                                     print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
 
@@ -837,7 +967,7 @@ class AO_Zernikes(QObject):
                                     phase = phase_init - delta_phase
 
                                     # Display corrected phase
-                                    self.image.emit(abs(phase))
+                                    self.image.emit(phase)
 
                                     print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
                                     
@@ -849,7 +979,47 @@ class AO_Zernikes(QObject):
 
                             else:
 
-                                self.done.emit(4)
+                                # Generate zernike phase map from input zernike coefficient array
+                                if i == 0:
+                                    
+                                    # Retrieve input zernike coefficient array
+                                    zern_array =  self.SB_settings['zernike_array_test']
+                                    
+                                    # Retrieve phase profile
+                                    phase_init = zern_phase(self.SB_settings, zern_array)
+
+                                    # Display initial phase
+                                    self.image.emit(abs(phase_init))
+
+                                    print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
+
+                                    # Get simulated S-H spots and append to list
+                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
+                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+
+                                    phase = phase_init.copy()
+
+                                else:
+
+                                    # Calculate phase profile introduced by DM
+                                    delta_phase = self.phase_calc(voltages)
+
+                                    # Update phase data
+                                    phase = phase_init - delta_phase
+
+                                    # Display corrected phase
+                                    self.image.emit(abs(phase))
+
+                                    print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
+
+                                    # Get simulated S-H spots and append to list
+                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
+                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+
                         else:
 
                             # Send values vector to mirror
@@ -938,17 +1108,20 @@ class AO_Zernikes(QObject):
                         zern_err = self.zern_coeff_detect.copy()
                         zern_err_part = self.zern_coeff_detect.copy()
                         zern_err_part[[0, 1, 3], 0] = 0
-                        rms_zern = np.sqrt((zern_err ** 2).mean())
-                        rms_zern_part = np.sqrt((zern_err_part ** 2).mean())
+                        rms_zern = np.sqrt((zern_err ** 2).sum())
+                        rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
                         self.loop_rms_zern[i] = rms_zern
                         self.loop_rms_zern_part[i] = rms_zern_part
 
-                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern) ** 2)
+                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
+                        strehl_2 = self.strehl_calc(phase)
                         self.strehl[i] = strehl
+                        self.strehl_2[i] = strehl_2
 
                         print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
                         print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
-                        print('Strehl ratio of phase {} is: {} \n'.format(i, strehl))                  
+                        print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
+                        print('Strehl ratio {} from phase profile is: {} \n'.format(i, strehl_2))                  
 
                         # Append data to list
                         if config['dummy']:
@@ -984,6 +1157,7 @@ class AO_Zernikes(QObject):
                 self.AO_info['zern_AO_full']['residual_phase_err_zern'] = self.loop_rms_zern
                 self.AO_info['zern_AO_full']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['zern_AO_full']['strehl_ratio'] = self.strehl
+                self.AO_info['zern_AO_full']['strehl_ratio_2'] = self.strehl_2
 
                 self.info.emit(self.AO_info)
                 self.write.emit()

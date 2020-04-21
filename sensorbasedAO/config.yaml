@@ -28,7 +28,7 @@ camera:
     
 DM:
   SN: "HSDM69-15-014" 
-  DM_num: 0  # Flag for choosing the working DM, 0-Alpao, 1-Boston
+  DM_num: 1  # Flag for choosing the working DM, 0-Alpao, 1-Boston
   vol_min: -1  # V
   vol_max: 1
   vol_bias: 0
@@ -45,7 +45,7 @@ DM1:
   actuator_num: 140  # Boston
   pitch: 400  # um  
   aperture: 4.4  # mm  
-  coupling_fac: 0.15  # Inter-actuator coupling factor  
+  coupling_fac: 0.3  # Inter-actuator coupling factor  
 
 relay:
   mirror_odd: 0  # Flag for whether there is an odd number of mirrors in between DM and lenslet
@@ -53,7 +53,7 @@ relay:
 
 lenslet:
   lenslet_pitch: 500  # um
-  lenslet_focal_length: 25000  # um  # Alpao 25000  # Boston 15000 for unwrapped phase
+  lenslet_focal_length: 25000  # um
 
 search_block:
   div_elem: 5  # Number of elements in each dimension of a search block
@@ -73,8 +73,8 @@ image:
   rescale: 1  # 0-rescale off, 1-rescale on
 
 AO:
-  recon_coeff_num: 60  # Alpao 60  # Boston 70
-  control_coeff_num: 46  # Alpao 46  # Boston 55  # Eighth order Zernike mode ~ 9th-55, 10th-66, 11th-78, 12th-91
+  recon_coeff_num: 80  # Alpao 60  # Boston 70
+  control_coeff_num: 66  # Alpao 46  # Boston 55  # Eighth order Zernike mode ~ 9th-55, 10th-66, 11th-78, 12th-91
   loop_gain: 0.8  # Fixed loop gain for closed-loop control, 0.6
   loop_max: 5  # Maximum number of loops for closed-loop control
   suppress_gain: 1000  # Gain factor used to suppress certain zernike modes
@@ -83,4 +83,4 @@ AO:
   tolerance_fact_strehl: 1  # Strehl ratio tolerance factor according to Marechel criteria, 0.81
 
 dummy: 1  # Flag for whether to run in dummy mode, 0-real mode, 1-dummy mode
-real_phase: 1  # Flag for whether to use real phase data
+real_phase: 0  # Flag for whether to use real phase data

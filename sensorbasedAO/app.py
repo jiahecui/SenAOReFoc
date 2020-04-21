@@ -464,7 +464,13 @@ class App(QApplication):
                         grp4[k].create_dataset(kk, data = vv) 
                 else:
                     del grp4[k]
-                    grp4.create_dataset(k, data = v)                
+                    grp4.create_dataset(k, data = v)
+            else:
+                if isinstance(v, dict):  
+                    for kk, vv in self.data_info['AO_info'][k].items():
+                        grp4[k].create_dataset(kk, data = vv)  
+                else:
+                    grp4.create_dataset(k, data = v)            
         self.output_data.close()
 
     def handle_error(self, error):
