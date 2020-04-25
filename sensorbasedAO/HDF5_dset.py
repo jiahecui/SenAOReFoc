@@ -128,12 +128,12 @@ def get_mat_dset(settings, flag = 1):
     
     # data = f.get('UnwrappedPhase')
 
-    # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte1_Bottom.mat','r')
+    f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte1_Bottom.mat','r')
     # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte1_Top.mat','r')
     # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte2_Bottom.mat','r')
     # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte2_Top.mat','r')
     # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Brain30Gly_Bottom.mat','r')
-    f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Brain90PBS_Bottom.mat','r')
+    # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Brain90PBS_Bottom.mat','r')
     # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_MouseOocyte.mat','r')
 
     data = f.get('WrappedPhase')
@@ -145,13 +145,17 @@ def get_mat_dset(settings, flag = 1):
         pupil_diam = config['search_block']['pupil_diam_1']
     
     # Interpolate to suitable size
-    data = np.array(data[88,...]) * config['AO']['lambda'] / (2 * np.pi)  
+    data = np.array(data[125,...]) * config['AO']['lambda'] / (2 * np.pi)  
     mag_fac = pupil_diam / 7.216 * 4
     data_interp = sp.ndimage.zoom(data, mag_fac).T 
     
     # Pad image to same dimension as sensor size
-    data_pad = np.pad(data_interp, (math.ceil((settings['sensor_height'] - np.shape(data_interp)[0]) / 2),\
-        math.ceil((settings['sensor_width'] - np.shape(data_interp)[1]) / 2)), 'constant', constant_values = (0, 0))
+    if np.shape(data_interp)[0] % 2 == 0:
+        data_pad = np.pad(data_interp, (math.ceil((settings['sensor_height'] - np.shape(data_interp)[0]) / 2),\
+            math.ceil((settings['sensor_width'] - np.shape(data_interp)[1]) / 2)), 'constant', constant_values = (0, 0))
+    else:
+        data_pad = np.pad(data_interp, (math.ceil((settings['sensor_height'] - np.shape(data_interp)[0]) / 2) - 1,\
+            math.ceil((settings['sensor_width'] - np.shape(data_interp)[1]) / 2)), 'constant', constant_values = (0, 0))
 
     if flag == 0:
         return data_interp

@@ -29,8 +29,8 @@ def inf_diff(xx, yy, xc, yc, j, act_diam, x_flag = True):
     Generates the slopes of modeled Gaussian distribution influence function for simulation of DM control matrix
     
     Args:
-        xx - x value array
-        yy - y value array
+        xx - x value meshgrid
+        yy - y value meshgrid
         xc - actuator x position array
         yc - actuator y position array
         j - actuator index, starts from 0
@@ -43,31 +43,15 @@ def inf_diff(xx, yy, xc, yc, j, act_diam, x_flag = True):
     elif config['DM']['DM_num'] == 1:
         coupling_fac = config['DM1']['coupling_fac']
 
-    # Initialise instance variables
-    count = 0
-    diff_sum = 0
+    # Calculate exponential factor
+    expo = np.exp(np.log(coupling_fac) * ((xx - xc[j]) ** 2 + (yy - yc[j]) ** 2) / act_diam ** 2)
 
-    # Calculate averaged derivative of the jth actuator influence function
-    for y in yy:
-        for x in xx:
+    # Calculate x or y derivative of Gaussian distribution influence function and get final result
+    if x_flag:
+        dFn_dx = 2 * np.log(coupling_fac) / act_diam ** 2 * (xx - xc[j])
+        dFn = np.mean(dFn_dx * expo)
+    else:
+        dFn_dy = 2 * np.log(coupling_fac) / act_diam ** 2 * (yy - yc[j])
+        dFn = np.mean(dFn_dy * expo)
 
-            count += 1
-
-            # Calculate exponential factor
-            expo = np.exp(np.log(coupling_fac) * ((x - xc[j]) ** 2 + (y - yc[j]) ** 2) / act_diam ** 2)
-
-            # Calculate x or y derivative of Gaussian distribution influence function and get final result
-            if x_flag:
-                dFn_dx = 2 * np.log(coupling_fac) / act_diam ** 2 * (x - xc[j])
-                dFn = dFn_dx * expo
-            else:
-                dFn_dy = 2 * np.log(coupling_fac) / act_diam ** 2 * (y - yc[j])
-                dFn = dFn_dy * expo
-
-            # Sum derivative for each element in search block
-            diff_sum += dFn
-    
-    # Divide sum of derivative by total number of counts:
-    dFn_ave = diff_sum / count
-
-    return dFn_ave
+    return dFn

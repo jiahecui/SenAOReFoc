@@ -62,8 +62,8 @@ class AO_Slopes(QObject):
         self.loop_rms_slopes = np.zeros(config['AO']['loop_max'] + 1)
         self.loop_rms_zern = np.zeros(config['AO']['loop_max'] + 1)
         self.loop_rms_zern_part = np.zeros(config['AO']['loop_max'] + 1)
-        self.strehl = np.zeros(config['AO']['loop_max'] + 1)
-
+        self.strehl, self.strehl_2 = (np.zeros(config['AO']['loop_max'] + 1) for i in range(2))
+        
         super().__init__()
 
     def strehl_calc(self, phase):
@@ -178,88 +178,71 @@ class AO_Slopes(QObject):
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
                         if config['dummy']:
-                            if config['real_phase']:
+                            # Update phase profile and retrieve S-H spot image 
+                            if i == 0:
 
-                                # Update phase profile and retrieve S-H spot image 
-                                if i == 0:
+                                # Option 1: Load real phase profile from .mat file
+                                if config['real_phase']:
 
-                                    # Retrieve phase profile
+                                    # Retrieve real phase profile
                                     phase_init = get_mat_dset(self.SB_settings, flag = 1)
 
-                                    # Display initial phase
-                                    self.image.emit(abs(phase_init))
+                                # Option 2: Generate real zernike phase profile using DM control matrix
+                                elif config['real_zernike']:
 
-                                    print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
+                                    # Retrieve input zernike coefficient array
+                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
 
-                                    # Get simulated S-H spots and append to list
-                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
-                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+                                    # Pad zernike coefficient array to length of control_coeff_num
+                                    zern_array = np.zeros(config['AO']['control_coeff_num'])
+                                    zern_array[:len(zern_array_temp)] = zern_array_temp
 
-                                    phase = phase_init.copy()
-    
-                                else:
-
-                                    # Calculate phase profile introduced by DM
-                                    delta_phase = self.phase_calc(voltages)
-
-                                    # Update phase data
-                                    phase = phase_init - delta_phase
-
-                                    # Display corrected phase
-                                    self.image.emit(abs(phase))
-
-                                    print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
+                                    # Retrieve actuator voltages from zernike coefficient array
+                                    voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], zern_array))
                                     
-                                    # Get simulated S-H spots and append to list
-                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
-                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
-
-                            else:
-
-                                # Generate zernike phase map from input zernike coefficient array
-                                if i == 0:
+                                    # Generate zernike phase profile from DM
+                                    phase_init = self.phase_calc(voltages)
+                                    
+                                # Option 3: Generate ideal zernike phase profile
+                                else:
                                     
                                     # Retrieve input zernike coefficient array
                                     zern_array =  self.SB_settings['zernike_array_test']
                                     
-                                    # Retrieve phase profile
-                                    phase_init = zern_phase(self.SB_settings, zern_array)
+                                    # Generate ideal zernike phase profile
+                                    phase_init = zern_phase(self.SB_settings, zern_array) 
 
-                                    # Display initial phase
-                                    self.image.emit(phase_init)
+                                # Display initial phase
+                                self.image.emit(phase_init)
 
-                                    print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
+                                print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
 
-                                    # Get simulated S-H spots and append to list
-                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
-                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+                                # Get simulated S-H spots and append to list
+                                AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
+                                dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
 
-                                    phase = phase_init.copy()
+                                phase = phase_init.copy()
 
-                                else:
+                            else:
 
-                                    # Calculate phase profile introduced by DM
-                                    delta_phase = self.phase_calc(voltages)
+                                # Calculate phase profile introduced by DM
+                                delta_phase = self.phase_calc(voltages)
 
-                                    # Update phase data
-                                    phase = phase_init - delta_phase
+                                # Update phase data
+                                phase = phase_init - delta_phase
 
-                                    # Display corrected phase
-                                    self.image.emit(phase)
+                                # Display corrected phase
+                                self.image.emit(phase)
 
-                                    print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
+                                print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
 
-                                    # Get simulated S-H spots and append to list
-                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
-                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+                                # Get simulated S-H spots and append to list
+                                AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
+                                dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
 
                         else:    
 
@@ -425,88 +408,72 @@ class AO_Slopes(QObject):
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
                         if config['dummy']:
-                            if config['real_phase']:
+                            
+                            # Update phase profile and retrieve S-H spot image 
+                            if i == 0:
 
-                                # Update phase profile and retrieve S-H spot image 
-                                if i == 0:
+                                # Option 1: Load real phase profile from .mat file
+                                if config['real_phase']:
 
-                                    # Retrieve phase profile
+                                    # Retrieve real phase profile
                                     phase_init = get_mat_dset(self.SB_settings, flag = 1)
 
-                                    # Display initial phase
-                                    self.image.emit(abs(phase_init))
+                                # Option 2: Generate real zernike phase profile using DM control matrix
+                                elif config['real_zernike']:
 
-                                    print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
+                                    # Retrieve input zernike coefficient array
+                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
 
-                                    # Get simulated S-H spots and append to list
-                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
-                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+                                    # Pad zernike coefficient array to length of control_coeff_num
+                                    zern_array = np.zeros(config['AO']['control_coeff_num'])
+                                    zern_array[:len(zern_array_temp)] = zern_array_temp
 
-                                    phase = phase_init.copy()
-    
-                                else:
-
-                                    # Calculate phase profile introduced by DM
-                                    delta_phase = self.phase_calc(voltages)
-
-                                    # Update phase data
-                                    phase = phase_init - delta_phase
-
-                                    # Display corrected phase
-                                    self.image.emit(abs(phase))
-
-                                    print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
+                                    # Retrieve actuator voltages from zernike coefficient array
+                                    voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], zern_array))
                                     
-                                    # Get simulated S-H spots and append to list
-                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
-                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
-
-                            else:
-
-                                # Generate zernike phase map from input zernike coefficient array
-                                if i == 0:
+                                    # Generate zernike phase profile from DM
+                                    phase_init = self.phase_calc(voltages)
+                                    
+                                # Option 3: Generate ideal zernike phase profile
+                                else:
                                     
                                     # Retrieve input zernike coefficient array
                                     zern_array =  self.SB_settings['zernike_array_test']
                                     
-                                    # Retrieve phase profile
-                                    phase_init = zern_phase(self.SB_settings, zern_array)
+                                    # Generate ideal zernike phase profile
+                                    phase_init = zern_phase(self.SB_settings, zern_array) 
 
-                                    # Display initial phase
-                                    self.image.emit(phase_init)
+                                # Display initial phase
+                                self.image.emit(phase_init)
 
-                                    print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
+                                print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
 
-                                    # Get simulated S-H spots and append to list
-                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
-                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+                                # Get simulated S-H spots and append to list
+                                AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
+                                dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
 
-                                    phase = phase_init.copy()
+                                phase = phase_init.copy()
 
-                                else:
+                            else:
 
-                                    # Calculate phase profile introduced by DM
-                                    delta_phase = self.phase_calc(voltages)
+                                # Calculate phase profile introduced by DM
+                                delta_phase = self.phase_calc(voltages)
 
-                                    # Update phase data
-                                    phase = phase_init - delta_phase
+                                # Update phase data
+                                phase = phase_init - delta_phase
 
-                                    # Display corrected phase
-                                    self.image.emit(phase)
+                                # Display corrected phase
+                                self.image.emit(phase)
 
-                                    print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
+                                print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
 
-                                    # Get simulated S-H spots and append to list
-                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
-                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+                                # Get simulated S-H spots and append to list
+                                AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
+                                dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
                           
                         else:
 
@@ -707,88 +674,72 @@ class AO_Slopes(QObject):
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
                         if config['dummy']:
-                            if config['real_phase']:
+                            
+                            # Update phase profile and retrieve S-H spot image 
+                            if i == 0:
 
-                                # Update phase profile and retrieve S-H spot image 
-                                if i == 0:
+                                # Option 1: Load real phase profile from .mat file
+                                if config['real_phase']:
 
-                                    # Retrieve phase profile
+                                    # Retrieve real phase profile
                                     phase_init = get_mat_dset(self.SB_settings, flag = 1)
 
-                                    # Display initial phase
-                                    self.image.emit(abs(phase_init))
+                                # Option 2: Generate real zernike phase profile using DM control matrix
+                                elif config['real_zernike']:
 
-                                    print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
+                                    # Retrieve input zernike coefficient array
+                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
 
-                                    # Get simulated S-H spots and append to list
-                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
-                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+                                    # Pad zernike coefficient array to length of control_coeff_num
+                                    zern_array = np.zeros(config['AO']['control_coeff_num'])
+                                    zern_array[:len(zern_array_temp)] = zern_array_temp
 
-                                    phase = phase_init.copy()
-    
-                                else:
-
-                                    # Calculate phase profile introduced by DM
-                                    delta_phase = self.phase_calc(voltages)
-
-                                    # Update phase data
-                                    phase = phase_init - delta_phase
-
-                                    # Display corrected phase
-                                    self.image.emit(abs(phase))
-
-                                    print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
+                                    # Retrieve actuator voltages from zernike coefficient array
+                                    voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], zern_array))
                                     
-                                    # Get simulated S-H spots and append to list
-                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
-                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
-
-                            else:
-
-                                # Generate zernike phase map from input zernike coefficient array
-                                if i == 0:
+                                    # Generate zernike phase profile from DM
+                                    phase_init = self.phase_calc(voltages)
+                                    
+                                # Option 3: Generate ideal zernike phase profile
+                                else:
                                     
                                     # Retrieve input zernike coefficient array
                                     zern_array =  self.SB_settings['zernike_array_test']
                                     
-                                    # Retrieve phase profile
-                                    phase_init = zern_phase(self.SB_settings, zern_array)
+                                    # Generate ideal zernike phase profile
+                                    phase_init = zern_phase(self.SB_settings, zern_array) 
 
-                                    # Display initial phase
-                                    self.image.emit(phase_init)
+                                # Display initial phase
+                                self.image.emit(phase_init)
 
-                                    print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
+                                print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
 
-                                    # Get simulated S-H spots and append to list
-                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
-                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+                                # Get simulated S-H spots and append to list
+                                AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
+                                dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
 
-                                    phase = phase_init.copy()
+                                phase = phase_init.copy()
 
-                                else:
+                            else:
 
-                                    # Calculate phase profile introduced by DM
-                                    delta_phase = self.phase_calc(voltages)
+                                # Calculate phase profile introduced by DM
+                                delta_phase = self.phase_calc(voltages)
 
-                                    # Update phase data
-                                    phase = phase_init - delta_phase
+                                # Update phase data
+                                phase = phase_init - delta_phase
 
-                                    # Display corrected phase
-                                    self.image.emit(phase)
+                                # Display corrected phase
+                                self.image.emit(phase)
 
-                                    print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
+                                print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
 
-                                    # Get simulated S-H spots and append to list
-                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
-                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+                                # Get simulated S-H spots and append to list
+                                AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
+                                dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
                             
                         else:
 
@@ -957,89 +908,73 @@ class AO_Slopes(QObject):
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
                         if config['dummy']:
-                            if config['real_phase']:
+                            
+                            # Update phase profile and retrieve S-H spot image 
+                            if i == 0:
 
-                                # Update phase profile and retrieve S-H spot image 
-                                if i == 0:
+                                # Option 1: Load real phase profile from .mat file
+                                if config['real_phase']:
 
-                                    # Retrieve phase profile
+                                    # Retrieve real phase profile
                                     phase_init = get_mat_dset(self.SB_settings, flag = 1)
 
-                                    # Display initial phase
-                                    self.image.emit(abs(phase_init))
+                                # Option 2: Generate real zernike phase profile using DM control matrix
+                                elif config['real_zernike']:
 
-                                    print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
+                                    # Retrieve input zernike coefficient array
+                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
 
-                                    # Get simulated S-H spots and append to list
-                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
-                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+                                    # Pad zernike coefficient array to length of control_coeff_num
+                                    zern_array = np.zeros(config['AO']['control_coeff_num'])
+                                    zern_array[:len(zern_array_temp)] = zern_array_temp
 
-                                    phase = phase_init.copy()
-    
-                                else:
-
-                                    # Calculate phase profile introduced by DM
-                                    delta_phase = self.phase_calc(voltages)
-
-                                    # Update phase data
-                                    phase = phase_init - delta_phase
-
-                                    # Display initial phase
-                                    self.image.emit(abs(phase))
-
-                                    print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
+                                    # Retrieve actuator voltages from zernike coefficient array
+                                    voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], zern_array))
                                     
-                                    # Get simulated S-H spots and append to list
-                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
-                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
-
-                            else:
-
-                                # Generate zernike phase map from input zernike coefficient array
-                                if i == 0:
+                                    # Generate zernike phase profile from DM
+                                    phase_init = self.phase_calc(voltages)
+                                    
+                                # Option 3: Generate ideal zernike phase profile
+                                else:
                                     
                                     # Retrieve input zernike coefficient array
                                     zern_array =  self.SB_settings['zernike_array_test']
                                     
-                                    # Retrieve phase profile
-                                    phase_init = zern_phase(self.SB_settings, zern_array)
+                                    # Generate ideal zernike phase profile
+                                    phase_init = zern_phase(self.SB_settings, zern_array) 
 
-                                    # Display initial phase
-                                    self.image.emit(phase_init)
+                                # Display initial phase
+                                self.image.emit(phase_init)
 
-                                    print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
+                                print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
 
-                                    # Get simulated S-H spots and append to list
-                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
-                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+                                # Get simulated S-H spots and append to list
+                                AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
+                                dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
 
-                                    phase = phase_init.copy()
+                                phase = phase_init.copy()
 
-                                else:
+                            else:
 
-                                    # Calculate phase profile introduced by DM
-                                    delta_phase = self.phase_calc(voltages)
+                                # Calculate phase profile introduced by DM
+                                delta_phase = self.phase_calc(voltages)
 
-                                    # Update phase data
-                                    phase = phase_init - delta_phase
+                                # Update phase data
+                                phase = phase_init - delta_phase
 
-                                    # Display corrected phase
-                                    self.image.emit(phase)
+                                # Display corrected phase
+                                self.image.emit(phase)
 
-                                    print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
+                                print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
 
-                                    # Get simulated S-H spots and append to list
-                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
-                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
-                            
+                                # Get simulated S-H spots and append to list
+                                AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
+                                dset_append(data_set_1, 'dummy_AO_img', AO_image)
+                                dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
+                                dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
+
                         else: 
 
                             # Send values vector to mirror

@@ -175,12 +175,14 @@ class Calibration(QObject):
                         elem_ref_cent_coord_y = np.arange(self.centred_ref_cent_coord_y[i] - self.SB_settings['SB_rad'] + self.elem_size / 2, \
                             self.centred_ref_cent_coord_y[i] + self.SB_settings['SB_rad'] - self.elem_size / 2, self.elem_size)
 
+                        elem_ref_cent_coord_xx, elem_ref_cent_coord_yy = np.meshgrid(elem_ref_cent_coord_x, elem_ref_cent_coord_y)
+
                         # Get averaged derivatives of the modeled Gaussian influence function
-                        for j in range(self.actuator_num):
-                           
-                            self.inf_matrix_slopes[i, j] = inf_diff(elem_ref_cent_coord_x, elem_ref_cent_coord_y, xc, yc, j, act_diam, True)
+                        for j in range(self.actuator_num):                          
+                            
+                            self.inf_matrix_slopes[i, j] = inf_diff(elem_ref_cent_coord_xx, elem_ref_cent_coord_yy, xc, yc, j, act_diam, True)
                             self.inf_matrix_slopes[i + self.SB_settings['act_ref_cent_num'], j] = \
-                                inf_diff(elem_ref_cent_coord_x, elem_ref_cent_coord_y, xc, yc, j, act_diam, False)
+                                inf_diff(elem_ref_cent_coord_xx, elem_ref_cent_coord_yy, xc, yc, j, act_diam, False)
                            
                     # Take pixel size and lenslet focal length into account
                     self.inf_matrix_slopes = self.inf_matrix_slopes / self.SB_settings['pixel_size'] * config['lenslet']['lenslet_focal_length']

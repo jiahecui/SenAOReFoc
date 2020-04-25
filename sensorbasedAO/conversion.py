@@ -117,20 +117,22 @@ class Conversion(QObject):
 
                     # Get reference centroid coords of each element
                     elem_ref_cent_coord_x = np.arange(self.norm_ref_cent_coord_x[i] - self.norm_rad + self.elem_size / 2, \
-                        self.norm_ref_cent_coord_x[i] + self.norm_rad - self.elem_size / 2, self.elem_size)
+                        self.norm_ref_cent_coord_x[i] + self.norm_rad, self.elem_size)
                     elem_ref_cent_coord_y = np.arange(self.norm_ref_cent_coord_y[i] - self.norm_rad + self.elem_size / 2, \
-                        self.norm_ref_cent_coord_y[i] + self.norm_rad - self.elem_size / 2, self.elem_size)
+                        self.norm_ref_cent_coord_y[i] + self.norm_rad, self.elem_size)
 
                     # print('Elem_ref_cent_coord_x:', elem_ref_cent_coord_x)
                     # print('Elem_ref_cent_coord_y:', elem_ref_cent_coord_y)
 
+                    elem_ref_cent_coord_xx, elem_ref_cent_coord_yy = np.meshgrid(elem_ref_cent_coord_x, elem_ref_cent_coord_y)
+
                     # Get averaged x and y values and derivatives of the jth Zernike polynomial to fill zernike matrix and zernike derivative matrix
                     for j in range(config['AO']['recon_coeff_num']):
+                        
+                        self.zern_matrix[i, j] = zern(elem_ref_cent_coord_xx, elem_ref_cent_coord_yy, j + 1)
 
-                        self.zern_matrix[i, j] = zern(elem_ref_cent_coord_x, elem_ref_cent_coord_y, j + 1)
-
-                        self.diff_matrix[i, j] = zern_diff(elem_ref_cent_coord_x, elem_ref_cent_coord_y, j + 1, True)
-                        self.diff_matrix[i + self.SB_settings['act_ref_cent_num'], j] = zern_diff(elem_ref_cent_coord_x, elem_ref_cent_coord_y, j + 1, False)
+                        self.diff_matrix[i, j] = zern_diff(elem_ref_cent_coord_xx, elem_ref_cent_coord_yy, j + 1, True)
+                        self.diff_matrix[i + self.SB_settings['act_ref_cent_num'], j] = zern_diff(elem_ref_cent_coord_xx, elem_ref_cent_coord_yy, j + 1, False)
 
                 # Get singular value decomposition of zernike derivative matrix
                 u, s, vh = np.linalg.svd(self.diff_matrix, full_matrices = False)

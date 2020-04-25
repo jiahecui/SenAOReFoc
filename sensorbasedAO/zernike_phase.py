@@ -21,7 +21,7 @@ def zern_phase(settings, zern_array):
 
     # Make sure there is an even number of pixels along the diameter of the pupil
     if pupil_diam_pixel % 2 == 1:
-        print('Odd pixel number, please change input!')
+        pupil_diam_pixel -= 1
     else:
         pass
 
@@ -32,11 +32,6 @@ def zern_phase(settings, zern_array):
     # Normalise x,y coordinates
     xx_norm = xx / (pupil_diam_pixel // 2)
     yy_norm = yy / (pupil_diam_pixel // 2)
-
-    # Zernikes are only valid within unit circle
-    pupil_mask = np.sqrt(xx_norm ** 2 + yy_norm ** 2) <= 1
-    xx_norm *= pupil_mask
-    yy_norm *= pupil_mask
 
     print('Starting to generate zernike phase map...')
 

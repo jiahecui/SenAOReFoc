@@ -164,6 +164,12 @@ class Setup_SB(QObject):
                 map(np.array, (self.act_ref_cent_coord, self.act_ref_cent_coord_x, self.act_ref_cent_coord_y))
             self.act_ref_cent_num = len(self.act_ref_cent_coord)
 
+            # If odd number of spots across diameter, shift to centre
+            if self.spots_across_diam % 2 == 1:
+                self.act_ref_cent_coord_x += int(self.SB_rad)
+                self.act_ref_cent_coord_y += int(self.SB_rad)
+                self.act_ref_cent_coord += int(self.SB_rad) + self.sensor_width + int(self.SB_rad)
+
             print("Number of search blocks within pupil is: {}".format(self.act_ref_cent_num))
         
             # Draw actual search blocks on search block layer
@@ -207,20 +213,12 @@ class Setup_SB(QObject):
             theta = np.linspace(0, 2 * math.pi, plot_point_num)
             rho = self.pupil_rad // self.pixel_size
 
-            if (self.spots_across_diam % 2 == 0 and self.sensor_width % 2 == 0) or \
-                (self.spots_across_diam % 2 == 1 and self.sensor_width % 2 == 1):
-
-                x = (rho * np.cos(theta) + self.sensor_width // 2).astype(int)
-                y = (rho * np.sin(theta) + self.sensor_width // 2).astype(int)
-
-            else:
-
-                x = (rho * np.cos(theta) + self.sensor_width // 2 - self.SB_rad).astype(int) 
-                y = (rho * np.sin(theta) + self.sensor_width // 2 - self.SB_rad).astype(int)
-
+            x = (rho * np.cos(theta) + self.sensor_width // 2).astype(int)
+            y = (rho * np.sin(theta) + self.sensor_width // 2).astype(int)
+            
             self.SB_layer_2D[x, y] = self.outline_int
 
-            # Display actual search blocks and reference centroids
+            # Display actual search blocks
             if self.calculate:
 
                 self.layer.emit(self.SB_layer_2D)
@@ -246,6 +244,7 @@ class Setup_SB(QObject):
                 self.SB_info['SB_diam'] = self.SB_diam  # int
                 self.SB_info['SB_across_width'] = self.SB_across_width  # int
                 self.SB_info['SB_across_height'] = self.SB_across_height  # int
+                self.SB_info['spots_across_diam'] = self.spots_across_diam  # int
                 self.SB_info['act_ref_cent_num'] = self.act_ref_cent_num
                 self.SB_info['odd_pix'] = self.odd_pix  # flag for whether odd number of pixels in one search block
                 self.SB_info['act_ref_cent_coord'] = self.act_ref_cent_coord  # int - for displaying

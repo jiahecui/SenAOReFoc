@@ -133,9 +133,9 @@ def fft_spot_from_phase(settings, phase):
                 (math.ceil(math.ceil(settings['act_ref_cent_coord_y'][i]) - settings['SB_rad']) + settings['SB_diam']))
         else:
             SB_pix_coord_x = np.arange(math.ceil(math.ceil(settings['act_ref_cent_coord_x'][i]) - settings['SB_rad']) + 1, \
-                (math.ceil(math.ceil(settings['act_ref_cent_coord_x'][i]) - settings['SB_rad']) + settings['SB_diam']))
+                (math.ceil(math.ceil(settings['act_ref_cent_coord_x'][i]) - settings['SB_rad']) + settings['SB_diam'] + 1))
             SB_pix_coord_y = np.arange(math.ceil(math.ceil(settings['act_ref_cent_coord_y'][i]) - settings['SB_rad']) + 1, \
-                (math.ceil(math.ceil(settings['act_ref_cent_coord_y'][i]) - settings['SB_rad']) + settings['SB_diam']))
+                (math.ceil(math.ceil(settings['act_ref_cent_coord_y'][i]) - settings['SB_rad']) + settings['SB_diam'] + 1))
 
         # Initialise instance variables for calculating wavefront tilt within each search block
         a_x, a_y = (np.zeros(len(SB_pix_coord_x)) for m in range(2))

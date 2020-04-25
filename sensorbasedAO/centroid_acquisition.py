@@ -111,9 +111,9 @@ def acq_centroid(settings, flag = 0):
                             (math.ceil(math.ceil(act_ref_cent_coord_y[i]) - SB_rad) + settings['SB_diam']))
                     else:
                         SB_pix_coord_x = np.arange(math.ceil(math.ceil(act_ref_cent_coord_x[i]) - SB_rad) + 1, \
-                            (math.ceil(math.ceil(act_ref_cent_coord_x[i]) - SB_rad) + settings['SB_diam']))
+                            (math.ceil(math.ceil(act_ref_cent_coord_x[i]) - SB_rad) + settings['SB_diam'] + 1))
                         SB_pix_coord_y = np.arange(math.ceil(math.ceil(act_ref_cent_coord_y[i]) - SB_rad) + 1, \
-                            (math.ceil(math.ceil(act_ref_cent_coord_y[i]) - SB_rad) + settings['SB_diam']))
+                            (math.ceil(math.ceil(act_ref_cent_coord_y[i]) - SB_rad) + settings['SB_diam'] + 1))
                 else:
                     """
                     Two methods for setting the dynamic range
@@ -168,9 +168,9 @@ def acq_centroid(settings, flag = 0):
                             math.ceil(math.ceil(act_cent_coord_y[i]) - SB_rad) + settings['SB_diam'] - n)
                     else:
                         SB_pix_coord_x = np.arange(math.ceil(math.ceil(act_cent_coord_x[i]) - SB_rad) + 1 + n, \
-                            math.ceil(math.ceil(act_cent_coord_x[i]) - SB_rad) + settings['SB_diam'] - n)
+                            math.ceil(math.ceil(act_cent_coord_x[i]) - SB_rad) + settings['SB_diam'] + 1 - n)
                         SB_pix_coord_y = np.arange(math.ceil(math.ceil(act_cent_coord_y[i]) - SB_rad) + 1 + n, \
-                            math.ceil(math.ceil(act_cent_coord_y[i]) - SB_rad) + settings['SB_diam'] - n)        
+                            math.ceil(math.ceil(act_cent_coord_y[i]) - SB_rad) + settings['SB_diam'] + 1 - n)        
 
                 """
                 Calculate actual S-H spot centroids by using centre of gravity (CoG) method

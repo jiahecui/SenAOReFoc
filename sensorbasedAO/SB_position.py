@@ -82,32 +82,47 @@ class Positioning(QObject):
             self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
             self.layer.emit(self.SB_layer_2D_temp)
 
-            # Acquire S-H spot image, use simulated Gaussian profile S-H spot image, or use real phase data
+            # Acquire phase profile and retrieve S-H spot image 
             if self.acquire:
 
                 # Acquire image
                 if config['dummy']:
+
+                    # Option 1: Load real phase profile from .mat file
                     if config['real_phase']:
 
                         # Retrieve real phase data and S-H spot image
                         phase = get_mat_dset(self.SB_settings, flag = 1)
+
+                        # Get simulated S-H spots
                         self._image, self.spot_cent_x, self.spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
-                        # slope_x, slope_y = get_mat_dset(self.SB_settings, flag = 2)
-                        # spot_img = SpotSim(self.SB_settings)
-                        # self._image, self.spot_cent_x, self.spot_cent_y = spot_img.SH_spot_sim(centred = 1, xc = slope_x, yc = slope_y)
-                    else:
-                        
+
+                    # Option 2: Generate ideal zernike phase profile
+                    elif not config['real_zernike']:
+
                         # Retrieve zernike phase map and S-H spot image
                         zern_array =  self.SB_settings['zernike_array_test']
+
+                        # Generate ideal zernike phase profile
                         phase = zern_phase(self.SB_settings, zern_array)
-                        self._image, self.spot_cent_x, self.spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
+
+                        # Get simulated S-H spots
+                        self._image, self.spot_cent_x, self.spot_cent_y = fft_spot_from_phase(self.SB_settings, phase) 
+
+                    # Option 3: Leave blank if generate real zernike phase profile using DM control matrix
+                    else:
+                        
+                        self._image = np.zeros([self.sensor_width, self.sensor_height])
+
                 else:
                     self._image = acq_image(self.sensor, self.sensor_width, self.sensor_height, acq_mode = 0)               
                             
                 # Image thresholding to remove background
-                self._image = self._image - config['image']['threshold'] * np.amax(self._image)
-                self._image[self._image < 0] = 0
-                self.image.emit(self._image)
+                if self._image.all() != 0:
+                    self._image = self._image - config['image']['threshold'] * np.amax(self._image)
+                    self._image[self._image < 0] = 0
+                    self.image.emit(self._image)
+
             else:
 
                 self.done.emit()
