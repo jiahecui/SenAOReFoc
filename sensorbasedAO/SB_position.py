@@ -13,9 +13,7 @@ from ximea import xiapi
 
 import log
 from config import config
-from sensor import SENSOR
 from image_acquisition import acq_image
-from spot_sim import SpotSim
 from HDF5_dset import get_mat_dset
 from common import fft_spot_from_phase
 from zernike_phase import zern_phase
@@ -113,15 +111,16 @@ class Positioning(QObject):
                     else:
                         
                         self._image = np.zeros([self.sensor_width, self.sensor_height])
+                        self._image[0, 0] = self.outline_int
 
                 else:
+
                     self._image = acq_image(self.sensor, self.sensor_width, self.sensor_height, acq_mode = 0)               
                             
                 # Image thresholding to remove background
-                if self._image.all() != 0:
-                    self._image = self._image - config['image']['threshold'] * np.amax(self._image)
-                    self._image[self._image < 0] = 0
-                    self.image.emit(self._image)
+                self._image = self._image - config['image']['threshold'] * np.amax(self._image)
+                self._image[self._image < 0] = 0
+                self.image.emit(self._image)
 
             else:
 
@@ -130,20 +129,20 @@ class Positioning(QObject):
             # Ask user whether DM needs calibrating, if 'y' reposition search block using keyboard, if 'n' load search block position from HDF5 file
             if self.inquire:
 
-                self.message.emit('Need to calibrate DM? [y/n]')
+                self.message.emit('\nNeed to calibrate DM? [y/n]')
                 c = click.getchar()
 
                 while True:
                     if c == 'y':
                         self.load = False
-                        self.message.emit('Reposition search blocks using keyboard.')
+                        self.message.emit('\nReposition search blocks using keyboard.')
                         break
                     elif c == 'n':
                         self.move = False
-                        self.message.emit('Load search block position from HDF5 file.')
+                        self.message.emit('\nLoad search block position from HDF5 file.')
                         break
                     else:
-                        self.message.emit('Invalid input. Please try again.')
+                        self.message.emit('\nInvalid input. Please try again.')
 
                     c = click.getchar()
             else:
@@ -154,7 +153,7 @@ class Positioning(QObject):
             if self.move:
 
                 # Get input from keyboard to reposition search block
-                self.message.emit('Press arrow keys to centre S-H spots in search blocks. Press Enter to finish.')
+                self.message.emit('\nPress arrow keys to centre S-H spots in search blocks. Press Enter to finish.')
                 c = click.getchar()
 
                 # Update search block reference coordinates according to keyboard input
@@ -176,7 +175,7 @@ class Positioning(QObject):
                         self.SB_settings['act_SB_coord'] += 1
                         self.SB_settings['act_ref_cent_coord_x'] += 1
                     else:
-                        self.message.emit('Search block position confirmed.')
+                        self.message.emit('\nSearch block position confirmed.')
                         break
 
                     # Display actual search blocks as they move
@@ -198,7 +197,7 @@ class Positioning(QObject):
                     self.mirror_settings[k] = mirror_data.get(k)[()]   
                 data_file.close()
 
-                self.message.emit('Search block position loaded.')
+                self.message.emit('\nSearch block position loaded.')
 
                 # Display original search block positions from previous calibration
                 self.SB_layer_2D_temp = self.SB_layer_2D.copy()

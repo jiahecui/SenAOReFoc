@@ -166,7 +166,7 @@ class Calibration(QObject):
                 # Start calibrating DM by calculating averaged derivatives of Gaussian distribution actuator influence function
                 if self.calibrate:
 
-                    self.message.emit('DM calibration process started...')
+                    self.message.emit('\nDM calibration process started...')
                     for i in range(self.SB_settings['act_ref_cent_num']):
 
                         # Get reference centroid coords of each element
@@ -219,7 +219,7 @@ class Calibration(QObject):
                     print('Largest and smallest slope value for unit voltage along x axis: {}, {}'.format(np.amax(self.slope_x), np.amin(self.slope_x)))
                     print('Largest and smallest slope value for unit voltage along y axis: {}, {}'.format(np.amax(self.slope_y), np.amin(self.slope_y)))
 
-                    self.message.emit('DM calibration process finished.')
+                    self.message.emit('\nDM calibration process finished.')
                     # print('Control matrix is:', self.control_matrix_slopes)
                     # print('Shape of control matrix is:', np.shape(self.control_matrix_slopes))
             else:
@@ -240,7 +240,7 @@ class Calibration(QObject):
                 data_set = data_file['calibration_img']
                 
                 # Poke each actuator first in to vol_max, then to vol_min
-                self.message.emit('DM calibration process started...')
+                self.message.emit('\nDM calibration process started...')
                 for i in range(self.actuator_num):
 
                     if self.calibrate:                    
@@ -309,9 +309,9 @@ class Calibration(QObject):
                 # Calculate S-H spot centroids for each image in data list to get slopes
                 if self.calc_cent:
 
-                    self.message.emit('Centroid calculation process started...')
+                    self.message.emit('\nCentroid calculation process started...')
                     self.slope_x, self.slope_y = acq_centroid(self.SB_settings, flag = 1)
-                    self.message.emit('Centroid calculation process finished.')
+                    self.message.emit('\nCentroid calculation process finished.')
                 else:
 
                     self.done.emit()
@@ -339,7 +339,7 @@ class Calibration(QObject):
 
                     svd_check_slopes = np.dot(self.control_matrix_slopes, self.inf_matrix_slopes)
 
-                    self.message.emit('DM calibration process finished.')
+                    self.message.emit('\nDM calibration process finished.')
                     # print('Control matrix is:', self.control_matrix_slopes)
                     # print('Shape of control matrix is:', np.shape(self.control_matrix_slopes))
                 else:

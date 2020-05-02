@@ -116,7 +116,7 @@ class Centroiding(QObject):
                 # Draw actual S-H spot centroids on image layer
                 self._image.ravel()[self.act_cent_coord.astype(int)] = 0
                 self.image.emit(self._image)
-                self.message.emit('S-H spot centroid positions confirmed.')
+                self.message.emit('\nS-H spot centroid positions confirmed.')
             else:
 
                 self.done.emit()

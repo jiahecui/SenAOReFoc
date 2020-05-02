@@ -87,7 +87,7 @@ class AO_Zernikes_Test(QObject):
             # Initialise array to record root mean square error after each iteration
             self.loop_rms = np.zeros(config['AO']['loop_max'])
 
-            self.message.emit('Process started for closed-loop AO via Zernikes...')
+            self.message.emit('\nProcess started for closed-loop AO via Zernikes...')
 
             prev1 = time.perf_counter()
 
@@ -186,7 +186,7 @@ class AO_Zernikes_Test(QObject):
             # Close HDF5 file
             data_file.close()
 
-            self.message.emit('Process complete.')
+            self.message.emit('\nProcess complete.')
             print('Final root mean square error of detected wavefront is: {} microns'.format(rms))
 
             prev2 = time.perf_counter()

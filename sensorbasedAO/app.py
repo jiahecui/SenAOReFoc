@@ -58,7 +58,7 @@ class App(QApplication):
 
         # Initialise dictionary for storing data info throughout processing of software
         self.data_info = {'SB_info': {}, 'mirror_info': {}, 'centroiding_info': {}, 'AO_info': {}, 'centroiding_img': {}, \
-            'calibration_img': {}, 'AO_img': {}}
+            'calibration_img': {}, 'AO_img': {}, 'focusing_info': {}}
         self.AO_group = {'zern_test': {}, 'zern_AO_1': {}, 'zern_AO_2': {}, 'zern_AO_3': {}, 'zern_AO_full': {}, \
             'slope_AO_1': {}, 'slope_AO_2': {}, 'slope_AO_3': {}, 'slope_AO_full': {}}
 
@@ -289,7 +289,7 @@ class App(QApplication):
 
     def control_zern_AO(self, sensor, mirror, data_info, mode):
         """
-        Closed-loop AO control via Zernikes
+        Closed-loop AO control via Zernikes + remote focusing
         """
         # Create Zernike AO worker and thread
         zern_AO_thread = QThread()
@@ -305,8 +305,12 @@ class App(QApplication):
         elif mode == 3:
             zern_AO_thread.started.connect(zern_AO_worker.run3)            
         elif mode == 4:
-            zern_AO_thread.started.connect(zern_AO_worker.run4)      
+            zern_AO_thread.started.connect(zern_AO_worker.run4)
+        elif mode == 5:
+            zern_AO_thread.started.connect(zern_AO_worker.run5)
+
         zern_AO_worker.done.connect(lambda mode: self.handle_zern_AO_done(mode))
+        zern_AO_worker.done2.connect(lambda mode: self.handle_focus_done(mode))
         zern_AO_worker.image.connect(lambda obj: self.handle_image_disp(obj))   
         zern_AO_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         zern_AO_worker.info.connect(lambda obj: self.handle_AO_info(obj))
@@ -339,7 +343,9 @@ class App(QApplication):
             slopes_AO_thread.started.connect(slopes_AO_worker.run3)
         elif mode == 4:
             slopes_AO_thread.started.connect(slopes_AO_worker.run4)
+            
         slopes_AO_worker.done.connect(lambda mode: self.handle_slope_AO_done(mode))
+        slopes_AO_worker.done2.connect(lambda mode: self.handle_focus_done(mode))
         slopes_AO_worker.image.connect(lambda obj: self.handle_image_disp(obj))   
         slopes_AO_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         slopes_AO_worker.info.connect(lambda obj: self.handle_AO_info(obj))
@@ -471,6 +477,24 @@ class App(QApplication):
                         grp4[k].create_dataset(kk, data = vv)  
                 else:
                     grp4.create_dataset(k, data = v)            
+        self.output_data.close()
+
+    def handle_focusing_info(self, obj):
+        """
+        Handle remote focusing information
+        """
+        self.data_info['focusing_info'].update(obj)
+
+    def write_focusing_info(self):
+        """
+        Write focusing info into HDF5 file
+        """
+        self.output_data = h5py.File('data_info.h5', 'a')
+        grp5 = self.output_data['focusing_info']
+        for k, v in self.data_info['focusing_info'].items():
+            if k in grp5:
+               del grp5[k]
+            grp5.create_dataset(k, data = v)
         self.output_data.close()
 
     def handle_error(self, error):
@@ -624,6 +648,42 @@ class App(QApplication):
             self.main.ui.slopeAOBtn_3.setChecked(False)
         elif mode == 4:
             self.main.ui.SlopeFullBtn.setChecked(False)
+
+    def handle_focus_start(self, AO_type = 0):
+        """
+        Handle start of remote focusing according to type of AO correction
+        Args:
+            AO_type = 0 - 'None'
+            AO_type = 1 - 'Zernike AO 3'
+            AO_type = 2 - 'Zernike Full'
+            AO_type = 3 - 'Slope AO 3'
+            AO_type = 4 - 'Slope Full'
+        """
+        if AO_type == 0:
+            self.control_zern_AO(self.devices['sensor'], self.devices['mirror'], self.data_info, 5)
+        elif AO_type in {1,2}:
+            self.control_zern_AO(self.devices['sensor'], self.devices['mirror'], self.data_info, AO_type + 2)
+        elif AO_type in {3,4}:
+            self.control_slope_AO(self.devices['sensor'], self.devices['mirror'], self.data_info, AO_type)
+
+    def handle_focus_done(self, mode = 0):
+        """
+        Handle end of remote focusing
+        """
+        try:
+            self.threads['zern_AO_thread'].quit()
+            self.threads['zern_AO_thread'].wait()
+        except KeyError:
+            pass
+        try:
+            self.threads['slopes_AO_thread'].quit()
+            self.threads['slopes_AO_thread'].wait()
+        except KeyError:
+            pass
+        if mode == 0:
+            self.main.ui.moveBtn.setChecked(False)
+        elif mode == 1:
+            self.main.ui.scanBtn.setChecked(False)
 
     def stop(self):
         """
