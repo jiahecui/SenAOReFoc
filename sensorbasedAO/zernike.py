@@ -1,7 +1,7 @@
 import numpy as np
 import math
 
-def zern(xx, yy, j):
+def zern(xx_orig, yy_orig, j):
     """
     Generates the value of Zernike polynomials for wavefront reconstruction at a particular pupil location
 
@@ -10,6 +10,10 @@ def zern(xx, yy, j):
         yy - normalised y value meshgrid
         j - single index, ignores piston, starts with tip as 1
     """
+    # Choose coordinates within unit circle
+    xx = xx_orig * (np.sqrt(xx_orig ** 2 + yy_orig ** 2) <= np.ones([np.shape(xx_orig)[0], np.shape(yy_orig)[0]]))
+    yy = yy_orig * (np.sqrt(xx_orig ** 2 + yy_orig ** 2) <= np.ones([np.shape(xx_orig)[0], np.shape(yy_orig)[0]]))
+
     # Convert single index to double index form for both radial order and angular frequency
     n = int(np.ceil((-3 + np.sqrt(9 + 8 * j)) / 2))
     m = 2 * j - n * (n + 2)
@@ -17,9 +21,9 @@ def zern(xx, yy, j):
 
     # Calculate rho and theta (add eps to prevent from dividing by zero)
     eps = 2 ** (-52)
-    xx = (xx + eps) * (np.sqrt(xx ** 2 + yy ** 2) <= np.ones([np.shape(xx)[0], np.shape(yy)[0]]))
-    rho     = np.sqrt(xx ** 2 + yy ** 2) * (np.sqrt(xx ** 2 + yy ** 2) <= np.ones([np.shape(xx)[0], np.shape(yy)[0]]))
-    theta   = np.arctan2(yy, xx) * (np.sqrt(xx ** 2 + yy ** 2) <= np.ones([np.shape(xx)[0], np.shape(yy)[0]]))
+    xx = xx + eps
+    rho     = np.sqrt(xx ** 2 + yy ** 2) + eps
+    theta   = np.arctan2(yy, xx) + eps
 
     # Calculate the radial dependent component and derivative
     Rnm = 0
@@ -42,7 +46,7 @@ def zern(xx, yy, j):
 
     return Z
 
-def zern_gen(xx, yy, j):
+def zern_gen(xx_orig, yy_orig, j):
     """
     Generates zernike phase profile for the jth zernike polynomial
 
@@ -51,6 +55,10 @@ def zern_gen(xx, yy, j):
         yy - normalised y value meshgrid
         j - single index, ignores piston, starts with tip as 1
     """
+    # Choose coordinates within unit circle
+    xx = xx_orig * (np.sqrt(xx_orig ** 2 + yy_orig ** 2) <= np.ones([np.shape(xx_orig)[0], np.shape(yy_orig)[0]]))
+    yy = yy_orig * (np.sqrt(xx_orig ** 2 + yy_orig ** 2) <= np.ones([np.shape(xx_orig)[0], np.shape(yy_orig)[0]]))
+
     # Convert single index to double index form for both radial order and angular frequency
     n = int(np.ceil((-3 + np.sqrt(9 + 8 * j)) / 2))
     m = 2 * j - n * (n + 2)
@@ -58,9 +66,10 @@ def zern_gen(xx, yy, j):
 
     # Calculate rho and theta (add eps to prevent from dividing by zero)
     eps = 2 ** (-52)
-    xx = xx * (np.sqrt(xx ** 2 + yy ** 2) <= np.ones([np.shape(xx)[0], np.shape(yy)[0]])) + eps
-    rho     = np.sqrt(xx ** 2 + yy ** 2) * (np.sqrt(xx ** 2 + yy ** 2) <= np.ones([np.shape(xx)[0], np.shape(yy)[0]])) + eps
-    theta   = np.arctan2(yy, xx) * (np.sqrt(xx ** 2 + yy ** 2) <= np.ones([np.shape(xx)[0], np.shape(yy)[0]])) + eps
+    xx = xx + eps
+    rho     = np.sqrt(xx ** 2 + yy ** 2) + eps
+    theta   = np.arctan2(yy, xx) + eps
+    # (np.sqrt(xx ** 2 + yy ** 2) <= np.ones([np.shape(xx)[0], np.shape(yy)[0]]))
             
     # Calculate the radial dependent component and derivative
     Rnm = 0
@@ -83,7 +92,7 @@ def zern_gen(xx, yy, j):
             
     return Z
                 
-def zern_diff(xx, yy, j, x_flag = True):
+def zern_diff(xx_orig, yy_orig, j, x_flag = True):
     """
     Generates the slopes of Zernike polynomials for wavefront reconstruction using Zernikes
 
@@ -93,6 +102,10 @@ def zern_diff(xx, yy, j, x_flag = True):
         j - single index, ignores piston, starts with tip as 1
         x_flag - flag for differentiating relative to x or y
     """
+    # Choose coordinates within unit circle
+    xx = xx_orig * (np.sqrt(xx_orig ** 2 + yy_orig ** 2) <= np.ones([np.shape(xx_orig)[0], np.shape(yy_orig)[0]]))
+    yy = yy_orig * (np.sqrt(xx_orig ** 2 + yy_orig ** 2) <= np.ones([np.shape(xx_orig)[0], np.shape(yy_orig)[0]]))
+
     # Convert single index to double index form for both radial order and angular frequency
     n = int(np.ceil((-3 + np.sqrt(9 + 8 * j)) / 2))
     m = 2 * j - n * (n + 2)
@@ -100,9 +113,9 @@ def zern_diff(xx, yy, j, x_flag = True):
 
     # Calculate rho and theta (add eps to prevent from dividing by zero)
     eps = 2 ** (-52)
-    xx = xx * (np.sqrt(xx ** 2 + yy ** 2) <= np.ones([np.shape(xx)[0], np.shape(yy)[0]])) + eps
-    rho     = np.sqrt(xx ** 2 + yy ** 2) * (np.sqrt(xx ** 2 + yy ** 2) <= np.ones([np.shape(xx)[0], np.shape(yy)[0]])) + eps
-    theta   = np.arctan2(yy, xx) * (np.sqrt(xx ** 2 + yy ** 2) <= np.ones([np.shape(xx)[0], np.shape(yy)[0]])) + eps
+    xx = xx + eps
+    rho     = np.sqrt(xx ** 2 + yy ** 2) + eps
+    theta   = np.arctan2(yy, xx) + eps
 
     # Calculate the derivatives of rho and theta
     if x_flag:
