@@ -95,23 +95,20 @@ class Positioning(QObject):
                         # Get simulated S-H spots
                         self._image, self.spot_cent_x, self.spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
 
-                    # Option 2: Generate ideal zernike phase profile
-                    elif not config['real_zernike']:
-
-                        # Retrieve zernike phase map and S-H spot image
-                        zern_array =  self.SB_settings['zernike_array_test']
-
-                        # Generate ideal zernike phase profile
-                        phase = zern_phase(self.SB_settings, zern_array)
-
-                        # Get simulated S-H spots
-                        self._image, self.spot_cent_x, self.spot_cent_y = fft_spot_from_phase(self.SB_settings, phase) 
-
-                    # Option 3: Leave blank if generate real zernike phase profile using DM control matrix
+                    # Option 2: Leave blank if generate real zernike phase profile using DM control matrix or ideal zernike phase profile
                     else:
-                        
+
                         self._image = np.zeros([self.sensor_width, self.sensor_height])
                         self._image[0, 0] = self.outline_int
+
+                        # Retrieve zernike phase map and S-H spot image
+                        # zern_array =  self.SB_settings['zernike_array_test']
+
+                        # Generate ideal zernike phase profile
+                        # phase = zern_phase(self.SB_settings, zern_array)
+
+                        # Get simulated S-H spots
+                        # self._image, self.spot_cent_x, self.spot_cent_y = fft_spot_from_phase(self.SB_settings, phase) 
 
                 else:
 

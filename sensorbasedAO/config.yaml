@@ -45,7 +45,7 @@ DM1:
   actuator_num: 140  # Boston
   pitch: 400  # um  
   aperture: 4.4  # mm  
-  coupling_fac: 0.26  # Inter-actuator coupling factor, 0.3 works better
+  coupling_fac: 0.13  # Inter-actuator coupling factor, 0.26 works better...
 
 relay:
   mirror_odd: 0  # Flag for whether there is an odd number of mirrors in between DM and lenslet
@@ -81,6 +81,14 @@ AO:
   lambda: 0.63  # um
   tolerance_fact_zern: 0  # RMS error tolerance factor via zernikes, 0.045 = lambda / 14
   tolerance_fact_strehl: 1  # Strehl ratio tolerance factor according to Marechel criteria, 0.81
+
+zern_test:
+  via_slopes: 0  # Flag for whether AO correction is via slopes, 0-via zernikes, 1-via slopes
+  zern_amp: 0.1  # Amplitude of all zernike modes for comparison
+
+reflect_prof:
+  fov_width: 100  # um
+  bead_num: 50000 
 
 dummy: 1  # Flag for whether to run in dummy mode, 0-real mode, 1-dummy mode
 real_phase: 0  # Flag for whether to use real phase data, 0-zernike phase, 1-real phase

@@ -1,5 +1,4 @@
 import numpy as np
-import PIL.Image
 import random
 import math
 
@@ -7,7 +6,7 @@ from config import config
 
 class SpotSim():
     """
-    Generates a simulated S-H spot image
+    Generates a simulated spot image
     """
     def __init__(self, settings):
         
@@ -47,6 +46,7 @@ class SpotSim():
             xc, yc = (np.random.randint(-10, 10, self.settings['act_ref_cent_num']) for i in range(2))
 
         # print('xc: {}, yc: {}'.format(xc, yc))
+
         # Generate individual Gaussian profile S-H spots and integrate them to pre-initialised spot image array
         for i in range(len(offset_coord)):
 

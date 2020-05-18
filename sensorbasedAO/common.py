@@ -191,6 +191,6 @@ def fft_spot_from_phase(settings, phase):
         # print('Max and min value of S-H spot {} are: {} and {}'.format(i + 1, spot_crop.max(), spot_crop.min()))
         # print('Slope values of S-H spot {} are: {} and {}'.format(i + 1, slope_x[i], slope_y[i]))
 
-    print('Average slope_x and slope_y are: {} and {}'.format(np.mean(slope_x), np.mean(slope_y)))
+    # print('Average slope_x and slope_y are: {} and {}'.format(np.mean(slope_x), np.mean(slope_y)))
 
     return SH_spot_img, spot_cent_x, spot_cent_y

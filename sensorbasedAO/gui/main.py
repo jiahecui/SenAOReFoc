@@ -246,14 +246,8 @@ class Main(QMainWindow):
         if not btn.isChecked():
             btn.setChecked(False)
         else:
-            # Set remote focusing flag to 0 and update AO_info
-            remote_focusing = {}
-            remote_focusing['focus_enable'] = 0
-            self.app.handle_AO_info(remote_focusing)
-            self.app.write_AO_info()
-
-            # Start zern_test
-            self.app.handle_zern_test_start()
+            # Start zern_test by choosing whether AO correction is via Zernikes or slopes, 0 for Zernikes, 1 for slopes
+            self.app.handle_zern_test_start(mode = config['zern_test']['via_slopes'])
             btn.setChecked(True)
 
     def on_zern_AO_1(self, checked):

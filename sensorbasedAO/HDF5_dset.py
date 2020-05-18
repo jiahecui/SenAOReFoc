@@ -30,7 +30,7 @@ def get_dset(settings, name, flag = 0):
         """
         Function to create HDF5 dataset with specified shape
         """
-        group.create_dataset(name, (0,) + data.shape, maxshape = (100,) + data.shape, dtype = data.dtype)
+        group.create_dataset(name, (0,) + data.shape, maxshape = (1000,) + data.shape, dtype = data.dtype)
 
     # Create dataset shape placeholders
     data_set_img = np.zeros([settings['sensor_width'], settings['sensor_height']])

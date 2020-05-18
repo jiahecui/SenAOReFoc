@@ -94,7 +94,7 @@ class Calibration_Zern(QObject):
 
                 svd_check_zern = np.dot(self.inf_matrix_zern, self.control_matrix_zern)
 
-                print('Largest Zernike amplitude for unit actuator voltage: {}'.format(np.amax(self.inf_matrix_zern)))
+                print('Largest Zernike amplitude for unit actuator voltage: {}\n'.format(np.amax(self.inf_matrix_zern)))
 
                 self.message.emit('\nZernike control matrix retrieved.')
                 # print('Control matrix is:', self.control_matrix_zern)

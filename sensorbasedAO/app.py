@@ -261,7 +261,7 @@ class App(QApplication):
         # Start calibration thread
         calib2_thread.start()
 
-    def control_zern_test(self, sensor, mirror, data_info):
+    def control_zern_test(self, sensor, mirror, data_info, mode):
         """
         Closed-loop AO control via Zernikes test run
         """
@@ -272,13 +272,17 @@ class App(QApplication):
         zern_worker.moveToThread(zern_thread)
 
         # Connect to signals
-        zern_thread.started.connect(zern_worker.run)
+        if mode == 0:
+            zern_thread.started.connect(zern_worker.run0)
+        elif mode == 1:
+            zern_thread.started.connect(zern_worker.run1)
+
+        zern_worker.done.connect(self.handle_zern_test_done)
         zern_worker.image.connect(lambda obj: self.handle_image_disp(obj))   
         zern_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         zern_worker.info.connect(lambda obj: self.handle_AO_info(obj))
         zern_worker.write.connect(self.write_AO_info)
         zern_worker.error.connect(lambda obj: self.handle_error(obj))
-        zern_worker.done.connect(self.handle_zern_test_done)
 
         # Store Zernike AO worker and thread
         self.workers['zern_worker'] = zern_worker
@@ -581,11 +585,15 @@ class App(QApplication):
         self.threads['calib2_thread'].wait()
         self.main.ui.calibrateBtn_2.setChecked(False)
 
-    def handle_zern_test_start(self):
+    def handle_zern_test_start(self, mode = 0):
         """
         Handle start of closed-loop AO control test via Zernikes
+
+        Args:
+            mode = 0 - AO via Zernikes
+            mode = 1 - Ao via slopes
         """
-        self.control_zern_test(self.devices['sensor'], self.devices['mirror'], self.data_info)
+        self.control_zern_test(self.devices['sensor'], self.devices['mirror'], self.data_info, mode)
 
     def handle_zern_test_done(self):
         """

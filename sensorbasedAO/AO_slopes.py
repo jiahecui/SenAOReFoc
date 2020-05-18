@@ -186,6 +186,7 @@ class AO_Slopes(QObject):
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
                         if config['dummy']:
+                            
                             # Update phase profile and retrieve S-H spot image 
                             if i == 0:
 
