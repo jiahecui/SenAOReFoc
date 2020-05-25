@@ -133,7 +133,10 @@ class Conversion(QObject):
 
                         self.diff_matrix[i, j] = zern_diff(elem_ref_cent_coord_xx, elem_ref_cent_coord_yy, j + 1, True)
                         self.diff_matrix[i + self.SB_settings['act_ref_cent_num'], j] = zern_diff(elem_ref_cent_coord_xx, elem_ref_cent_coord_yy, j + 1, False)
-
+                
+                # Take rescale factor, pixel size and lenslet focal length into account
+                self.diff_matrix = self.diff_matrix / self.SB_settings['pixel_size'] * config['lenslet']['lenslet_focal_length'] * self.rescale
+                
                 # Get singular value decomposition of zernike derivative matrix
                 u, s, vh = np.linalg.svd(self.diff_matrix, full_matrices = False)
 
@@ -186,8 +189,3 @@ class Conversion(QObject):
         self.norm_coords = False
         self.calculate = False
         self.log = False
-
-                
-
-
-
