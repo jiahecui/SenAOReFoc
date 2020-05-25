@@ -111,6 +111,9 @@ def fft_spot_from_phase(settings, phase):
 
         return B
 
+    # Generate pupil function 
+    pupil_func = np.exp(-2 * np.pi * 1j / config['AO']['lambda'] * phase)
+    
     # Use actual search block reference centroid coords centre position for tiling of individual S-H spots
     offset_coord_x = settings['act_ref_cent_coord_x'].astype(int) + 1 - settings['SB_rad']
     offset_coord_y = settings['act_ref_cent_coord_y'].astype(int) + 1 - settings['SB_rad']
@@ -145,18 +148,18 @@ def fft_spot_from_phase(settings, phase):
             a_x[j] = np.polyfit(SB_pix_coord_x, phase[math.ceil(SB_pix_coord_y[j]), math.ceil(SB_pix_coord_x[0]) : \
                 math.ceil(SB_pix_coord_x[0]) + len(SB_pix_coord_x)], 1)[0] 
             a_y[j] = np.polyfit(SB_pix_coord_y, phase[math.ceil(SB_pix_coord_y[0]) : math.ceil(SB_pix_coord_y[0]) + \
-                len(SB_pix_coord_y), math.ceil(SB_pix_coord_x[j])], 1)[0] 
+                len(SB_pix_coord_y), math.ceil(SB_pix_coord_x[j])], 1)[0]
 
         # Calculate average wavefront tilt within each search block
         a_x_ave = -np.mean(a_x) 
-        a_y_ave = -np.mean(a_y) 
+        a_y_ave = -np.mean(a_y)
 
         # Calculate S-H spot centroid position along x and y axis
         slope_x[i] = a_x_ave / settings['pixel_size'] * config['lenslet']['lenslet_focal_length']
         slope_y[i] = a_y_ave / settings['pixel_size'] * config['lenslet']['lenslet_focal_length']
     
         # Crop image within each search area
-        image_crop = phase[SB_pix_coord_y[0] : SB_pix_coord_y[0] + len(SB_pix_coord_y), \
+        image_crop = pupil_func[SB_pix_coord_y[0] : SB_pix_coord_y[0] + len(SB_pix_coord_y), \
             SB_pix_coord_x[0] : SB_pix_coord_x[0] + len(SB_pix_coord_x)]
 
         # Perform Fourier transform to acquire magnitude spectrum within search area
