@@ -69,7 +69,6 @@ def zern_gen(xx_orig, yy_orig, j):
     xx = xx + eps
     rho     = np.sqrt(xx ** 2 + yy ** 2) + eps
     theta   = np.arctan2(yy, xx) + eps
-    # (np.sqrt(xx ** 2 + yy ** 2) <= np.ones([np.shape(xx)[0], np.shape(yy)[0]]))
             
     # Calculate the radial dependent component and derivative
     Rnm = 0

@@ -17,6 +17,7 @@ from centroid_acquisition import acq_centroid
 from gaussian_inf import inf
 from common import fft_spot_from_phase
 from zernike_phase import zern_phase
+from reflectance_process import reflect_process
 
 logger = log.get_logger(__name__)
 
@@ -84,11 +85,13 @@ class AO_Zernikes(QObject):
 
         # Get average phase and phase deviation across pupil aperture
         phase_ave = np.mean(phase[pupil_mask])
+        phase_std = np.std(phase[pupil_mask])
         phase_delta = (phase - phase_ave) * pupil_mask
 
         # print('Max and min values in phase before subtracting average phase: {}, {}'.format(np.amax(phase), np.amin(phase)))
         # print('Max and min values in phase after subtracting average phase: {}, {}'.format(np.amax(phase_delta), np.amin(phase_delta)))
-        print('Average phase value is:', phase_ave)
+        print('Average of phase is:', phase_ave)
+        print('Standard deviation of phase is:', phase_std)
 
         # Calculate Strehl ratio estimated using only the statistics of the phase deviation, according to Mahajan
         phase_delta_2 = phase_delta ** 2 * pupil_mask
@@ -210,6 +213,10 @@ class AO_Zernikes(QObject):
                                     
                                     # Generate zernike phase profile from DM
                                     phase_init = self.phase_calc(voltages)
+
+                                    # Check whether need to incorporate sample reflectance process
+                                    if config['reflect_on'] == 1:
+                                        phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam)
                                     
                                 # Option 3: Generate ideal zernike phase profile
                                 else:
@@ -218,10 +225,15 @@ class AO_Zernikes(QObject):
                                     zern_array =  self.SB_settings['zernike_array_test']
                                     
                                     # Generate ideal zernike phase profile
-                                    phase_init = zern_phase(self.SB_settings, zern_array) 
+                                    phase_init = zern_phase(self.SB_settings, zern_array)
+
+                                    # Check whether need to incorporate sample reflectance process
+                                    if config['reflect_on'] == 1:
+                                        phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam) 
 
                                 # Display initial phase
                                 self.image.emit(phase_init)
+                                time.sleep(10)
 
                                 print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
 
@@ -432,6 +444,10 @@ class AO_Zernikes(QObject):
                                     
                                     # Generate zernike phase profile from DM
                                     phase_init = self.phase_calc(voltages)
+
+                                    # Check whether need to incorporate sample reflectance process
+                                    if config['reflect_on'] == 1:
+                                        phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam)
                                     
                                 # Option 3: Generate ideal zernike phase profile
                                 else:
@@ -440,7 +456,11 @@ class AO_Zernikes(QObject):
                                     zern_array =  self.SB_settings['zernike_array_test']
                                     
                                     # Generate ideal zernike phase profile
-                                    phase_init = zern_phase(self.SB_settings, zern_array) 
+                                    phase_init = zern_phase(self.SB_settings, zern_array)
+
+                                    # Check whether need to incorporate sample reflectance process
+                                    if config['reflect_on'] == 1:
+                                        phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam) 
 
                                 # Display initial phase
                                 self.image.emit(phase_init)
@@ -720,6 +740,10 @@ class AO_Zernikes(QObject):
                                         
                                         # Generate zernike + defocus phase profile from DM
                                         phase_init = self.phase_calc(voltages)
+
+                                        # Check whether need to incorporate sample reflectance process
+                                        if config['reflect_on'] == 1:
+                                            phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam)
                                         
                                     # Option 3: Generate ideal zernike phase profile
                                     else:
@@ -735,7 +759,11 @@ class AO_Zernikes(QObject):
                                             zern_array[3] = self.zern_coeff[3]
                                         
                                         # Generate ideal zernike phase profile
-                                        phase_init = zern_phase(self.SB_settings, zern_array) 
+                                        phase_init = zern_phase(self.SB_settings, zern_array)
+
+                                        # Check whether need to incorporate sample reflectance process
+                                        if config['reflect_on'] == 1:
+                                            phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam) 
 
                                     # Display initial phase
                                     self.image.emit(phase_init)
@@ -987,6 +1015,10 @@ class AO_Zernikes(QObject):
                                         
                                         # Generate zernike + defocus phase profile from DM
                                         phase_init = self.phase_calc(voltages)
+
+                                        # Check whether need to incorporate sample reflectance process
+                                        if config['reflect_on'] == 1:
+                                            phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam)
                                         
                                     # Option 3: Generate ideal zernike phase profile
                                     else:
@@ -1003,6 +1035,10 @@ class AO_Zernikes(QObject):
                                         
                                         # Generate ideal zernike phase profile
                                         phase_init = zern_phase(self.SB_settings, zern_array) 
+
+                                        # Check whether need to incorporate sample reflectance process
+                                        if config['reflect_on'] == 1:
+                                            phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam)
 
                                     # Display initial phase
                                     self.image.emit(phase_init)
