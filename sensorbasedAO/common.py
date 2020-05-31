@@ -163,7 +163,7 @@ def fft_spot_from_phase(settings, phase):
             SB_pix_coord_x[0] : SB_pix_coord_x[0] + len(SB_pix_coord_x)]
 
         # Perform Fourier transform to acquire magnitude spectrum within search area
-        fshift = np.fft.fftshift(np.fft.fft2(image_crop))
+        fshift = np.fft.fftshift(np.fft.fft2(np.fft.ifftshift(image_crop)))
         mag_spec = 20 * np.log(np.abs(fshift))
 
         # Set near-zero pixel values to zero

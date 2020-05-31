@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Sat May  2 13:09:12 2020
+# Created: Wed May 27 22:02:41 2020
 #      by: pyside2-uic  running on PySide2 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -163,6 +163,7 @@ class Ui_MainWindow(object):
         font.setPointSize(10)
         self.ZernikeValSpin.setFont(font)
         self.ZernikeValSpin.setMinimum(-99.99)
+        self.ZernikeValSpin.setSingleStep(0.05)
         self.ZernikeValSpin.setObjectName("ZernikeValSpin")
         self.gridLayout.addWidget(self.ZernikeValSpin, 1, 1, 1, 1)
         self.mainContentLayout.addLayout(self.gridLayout)
