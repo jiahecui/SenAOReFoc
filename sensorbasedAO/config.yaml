@@ -65,7 +65,7 @@ search_block:
   pupil_diam_1: 10.1  # mm  # Boston 10.1 (500)
 
 image:
-  noise: 0
+  noise: 0.1  # The uniform noise level for synthetic samples
   threshold: 0  # Percentage of maximum pixel used for thresholding an image
   dynamic_num: 1  # Number of cycles to use for centroiding with a dynamic range
   normalise: 1  # 0-normalise off, 1-normalise on
@@ -77,18 +77,22 @@ AO:
   recon_coeff_num: 80  # 80
   control_coeff_num: 46  # Alpao 46  # Boston 55  # 3rd - 14, 4th - 20, 5th - 27, 6th - 35, 7th - 44, 8th - 54, 9th - 65, 10th - 77
   loop_gain: 0.7  # Fixed loop gain for closed-loop control, 0.6
-  loop_max: 2  # Maximum number of loops for closed-loop control
+  loop_max: 1  # Maximum number of loops for closed-loop control
   suppress_gain: 1000  # Gain factor used to suppress certain zernike modes
   lambda: 0.63  # um
   tolerance_fact_zern: 0  # RMS error tolerance factor via zernikes, 0.045 = lambda / 14
   tolerance_fact_strehl: 1  # Strehl ratio tolerance factor according to Marechel criteria, 0.81
 
 zern_test:
-  via_slopes: 0  # Flag for whether AO correction is via slopes, 0-via zernikes, 1-via slopes
-  zern_amp: 0.1  # Amplitude of all zernike modes for comparison
+  zern_test_mode: 2  # Flag for the mode that Zernike Test button runs in, explanations in app.py
+  zern_amp: 0.05  # Amplitude of all zernike modes for comparison
+  tilt_amp: 2.7  # Maximum amount of tilt for scanning across synthetic image
+  tip_amp: 2.7  # Maximum amount of tip for scanning across synthetic image
+  scan_num_x: 19  # Number of scan points along x direction
+  scan_num_y: 19  # Number of scan points along x direction
 
 reflect_prof:
-  samp_num: 16  # Flag for choosing the working sample
+  samp_num: 34  # Flag for choosing the working sample
   samp_width: 256  # pixels  # Note that this has to be a factor of the sensor width
   bead_num: 50  # Number of beads in simulated bead sample image 2000
   bead_sigma: 1  # Sigma value for generating Gaussian profile beads 
@@ -99,3 +103,4 @@ dummy: 1  # Flag for whether to run in dummy mode, 0-real mode, 1-dummy mode
 real_phase: 0  # Flag for whether to use real phase data, 0-zernike phase, 1-real phase
 real_zernike: 0  # Flag for whether to generate real zernike modes using DM control matrix, 0-ideal zernike, 1-real zernike
 reflect_on: 1  # Flag for whether to incorporate sample reflectance process
+noise_on: 0  # Flag for whether to add noise to synthetic images

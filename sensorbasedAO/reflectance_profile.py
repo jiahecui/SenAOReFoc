@@ -55,41 +55,29 @@ def get_samp_sim(sample = 0):
         sample14 - a rad = 12 disk of ones shifted 6 pixels to the left
         sample15 - a rad = 12 disk of ones shifted 12 pixels to the left
         sample16 - a rad = 12 disk of ones shifted 18 pixels to the left
+        sample17 - a rad = 24 disk of ones in the centre
+        sample18 - a rad = 5 disk of ones shifted 2 pixels to the left
+        sample19 - a rad = 5 disk of ones shifted 7 pixels to the left
+        sample20 - a rad = 3 disk of ones shifted 3 pixels to the left
+        sample21 - a rad = 3 disk of ones shifted 5 pixels to the left
+        sample22 - a 4-pixel dot shifted 1 pixel to the left
+        sample23 - a 4-pixel dot shifted 2 pixels to the left
+        sample24 - a 4-pixel dot shifted 3 pixels to the left
+        sample25 - random rad = 12 and rad = 24 disks of ones scattered
+        sample26 - disks of all sizes arranged in one image
+        sample27 - sample 25 with structure reflectivity 0.8 and tissue reflectivity 1
+        sample28 - sample 25 with structure reflectivity 0.5 and tissue reflectivity 1
+        sample29 - sample 25 with structure reflectivity 0 and tissue reflectivity 1
+        sample30 - sample 17 with structure reflectivity 0 and tissue reflectivity 1
+        sample31 - a vertical line of ones 4 pixels wide through the centre
+        sample32 - a vertical line of ones 6 pixels wide through the centre
+        sample33 - a vertical line of ones 12 pixels wide through the centre
+        sample34 - a 12 pixel wide cross of ones in the centre
     """
     if sample == 0:
         sample_img = np.ones([config['reflect_prof']['obj_grid_size'], config['reflect_prof']['obj_grid_size']])
-    elif sample == 1:
-        sample_img = h5py.File('sensorbasedAO/Sample1.mat','r').get('sample1')
-    elif sample == 2:
-        sample_img = h5py.File('sensorbasedAO/Sample2.mat','r').get('sample2')
-    elif sample == 3:
-        sample_img = h5py.File('sensorbasedAO/Sample3.mat','r').get('sample3')
-    elif sample == 4:
-        sample_img = h5py.File('sensorbasedAO/Sample4.mat','r').get('sample4')
-    elif sample == 5:
-        sample_img = h5py.File('sensorbasedAO/Sample5.mat','r').get('sample5')
-    elif sample == 6:
-        sample_img = h5py.File('sensorbasedAO/Sample6.mat','r').get('sample6')
-    elif sample == 7:
-        sample_img = h5py.File('sensorbasedAO/Sample7.mat','r').get('sample7')
-    elif sample == 8:
-        sample_img = h5py.File('sensorbasedAO/Sample8.mat','r').get('sample8')
-    elif sample == 9:
-        sample_img = h5py.File('sensorbasedAO/Sample9.mat','r').get('sample9')
-    elif sample == 10:
-        sample_img = h5py.File('sensorbasedAO/Sample10.mat','r').get('sample10')
-    elif sample == 11:
-        sample_img = h5py.File('sensorbasedAO/Sample11.mat','r').get('sample11')
-    elif sample == 12:
-        sample_img = h5py.File('sensorbasedAO/Sample12.mat','r').get('sample12')
-    elif sample == 13:
-        sample_img = h5py.File('sensorbasedAO/Sample13.mat','r').get('sample13')
-    elif sample == 14:
-        sample_img = h5py.File('sensorbasedAO/Sample14.mat','r').get('sample14')
-    elif sample == 15:
-        sample_img = h5py.File('sensorbasedAO/Sample15.mat','r').get('sample15')
-    elif sample == 16:
-        sample_img = h5py.File('sensorbasedAO/Sample16.mat','r').get('sample16')
+    else:
+        sample_img = h5py.File('sensorbasedAO/Sample' + str(sample) + '.mat','r').get('sample' + str(sample))
 
     sample_img = np.array(sample_img)
 

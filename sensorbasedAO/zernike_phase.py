@@ -16,14 +16,14 @@ def zern_phase(settings, zern_array):
     # Get the number of pixels along the diameter of the pupil
     pupil_diam_pixel = int(pupil_diam * 1e3 / settings['pixel_size'])
 
-    # Initialise phase map
-    zern_phase_img = np.zeros([pupil_diam_pixel, pupil_diam_pixel])
-
     # Make sure there is an even number of pixels along the diameter of the pupil
     if pupil_diam_pixel % 2 == 1:
         pupil_diam_pixel -= 1
     else:
         pass
+
+    # Initialise phase map
+    zern_phase_img = np.zeros([pupil_diam_pixel, pupil_diam_pixel])
 
     # Get x,y coordinates of each pixel
     xx, yy = np.meshgrid(np.arange(-(pupil_diam_pixel // 2), pupil_diam_pixel // 2), \

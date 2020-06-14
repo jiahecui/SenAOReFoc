@@ -233,6 +233,7 @@ class AO_Zernikes(QObject):
 
                                 # Display initial phase
                                 self.image.emit(phase_init)
+                                # time.sleep(60)
 
                                 print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
 

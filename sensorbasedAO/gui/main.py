@@ -246,8 +246,8 @@ class Main(QMainWindow):
         if not btn.isChecked():
             btn.setChecked(False)
         else:
-            # Start zern_test by choosing whether AO correction is via Zernikes or slopes, 0 for Zernikes, 1 for slopes
-            self.app.handle_zern_test_start(mode = config['zern_test']['via_slopes'])
+            # Start zern_test
+            self.app.handle_zern_test_start(mode = config['zern_test']['zern_test_mode'])
             btn.setChecked(True)
 
     def on_zern_AO_1(self, checked):
