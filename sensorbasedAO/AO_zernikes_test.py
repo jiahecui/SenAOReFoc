@@ -663,7 +663,7 @@ class AO_Zernikes_Test(QObject):
 
                                             # Check whether need to incorporate sample reflectance process
                                             if config['reflect_on'] == 1:
-                                                phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam)
+                                                phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam, scan_num_x = k, scan_num_y = l)
                                             
                                         # Option 2: Generate ideal zernike phase profile
                                         else:
@@ -678,7 +678,7 @@ class AO_Zernikes_Test(QObject):
 
                                             # Check whether need to incorporate sample reflectance process
                                             if config['reflect_on'] == 1:
-                                                phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam)
+                                                phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam, scan_num_x = k, scan_num_y = l)
 
                                         # Display initial phase
                                         self.image.emit(phase_init)
@@ -902,7 +902,7 @@ class AO_Zernikes_Test(QObject):
 
                                             # Check whether need to incorporate sample reflectance process
                                             if config['reflect_on'] == 1:
-                                                phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam)
+                                                phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam, scan_num_x = k, scan_num_y = l)
                                             
                                         # Option 2: Generate ideal zernike phase profile
                                         else:
@@ -917,7 +917,7 @@ class AO_Zernikes_Test(QObject):
 
                                             # Check whether need to incorporate sample reflectance process
                                             if config['reflect_on'] == 1:
-                                                phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam) 
+                                                phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam, scan_num_x = k, scan_num_y = l) 
 
                                         # Display initial phase
                                         self.image.emit(phase_init)

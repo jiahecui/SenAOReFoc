@@ -81,7 +81,6 @@ def acq_centroid(settings, flag = 0):
 
     # Initialise list for storing S-H spot centroid information for all images in data
     slope_x_list, slope_y_list = ([] for i in range(2))
-    prev1 = time.perf_counter()
 
     # Calculate actual S-H spot centroids for each search block using a dynamic range
     for l in range(image_num):
@@ -175,6 +174,9 @@ def acq_centroid(settings, flag = 0):
                 """
                 Calculate actual S-H spot centroids by using centre of gravity (CoG) method
                 """
+
+                prev1 = time.perf_counter()
+                
                 # Crop image within each search area
                 image_crop = image_temp[SB_pix_coord_y[0] : SB_pix_coord_y[0] + len(SB_pix_coord_y), \
                     SB_pix_coord_x[0] : SB_pix_coord_x[0] + len(SB_pix_coord_x)]

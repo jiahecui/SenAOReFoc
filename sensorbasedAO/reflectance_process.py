@@ -2,12 +2,13 @@ import numpy as np
 import scipy as sp
 from scipy import signal
 from scipy import ndimage
+from scipy import io
 from scipy.ndimage import gaussian_filter
 
 from config import config
 from reflectance_profile import get_samp_sim
 
-def reflect_process(settings, phase, pupil_diam):
+def reflect_process(settings, phase, pupil_diam, scan_num_x = None, scan_num_y = None):
     """
     Simulates the process of a beam reflecting off a specimen then arriving at the SHWS
     """
@@ -107,6 +108,9 @@ def reflect_process(settings, phase, pupil_diam):
         amp_PSF_crop = amp_PSF[start_1 : start_1 + config['reflect_prof']['obj_grid_size'], \
             start_1 : start_1 + config['reflect_prof']['obj_grid_size']]
 
+        # sp.io.savemat('data/amp_PSF_crop/amp_PSF_crop_' + str(scan_num_y * config['zern_test']['scan_num_x'] + scan_num_x)\
+        #      + '.mat', dict(amp_PSF_crop = amp_PSF_crop))
+
         # Generate sample reflectance profile
         samp_prof_crop = get_samp_sim(config['reflect_prof']['samp_num'])
 
@@ -116,6 +120,9 @@ def reflect_process(settings, phase, pupil_diam):
 
         # Generate reflection amplitude PSF
         reflect_amp_PSF = amp_PSF_crop * samp_prof_crop
+
+        # sp.io.savemat('data/reflect_amp_PSF/reflect_amp_PSF_' + str(scan_num_y * config['zern_test']['scan_num_x'] + scan_num_x)\
+        #      + '.mat', dict(reflect_amp_PSF = reflect_amp_PSF))
         
         # Pad reflection amplitude PSF with zeros before inverse Fourier transform
         reflect_amp_PSF_pad = np.pad(reflect_amp_PSF, (np.shape(reflect_amp_PSF)[0] // 2, \
@@ -129,11 +136,20 @@ def reflect_process(settings, phase, pupil_diam):
         pupil_func_2 = pupil_func_2[start_1 : start_1 + config['reflect_prof']['obj_grid_size'], \
             start_1 : start_1 + config['reflect_prof']['obj_grid_size']]
 
+        # Check phase of reflection pupil function
+        phase_reflect = np.arctan2(np.imag(pupil_func_2), np.real(pupil_func_2)) / (2 * np.pi / config['AO']['lambda'])
+
+        # sp.io.savemat('data/phase_reflect/phase_reflect_' + str(scan_num_y * config['zern_test']['scan_num_x'] + scan_num_x)\
+        #      + '.mat', dict(phase_reflect = phase_reflect))
+
         # Multiply reflection pupil function with detection path pupil function to get final pupil function
         pupil_func_3 = pupil_func_2 * pupil_func_out_binned
 
         # Get detection phase profile
         phase_det = np.arctan2(np.imag(pupil_func_3), np.real(pupil_func_3)) / (2 * np.pi / config['AO']['lambda'])
+
+        # sp.io.savemat('data/phase_det/phase_det_' + str(scan_num_y * config['zern_test']['scan_num_x'] + scan_num_x)\
+        #      + '.mat', dict(phase_det = phase_det))
 
         # Pad detection phase profile to size of sensor
         # pad_num_2 = (settings['sensor_width'] - np.shape(phase_det)[0]) // 2
