@@ -28,6 +28,7 @@ from calibration_zern import Calibration_Zern
 from AO_zernikes_test import AO_Zernikes_Test
 from AO_zernikes import AO_Zernikes
 from AO_slopes import AO_Slopes
+from ML_dataset_gen import ML_Dataset_Gen
 
 logger = log.get_logger(__name__)
 
@@ -367,6 +368,30 @@ class App(QApplication):
         # Start slopes AO thread
         slopes_AO_thread.start()
 
+    def ML_dataset_gen(self, sensor, mirror, data_info):
+        """
+        Generate ML dataset
+        """
+        # Create ML dataset worker and thread
+        ML_thread = QThread()
+        ML_thread.setObjectName('ML_thread')
+        ML_worker = ML_Dataset_Gen(sensor, mirror, data_info)
+        ML_worker.moveToThread(ML_thread)
+
+        # Connect to signals
+        ML_thread.started.connect(ML_worker.run)
+        ML_worker.done.connect(self.handle_ML_dataset_done)
+        ML_worker.message.connect(lambda obj: self.handle_message_disp(obj))
+        ML_worker.error.connect(lambda obj: self.handle_error(obj))
+        ML_worker.image.connect(lambda obj: self.handle_image_disp(obj))
+
+        # Store Zernike AO worker and thread
+        self.workers['ML_worker'] = ML_worker
+        self.threads['ML_thread'] = ML_thread
+
+        # Start Zernike AO thread
+        ML_thread.start()
+
     #========== Signal handlers ==========#
     def HDF5_init(self):
         """
@@ -698,6 +723,20 @@ class App(QApplication):
             self.main.ui.moveBtn.setChecked(False)
         elif mode == 1:
             self.main.ui.scanBtn.setChecked(False)
+
+    def handle_ML_dataset_start(self):
+        """
+        Handle start of generating ML dataset
+        """
+        self.ML_dataset_gen(self.devices['sensor'], self.devices['mirror'], self.data_info)
+
+    def handle_ML_dataset_done(self):
+        """
+        Handle start of generating ML dataset
+        """
+        self.threads['ML_thread'].quit()
+        self.threads['ML_thread'].wait()
+        self.main.ui.MLDataBtn.setChecked(False)
 
     def stop(self):
         """

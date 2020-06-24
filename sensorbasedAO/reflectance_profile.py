@@ -77,7 +77,7 @@ def get_samp_sim(sample = 0):
     if sample == 0:
         sample_img = np.ones([config['reflect_prof']['obj_grid_size'], config['reflect_prof']['obj_grid_size']])
     else:
-        sample_img = h5py.File('sensorbasedAO/Sample' + str(sample) + '.mat','r').get('sample' + str(sample))
+        sample_img = h5py.File('sensorbasedAO/sample_sim/Sample' + str(sample) + '.mat','r').get('sample' + str(sample))
 
     sample_img = np.array(sample_img)
 

@@ -51,6 +51,7 @@ class Main(QMainWindow):
         self.ui.AOTypeCombo.currentIndexChanged.connect(self.on_focussettings)
         self.ui.moveBtn.clicked.connect(self.on_move)
         self.ui.scanBtn.clicked.connect(self.on_scan)
+        self.ui.MLDataBtn.clicked.connect(self.on_ML_dataset)
         self.ui.stopBtn.clicked.connect(self.on_stop)
         self.ui.quitBtn.clicked.connect(self.on_quit)
 
@@ -490,6 +491,20 @@ class Main(QMainWindow):
             self.app.handle_focusing_info(settings)
             self.app.write_focusing_info()
             self.app.handle_focus_start(AO_type = settings['AO_type'])
+            btn.setChecked(True)
+
+    def on_ML_dataset(self, checked):
+        """
+        Generate ML dataset handler
+        """
+        btn = self.sender()
+
+        # Generate ML dataset if pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            # Start ML_dataset
+            self.app.handle_ML_dataset_start()
             btn.setChecked(True)
 
     def on_stop(self):

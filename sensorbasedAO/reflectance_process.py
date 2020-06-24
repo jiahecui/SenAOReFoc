@@ -3,7 +3,7 @@ import scipy as sp
 from scipy import signal
 from scipy import ndimage
 from scipy import io
-from scipy.ndimage import gaussian_filter
+from skimage.restoration import unwrap_phase
 
 from config import config
 from reflectance_profile import get_samp_sim
@@ -69,6 +69,10 @@ def reflect_process(settings, phase, pupil_diam, scan_num_x = None, scan_num_y =
             noisy = image + image * gauss
  
             return noisy
+
+    if scan_num_x is None and scan_num_y is None:
+        scan_num_x = 1
+        scan_num_y = 0
 
     try:
         # Generate boolean phase mask
@@ -145,8 +149,14 @@ def reflect_process(settings, phase, pupil_diam, scan_num_x = None, scan_num_y =
         # Multiply reflection pupil function with detection path pupil function to get final pupil function
         pupil_func_3 = pupil_func_2 * pupil_func_out_binned
 
-        # Get detection phase profile
-        phase_det = np.arctan2(np.imag(pupil_func_3), np.real(pupil_func_3)) / (2 * np.pi / config['AO']['lambda'])
+        # Get wrapped angle of detected pupil function
+        angle_det_wrapped = np.arctan2(np.imag(pupil_func_3), np.real(pupil_func_3))
+
+        # Perform angle unwrapping
+        angle_det_unwrapped = unwrap_phase(angle_det_wrapped)
+        
+        # Get unwrapped phase
+        phase_det = angle_det_unwrapped / (2 * np.pi / config['AO']['lambda'])
 
         # sp.io.savemat('data/phase_det/phase_det_' + str(scan_num_y * config['zern_test']['scan_num_x'] + scan_num_x)\
         #      + '.mat', dict(phase_det = phase_det))

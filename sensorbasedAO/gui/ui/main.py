@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Wed May 27 22:02:41 2020
+# Created: Tue Jun 23 00:58:35 2020
 #      by: pyside2-uic  running on PySide2 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -438,6 +438,13 @@ class Ui_MainWindow(object):
         self.verticalLayout_5.addItem(spacerItem)
         self.horizontalLayout_3.addLayout(self.verticalLayout_5)
         self.mainContentLayout.addLayout(self.horizontalLayout_3)
+        self.MLDataBtn = QtWidgets.QPushButton(self.centralwidget)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.MLDataBtn.setFont(font)
+        self.MLDataBtn.setCheckable(True)
+        self.MLDataBtn.setObjectName("MLDataBtn")
+        self.mainContentLayout.addWidget(self.MLDataBtn)
         spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.mainContentLayout.addItem(spacerItem1)
         self.verticalLayout = QtWidgets.QVBoxLayout()
@@ -542,6 +549,7 @@ class Ui_MainWindow(object):
         self.AOTypeCombo.setItemText(4, QtWidgets.QApplication.translate("MainWindow", "Slope Full", None, -1))
         self.moveBtn.setText(QtWidgets.QApplication.translate("MainWindow", "MOVE", None, -1))
         self.scanBtn.setText(QtWidgets.QApplication.translate("MainWindow", "SCAN", None, -1))
+        self.MLDataBtn.setText(QtWidgets.QApplication.translate("MainWindow", "ML Dataset", None, -1))
         self.displayBox.setPlaceholderText(QtWidgets.QApplication.translate("MainWindow", "Sensorbased AO Software", None, -1))
         self.stopBtn.setText(QtWidgets.QApplication.translate("MainWindow", "STOP", None, -1))
         self.quitBtn.setText(QtWidgets.QApplication.translate("MainWindow", "QUIT", None, -1))

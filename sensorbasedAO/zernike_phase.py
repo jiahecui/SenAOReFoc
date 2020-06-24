@@ -33,7 +33,7 @@ def zern_phase(settings, zern_array):
     xx_norm = xx / (pupil_diam_pixel // 2)
     yy_norm = yy / (pupil_diam_pixel // 2)
 
-    print('Starting to generate zernike phase map...')
+    # print('Starting to generate zernike phase map...')
 
     # Get zernike phase map
     for i in range(len(zern_array)):
@@ -43,6 +43,6 @@ def zern_phase(settings, zern_array):
     zern_phase_img_pad = np.pad(zern_phase_img, (math.ceil((settings['sensor_height'] - np.shape(zern_phase_img)[0]) / 2),\
         math.ceil((settings['sensor_width'] - np.shape(zern_phase_img)[1]) / 2)), 'constant', constant_values = (0, 0))
 
-    print('Zernike phase map generated.')
+    # print('Zernike phase map generated.')
     
     return zern_phase_img_pad

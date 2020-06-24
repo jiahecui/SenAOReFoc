@@ -12,3 +12,4 @@ Click
 random
 scipy
 h5py
+skimage
