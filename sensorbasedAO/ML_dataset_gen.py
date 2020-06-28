@@ -49,6 +49,12 @@ class ML_Dataset_Gen(QObject):
         # Get mirror instance
         self.mirror = mirror
 
+        # Get conversion matrix
+        self.conv_matrix = self.mirror_settings['conv_matrix']
+
+        # Set folder flag
+        self.folder_flag = 6
+
         # Generate boolean phase mask
         self.phase_rad = int(config['search_block']['pupil_diam_0'] * 1e3 / self.SB_settings['pixel_size']) // 2
         self.coord_x, self.coord_y = (np.arange(int(-self.SB_settings['sensor_width'] / 2), int(-self.SB_settings['sensor_width'] / 2) + \
@@ -63,7 +69,7 @@ class ML_Dataset_Gen(QObject):
         Generate random aberration combinations
         """
         # Seed random number generator
-        seed(1)
+        seed(3)
 
         # Initialise aberration matrix
         aberr_matrix = np.zeros([config['ML']['aberr_num'], config['ML']['zern_num']])
@@ -182,13 +188,21 @@ class ML_Dataset_Gen(QObject):
             image_crop = image[SB_pix_coord_y[0] : SB_pix_coord_y[0] + len(SB_pix_coord_y), \
                 SB_pix_coord_x[0] : SB_pix_coord_x[0] + len(SB_pix_coord_x)]
 
-            # Calculate centroid using CoG method
-            xx, yy = np.meshgrid(np.arange(SB_pix_coord_x[0], SB_pix_coord_x[0] + len(SB_pix_coord_x)), \
-                np.arange(SB_pix_coord_y[0], SB_pix_coord_y[0] + len(SB_pix_coord_y)))
+            # Calculate centroid using CoG method 
+            if image_crop.sum() == 0 or (image_crop ** 2).sum() / (image_crop.sum()) ** 2 < config['search_block']['sharp_thres']:
+                        
+                # If aperture is obscured, set sum_x, sum_y to 0
+                sum_x, sum_y = (0 for i in range(2))
+                sum_pix = 1
+            else:                     
+                
+                # If aperture isn't obscured, calculate centroid using CoG method
+                xx, yy = np.meshgrid(np.arange(SB_pix_coord_x[0], SB_pix_coord_x[0] + len(SB_pix_coord_x)), \
+                    np.arange(SB_pix_coord_y[0], SB_pix_coord_y[0] + len(SB_pix_coord_y)))
 
-            sum_x = (xx * image_crop).sum()
-            sum_y = (yy * image_crop).sum()
-            sum_pix = image_crop.sum()
+                sum_x = (xx * image_crop).sum()
+                sum_y = (yy * image_crop).sum()
+                sum_pix = image_crop.sum()
 
             # Get actual centroid coordinates
             act_cent_coord_x[m] = sum_x / sum_pix
@@ -223,15 +237,18 @@ class ML_Dataset_Gen(QObject):
 
                 self.aberr_matrix = self.aberr_gen()
 
-                sp.io.savemat('data/ML_dataset/test/test1/aberr_matrix_sample_' + str(i) + '.mat', dict(aberr_matrix = self.aberr_matrix))
+                if i == 0:
+                    sp.io.savemat('data/ML_dataset/test/test' + str(self.folder_flag) + '/aberr_matrix.mat', dict(aberr_matrix = self.aberr_matrix))
 
-                self.samp_prof = h5py.File('sensorbasedAO/sample_ML/sample' + str(i) + '.mat','r').get('temp_image')
+                self.samp_prof = h5py.File('sensorbasedAO/sample_ML/test' + str(self.folder_flag) + '/sample' + str(i) + '.mat','r').get('temp_image')
 
                 for j in range(config['ML']['aberr_num']):
 
                     self.scan_aberr_det = np.zeros([config['ML']['scan_num_x'] * config['ML']['scan_num_y'], config['ML']['zern_num']])
 
                     self.zern_coeff = self.aberr_matrix[j,:]
+                    # self.zern_coeff = np.zeros(config['ML']['zern_num'])
+                    # self.zern_coeff[2] = 0.01
 
                     scan_count = 0
 
@@ -240,6 +257,7 @@ class ML_Dataset_Gen(QObject):
                         for k in range(config['ML']['scan_num_x']): 
 
                             if (l * config['ML']['scan_num_x'] + k + 1) == 1 or (l * config['ML']['scan_num_x'] + k + 1) % 50 == 0:
+
                                 print('On sample {}, aberration {}, scan point {}'.format(i + 1, j + 1, l * config['ML']['scan_num_x'] + k + 1))
 
                             try:
@@ -252,7 +270,7 @@ class ML_Dataset_Gen(QObject):
                                 self.phase_init = zern_phase(self.SB_settings, self.zern_coeff)
 
                                 # Apply sample reflectance process to get detection pupil
-                                self.det_phase = self.reflect_process()                              
+                                self.det_phase = self.reflect_process()
 
                                 # Get simulated S-H spots and append to list
                                 self.AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, self.det_phase)                               
@@ -261,11 +279,18 @@ class ML_Dataset_Gen(QObject):
                                 # Calculate centroids of S-H spots
                                 self.slope_x, self.slope_y = self.acq_centroid(self.AO_image) 
 
+                                # Remove corresponding elements to obscured subapertures from slope values and rows from conversion matrix
+                                index_remove = np.where(self.slope_x + self.SB_settings['act_ref_cent_coord_x'].astype(int) + 1 == 0)[1]
+                                index_remove_conv = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
+                                self.slope_x = np.delete(self.slope_x, index_remove, axis = 1)
+                                self.slope_y = np.delete(self.slope_y, index_remove, axis = 1)
+                                self.conv_matrix_new = np.delete(self.conv_matrix, index_remove_conv, axis = 1)
+
                                 # Concatenate slopes into one slope matrix
                                 self.slope = (np.concatenate((self.slope_x, self.slope_y), axis = 1)).T
 
                                 # Get detected zernike coefficients from slope matrix
-                                self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], self.slope)
+                                self.zern_coeff_detect = np.dot(self.conv_matrix_new, self.slope)
 
                                 # Get partial detected zernike coefficients (except tip/tilt/defocus)
                                 self.zern_coeff_detect_part = self.zern_coeff_detect.copy()
@@ -276,7 +301,7 @@ class ML_Dataset_Gen(QObject):
 
                                 # Decide whether to output matrix to file
                                 if l == (config['ML']['scan_num_y'] - 1) and k == (config['ML']['scan_num_x'] - 1):
-                                    sp.io.savemat('data/ML_dataset/test/test1/samp_' + str(i) + '_aberr_' + str(j) + \
+                                    sp.io.savemat('data/ML_dataset/test/test' + str(self.folder_flag) + '/samp_' + str(i) + '_aberr_' + str(j) + \
                                         '.mat', dict(scan_point_aberrations = self.scan_aberr_det))
                                     prev2 = time.perf_counter()
                                     print('Time lapsed after sample {}, aberration {} is: {} s'.format(i + 1, j + 1, prev2 - prev1))

@@ -54,7 +54,7 @@ relay:
 
 lenslet:
   lenslet_pitch: 500  # um  500  400
-  lenslet_focal_length: 15300  # um  15300  13100
+  lenslet_focal_length: 8000  # um  15300 
 
 search_block:
   div_elem: 5  # Number of elements in each dimension of a search block
@@ -85,14 +85,14 @@ AO:
 
 zern_test:
   zern_test_mode: 2  # Flag for the mode that Zernike Test button runs in, explanations in app.py
-  zern_amp: 0.1  # Amplitude of all zernike modes for comparison
+  zern_amp: 0.05  # Amplitude of all zernike modes for comparison
   tilt_amp: 2.7  # Maximum amount of tilt for scanning across synthetic image
   tip_amp: 2.7  # Maximum amount of tip for scanning across synthetic image
   scan_num_x: 19  # Number of scan points along x direction
   scan_num_y: 19  # Number of scan points along y direction
 
 reflect_prof:
-  samp_num: 0  # Flag for choosing the working sample
+  samp_num: 33  # Flag for choosing the working sample
   samp_width: 256  # pixels  # Note that this has to be a factor of the sensor width
   bead_num: 50  # Number of beads in simulated bead sample image 2000
   bead_sigma: 1  # Sigma value for generating Gaussian profile beads 
