@@ -9,7 +9,7 @@ import time
 import h5py
 import math
 from numpy.random import seed
-from numpy.random import rand
+from numpy.random import uniform
 from scipy import io
 from skimage.restoration import unwrap_phase
 import numpy as np
@@ -53,7 +53,7 @@ class ML_Dataset_Gen(QObject):
         self.conv_matrix = self.mirror_settings['conv_matrix']
 
         # Set folder flag
-        self.folder_flag = 6
+        self.folder_flag = 5
 
         # Generate boolean phase mask
         self.phase_rad = int(config['search_block']['pupil_diam_0'] * 1e3 / self.SB_settings['pixel_size']) // 2
@@ -69,15 +69,78 @@ class ML_Dataset_Gen(QObject):
         Generate random aberration combinations
         """
         # Seed random number generator
-        seed(3)
+        seed(1)
 
         # Initialise aberration matrix
         aberr_matrix = np.zeros([config['ML']['aberr_num'], config['ML']['zern_num']])
 
-        # Generate random numbers 
-        aberr_matrix[:,2] = rand(config['ML']['aberr_num']) * config['ML']['zern_amp']
-        aberr_matrix[:,4:] = rand(config['ML']['aberr_num'], config['ML']['zern_num'] - 4) * config['ML']['zern_amp']
+        # Generate zernike coefficients within range
+        # for a in range(config['ML']['zern_num']):
+        #     if a in [0,1,3]:
+        #         pass
+        #     else:
+        #         aberr_matrix[:,a] = uniform(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], \
+        #             size = config['ML']['aberr_num'])
+        
+        # Generate zernike coefficients within range
+        # for a in range(config['ML']['zern_num']):
+        #     if a in [0,1,3]:
+        #         pass
+        #     elif a == 2:
+        #         aberr_matrix[a - 2, a] = -config['ML']['zern_amp_' + str(a + 1)] / 2
+        #         aberr_matrix[a - 1, a] = config['ML']['zern_amp_' + str(a + 1)] / 2
+        #     else:
+        #         aberr_matrix[2 * (a - 3), a] = -config['ML']['zern_amp_' + str(a + 1)] / 2
+        #         aberr_matrix[2 * (a - 3) + 1, a] = config['ML']['zern_amp_' + str(a + 1)] / 2
 
+        # Generate zernike coefficients within range
+        for a in range(config['ML']['zern_num']):
+            if a in [0,1,3]:
+                pass
+            elif a == 2:
+                aberr_matrix[0:1, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 2)
+            elif a == 4:
+                aberr_matrix[2:4, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 3)
+            elif a == 5:
+                aberr_matrix[5:7, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 3)
+            elif a == 6:
+                aberr_matrix[8:11, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 4) 
+            elif a == 7:
+                aberr_matrix[12:20, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 9)
+            elif a == 8:
+                aberr_matrix[21:28, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 8)
+            elif a == 9:
+                aberr_matrix[29:32, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 4)
+            elif a == 10:
+                aberr_matrix[33:34, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 2)
+            elif a == 11:
+                aberr_matrix[35:40, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 6)
+            elif a == 12:
+                aberr_matrix[41:42, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 2)
+            elif a == 13:
+                aberr_matrix[43:48, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 6)
+            elif a == 14:
+                aberr_matrix[49:50, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 2)
+            elif a == 15:
+                aberr_matrix[51:52, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 2)
+            elif a == 16:
+                aberr_matrix[53:54, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 2)
+            elif a == 17:
+                aberr_matrix[55:60, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 6)
+            elif a == 18:
+                aberr_matrix[61:66, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 6)
+            elif a == 19:
+                aberr_matrix[67:70, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 4)
+
+        # Generate zernike coefficients within range
+        # for a in range(config['ML']['aberr_num']):
+        #     if a == 0:
+        #         aberr_matrix[a, a + 2] = config['ML']['zern_amp_' + str(a + 3)]
+        #     elif a == 1:
+        #         aberr_matrix[a, a + 5] = config['ML']['zern_amp_' + str(a + 6)] / 2
+        #     elif a == 2:
+        #         aberr_matrix[a, a + 8] = config['ML']['zern_amp_' + str(a + 9)] / 2
+        
         return aberr_matrix
 
     def rebin(self, arr, new_shape):

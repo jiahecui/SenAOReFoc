@@ -26,3 +26,6 @@ MatlabCodeForExtractPhase/
 # pyinstaller
 build/
 *.pyo
+
+# sample file
+sensorbasedAO/sample_ML/

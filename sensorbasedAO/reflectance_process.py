@@ -103,9 +103,8 @@ def reflect_process(settings, phase, pupil_diam, scan_num_x = None, scan_num_y =
         amp_PSF = np.fft.fftshift(np.fft.fft2(np.fft.ifftshift(pupil_func_pad)))
 
         # Normalise amplitude PSF
-        # amp_PSF = amp_PSF / 100
-        # phase_det = np.abs(amp_PSF) ** 2
         amp_PSF = amp_PSF / np.amax(amp_PSF)
+        # phase_det = np.abs(amp_PSF) ** 2
 
         # Crop amplitude PSF to convolve with sample reflectance profile
         start_1 = (np.shape(amp_PSF)[0] - config['reflect_prof']['obj_grid_size']) // 2
