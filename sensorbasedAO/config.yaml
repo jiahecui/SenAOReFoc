@@ -54,7 +54,7 @@ relay:
 
 lenslet:
   lenslet_pitch: 500  # um  500  400
-  lenslet_focal_length: 13800  # um  15300 
+  lenslet_focal_length: 10000  # um  15300 
 
 search_block:
   div_elem: 5  # Number of elements in each dimension of a search block

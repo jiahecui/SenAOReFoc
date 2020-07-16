@@ -6,10 +6,10 @@ import h5py
 # Parameters for reshaping of ML dataset
 full_dataset = 0
 select_dataset = 0
-folder_flag = 4
+folder_flag = 10
 folder_num = 2
 samp_num = 1
-aberr_num = 68
+aberr_num = 10
 aberr_num_per_mode = 2
 zern_num = 20
 scan_num_x = 20
@@ -37,25 +37,65 @@ if not full_dataset and not select_dataset:
         for j in range(aberr_num):
 
             # Retrieve 2D-scan dataset
-            temp_data_full = sp.io.loadmat('data/ML_dataset/test/test' + str(folder_flag) + '/samp_' + str(i) + '_aberr_' + str(j))['scan_point_aberrations']
+            temp_data = sp.io.loadmat('data/ML_dataset/test/test' + str(folder_flag) + '/samp_' + str(i) + '_aberr_' + str(j))['scan_point_aberrations']
 
             # Retrieve applied aberration coefficients
             temp_aberr = aberr_matrix[j,:]
+            # if np.count_nonzero(temp_aberr) > 0:
+            #     temp_aberr = temp_aberr[np.nonzero(temp_aberr)]
+            # else:
+            #     temp_aberr = np.array([0])
             
             # Remove tip/tilt/defocus from 2D-scan dataset
             # temp_data[:, [0,1,3]] = 0
 
             # Retrieve column in 2D-scan dataset corresponding to applied zernike mode
-            if j < 34:
-                if j // aberr_num_per_mode == 0:
-                    temp_data = temp_data_full[:, 2]
-                else:
-                    temp_data = temp_data_full[:, j // aberr_num_per_mode + 3]
-            else:
-                if (j - 34) // aberr_num_per_mode == 0:
-                    temp_data = temp_data_full[:, 2]
-                else:
-                    temp_data = temp_data_full[:, (j - 34) // aberr_num_per_mode + 3]
+            # if j in range(0,2):
+            #     temp_data = temp_data_full[:, 2]
+            # elif j in range(2,5):
+            #     temp_data = temp_data_full[:, 4]
+            # elif j in range(5,8):
+            #     temp_data = temp_data_full[:, 5]
+            # elif j in range(8,12):
+            #     temp_data = temp_data_full[:, 6]
+            # elif j in range(12,21):
+            #     temp_data = temp_data_full[:, 7]
+            # elif j in range(21,29):
+            #     temp_data = temp_data_full[:, 8]
+            # elif j in range(29,33):
+            #     temp_data = temp_data_full[:, 9]
+            # elif j in range(33,35):
+            #     temp_data = temp_data_full[:, 10]
+            # elif j in range(35,41):
+            #     temp_data = temp_data_full[:, 11]
+            # elif j in range(41,43):
+            #     temp_data = temp_data_full[:, 12]
+            # elif j in range(43,49):
+            #     temp_data = temp_data_full[:, 13]
+            # elif j in range(49,51):
+            #     temp_data = temp_data_full[:, 14]
+            # elif j in range(51,53):
+            #     temp_data = temp_data_full[:, 15]
+            # elif j in range(53,55):
+            #     temp_data = temp_data_full[:, 16]
+            # elif j in range(55,61):
+            #     temp_data = temp_data_full[:, 17]
+            # elif j in range(61,67):
+            #     temp_data = temp_data_full[:, 18]
+            # elif j in range(67,71):
+            #     temp_data = temp_data_full[:, 19]
+
+            # if j < 34:
+            #     if j // aberr_num_per_mode == 0:
+            #         temp_data = temp_data_full[:, 2]
+            #     else:
+            #         temp_data = temp_data_full[:, j // aberr_num_per_mode + 3]
+            # else:
+            #     if (j - 34) // aberr_num_per_mode == 0:
+            #         temp_data = temp_data_full[:, 2]
+            #     else:
+            #         temp_data = temp_data_full[:, (j - 34) // aberr_num_per_mode + 3]
+
             # if j == 0:
             #     temp_data = temp_data_full[:, 4]
             # elif j == 1:
@@ -64,13 +104,13 @@ if not full_dataset and not select_dataset:
             #     temp_data = temp_data_full[:, 10]
             
             # Reshape the dataset to (x-axis, y-axis, channel)
-            # temp_data = np.reshape(temp_data.T, (zern_num, scan_num_x, scan_num_y))
-            temp_data = np.reshape(temp_data.T, (1, scan_num_x, scan_num_y))
+            temp_data = np.reshape(temp_data.T, (zern_num, scan_num_x, scan_num_y))
+            # temp_data = np.reshape(temp_data.T, (1, scan_num_x, scan_num_y))
             temp_data = np.moveaxis(temp_data, 0, -1)
 
             # Reshape aberration coefficients to (x-axis, y-axis, channel)
-            # temp_aberr = np.reshape(temp_aberr.T, (zern_num, 1, 1))
-            # temp_aberr = np.moveaxis(temp_aberr, 0, -1)
+            temp_aberr = np.reshape(temp_aberr.T, (zern_num, 1, 1))
+            temp_aberr = np.moveaxis(temp_aberr, 0, -1)
 
             # Add coordinate layer to back of dataset
             temp_data_coord = np.dstack((temp_data, coord_xx))
