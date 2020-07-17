@@ -9,7 +9,6 @@ pytest
 pytest-qt
 pyyaml
 Click
-random
 scipy
 h5py
-skimage
+scikit-image
