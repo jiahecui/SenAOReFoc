@@ -145,7 +145,7 @@ def get_mat_dset(settings, flag = 1):
         pupil_diam = config['search_block']['pupil_diam_1']
     
     # Interpolate to suitable size
-    data = np.array(data[230,...]) * config['AO']['lambda'] / (2 * np.pi)  
+    data = np.array(data[130,...]) * config['AO']['lambda'] / (2 * np.pi)  
     mag_fac = pupil_diam / 7.216 * 4
     data_interp = sp.ndimage.zoom(data, mag_fac).T 
     

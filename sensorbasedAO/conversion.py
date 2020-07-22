@@ -94,6 +94,8 @@ class Conversion(QObject):
                     self.norm_ref_cent_coord_y = (self.act_ref_cent_coord_y - (self.sensor_width // 2 - self.SB_rad)) * self.rescale
  
                 # Take account of odd number of relays and mirrors between DM and lenslet
+                # If an odd no of lens relays the y slopes will have the wrong sign, otherwise the x slopes will be the wrong sign?
+                # If an odd no of mirrors the x slopes will have the wrong sign in the case of odd lens relays, but the right sign for even relays?
                 if config['relay']['mirror_odd']:
                     self.norm_ref_cent_coord_x = -self.norm_ref_cent_coord_x
 

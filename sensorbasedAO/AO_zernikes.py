@@ -330,7 +330,7 @@ class AO_Zernikes(QObject):
                             dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                        if strehl >= config['AO']['tolerance_fact_strehl'] or rms_zern <= config['AO']['tolerance_fact_zern']:
+                        if strehl_2 >= config['AO']['tolerance_fact_strehl'] or rms_zern <= config['AO']['tolerance_fact_zern']:
                             break                 
 
                     except Exception as e:
@@ -604,7 +604,7 @@ class AO_Zernikes(QObject):
                             dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                        if strehl >= config['AO']['tolerance_fact_strehl'] or rms_zern <= config['AO']['tolerance_fact_zern']:
+                        if strehl_2 >= config['AO']['tolerance_fact_strehl'] or rms_zern <= config['AO']['tolerance_fact_zern']:
                             break                 
 
                     except Exception as e:

@@ -53,15 +53,15 @@ relay:
   relay_odd: 0  # Flag for whether there is an odd number of relays in between DM and lenslet
 
 lenslet:
-  lenslet_pitch: 500  # um  500  400
-  lenslet_focal_length: 10000  # um  15300 
+  lenslet_pitch: 300  # um  500 300
+  lenslet_focal_length: 18800  # um  32800 15300 10000 8700
 
 search_block:
   div_elem: 5  # Number of elements in each dimension of a search block
   filter_thres: 15  # Cutoff value for low pass filter within each search block after Fourier transform
   sharp_thres: 0.002  # Minimum sharpness threshold within search block below which S-H spot will be considered as obscured
   outline_int: 255  # uint8
-  pupil_diam_0: 7.216  # mm  # Alpao 7.216
+  pupil_diam_0: 4.5  # mm  # Alpao 7.216 / 4.5 / 2.2
   pupil_diam_1: 10.1  # mm  # Boston 10.1 (500)
 
 image:
@@ -76,20 +76,20 @@ image:
 AO:
   recon_coeff_num: 80  # 80
   control_coeff_num: 46  # Alpao 46  # Boston 55  # 3rd - 14, 4th - 20, 5th - 27, 6th - 35, 7th - 44, 8th - 54, 9th - 65, 10th - 77
-  loop_gain: 0.7  # Fixed loop gain for closed-loop control, 0.6
-  loop_max: 1  # Maximum number of loops for closed-loop control
+  loop_gain: 0.4  # Fixed loop gain for closed-loop control, 0.6
+  loop_max: 10  # Maximum number of loops for closed-loop control
   suppress_gain: 1000  # Gain factor used to suppress certain zernike modes
-  lambda: 0.63  # um
-  tolerance_fact_zern: 0  # RMS error tolerance factor via zernikes, 0.045 = lambda / 14
-  tolerance_fact_strehl: 1  # Strehl ratio tolerance factor according to Marechel criteria, 0.81
+  lambda: 0.63  # um 0.63
+  tolerance_fact_zern: 0.045  # RMS error tolerance factor via zernikes, 0.045 = lambda / 14
+  tolerance_fact_strehl: 0.81  # Strehl ratio tolerance factor according to Marechel criteria, 0.81
 
 zern_test:
   zern_test_mode: 2  # Flag for the mode that Zernike Test button runs in, explanations in app.py
   zern_amp: 0.05  # Amplitude of all zernike modes for comparison
   tilt_amp: 1.5  # Maximum amount of tilt for scanning across synthetic image 2.7
   tip_amp: 1.5  # Maximum amount of tip for scanning across synthetic image 2.7
-  scan_num_x: 19  # Number of scan points along x direction
-  scan_num_y: 19  # Number of scan points along y direction
+  scan_num_x: 20  # Number of scan points along x direction
+  scan_num_y: 20  # Number of scan points along y direction
 
 reflect_prof:
   samp_num: 33  # Flag for choosing the working sample
@@ -127,7 +127,7 @@ ML:
   obj_grid_size: 128  # Size of object space grid
 
 dummy: 1  # Flag for whether to run in dummy mode, 0-real mode, 1-dummy mode
-real_phase: 0  # Flag for whether to use real phase data, 0-zernike phase, 1-real phase
-real_zernike: 0  # Flag for whether to generate real zernike modes using DM control matrix, 0-ideal zernike, 1-real zernike
-reflect_on: 1  # Flag for whether to incorporate sample reflectance process
+real_phase: 1  # Flag for whether to use real phase data, 0-zernike phase, 1-real phase
+real_zernike: 1  # Flag for whether to generate real zernike modes using DM control matrix, 0-ideal zernike, 1-real zernike
+reflect_on: 0  # Flag for whether to incorporate sample reflectance process
 noise_on: 0  # Flag for whether to add noise to synthetic images
