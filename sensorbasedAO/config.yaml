@@ -34,7 +34,7 @@ DM:
   vol_max: 1
   vol_bias: 0
   vol_step: 1
-  settling_time: 0.05
+  settling_time: 0.1
 
 DM0: 
   actuator_num: 69  # Alpao
