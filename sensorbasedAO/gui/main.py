@@ -206,7 +206,7 @@ class Main(QMainWindow):
         if not btn.isChecked():
             btn.setChecked(False)
         else:
-            if not self.ui.ZernikeArrEdt.text() is '':
+            if self.ui.ZernikeArrEdt.text() != '':
                 try:
                     zernike_array = self.ui.ZernikeArrEdt.text()
                     zernike_array = [float(i) for i in zernike_array.split(' ')]

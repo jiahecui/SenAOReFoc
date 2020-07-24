@@ -12,3 +12,4 @@ Click
 scipy
 h5py
 scikit-image
+Cython
