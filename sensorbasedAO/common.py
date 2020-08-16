@@ -194,6 +194,30 @@ def fft_spot_from_phase(settings, phase):
         # print('Max and min value of S-H spot {} are: {} and {}'.format(i + 1, spot_crop.max(), spot_crop.min()))
         # print('Slope values of S-H spot {} are: {} and {}'.format(i + 1, slope_x[i], slope_y[i]))
 
+    # Calculate the average slope value in both directions to form offset values
+    offset_x = int(np.mean(slope_x))
+    offset_y = int(np.mean(slope_y))
+    # print(np.mean(slope_x), np.mean(slope_y))
+
+    # Round the offset values to the nearest integer
+    if np.abs(np.mean(slope_x) - offset_x) > 0.5:
+        offset_x -= 1
+
+    if np.abs(np.mean(slope_y) - offset_y) > 0.5:
+        offset_y -= 1
+
+    # Roll the S-H spot image towards the direction opposed to the offset direction
+    SH_spot_img = np.roll(SH_spot_img, -offset_x, axis = 1)
+    SH_spot_img = np.roll(SH_spot_img, -offset_y, axis = 0)
+    
+    # Subtract the average slope values and spot centres in each direction
+    slope_x -= offset_x
+    slope_y -= offset_y
+    spot_cent_x -= offset_x
+    spot_cent_y -= offset_y
+
+    # print('Slope values of S-H spots are: {} and {}'.format(slope_x, slope_y))
+
     # print('Average slope_x and slope_y are: {} and {}'.format(np.mean(slope_x), np.mean(slope_y)))
 
     return SH_spot_img, spot_cent_x, spot_cent_y

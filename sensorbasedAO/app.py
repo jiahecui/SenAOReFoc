@@ -11,8 +11,8 @@ import numpy as np
 
 from datetime import datetime
 
-from alpao.Lib64 import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
-from devwraps.ueye import uEye
+from alpao.Lib import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
+# from devwraps.ueye import uEye
 from ximea import xiapi
 
 import log
@@ -99,14 +99,14 @@ class App(QApplication):
         self.devices['sensor'] = sensor
         
         # Add deformable mirror
-        # try:
-        #     mirror = MIRROR.get(config['DM']['SN'])
-        #     print('Mirror load success.')
-        # except Exception as e:
-        #     logger.warning('Mirror load error', e)
-        #     mirror = None
+        try:
+            mirror = MIRROR.get(config['DM']['SN'])
+            print('Mirror load success.')
+        except Exception as e:
+            logger.warning('Mirror load error', e)
+            mirror = None
 
-        # self.devices['mirror'] = mirror
+        self.devices['mirror'] = mirror
 
     def setup_SB(self):
         """

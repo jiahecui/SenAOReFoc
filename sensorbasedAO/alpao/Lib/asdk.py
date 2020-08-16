@@ -130,7 +130,6 @@ class DM(object):
         r"""
         Set(DM self, acs::CStrConst command, acs::Scalar value)
         Set(DM self, acs::CStrConst command, acs::Int value)
-        Set(DM self, acs::CStrConst command, acs::Scalar const * vector, acs::Int size)
         Set(DM self, acs::CStrConst command, acs::CStrConst str)
         """
         return _asdk.DM_Set(self, *args)

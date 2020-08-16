@@ -53,7 +53,7 @@ class ML_Dataset_Gen(QObject):
         self.conv_matrix = self.mirror_settings['conv_matrix']
 
         # Set folder flag
-        self.folder_flag = 13
+        self.folder_flag = 22
 
         # Generate boolean phase mask
         self.phase_rad = int(config['search_block']['pupil_diam_0'] * 1e3 / self.SB_settings['pixel_size']) // 2
@@ -61,6 +61,9 @@ class ML_Dataset_Gen(QObject):
             self.SB_settings['sensor_width']) for i in range(2))
         self.coord_xx, self.coord_yy = np.meshgrid(self.coord_x, self.coord_y)
         self.phase_mask = np.sqrt(self.coord_xx ** 2 + self.coord_yy ** 2) < self.phase_rad
+
+        # Generate sample phase component
+        self.samp_phase = np.exp(-2 * np.pi * 1j / config['AO']['lambda'] * config['ML']['OPL'])
 
         super().__init__()
 
@@ -95,69 +98,70 @@ class ML_Dataset_Gen(QObject):
         #         aberr_matrix[2 * (a - 3) + 1, a] = config['ML']['zern_amp_' + str(a + 1)] / 2
 
         # Generate zernike coefficients within range
-        try:
-            for a in range(config['ML']['zern_num']):
-                if a in [0,1,3]:
-                    pass
-                elif a == 2:
-                    aberr_matrix[0:2, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 2)
-                elif a == 4:
-                    aberr_matrix[2:5, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 3)
-                elif a == 5:
-                    aberr_matrix[5:8, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 3)
-                elif a == 6:
-                    aberr_matrix[8:12, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 4)
-                elif a == 7:
-                    aberr_matrix[12:21, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 9)
-                elif a == 8:
-                    aberr_matrix[21:29, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 8)
-                elif a == 9:
-                    aberr_matrix[29:33, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 4)
-                elif a == 10:
-                    aberr_matrix[33:35, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 2)
-                elif a == 11:
-                    aberr_matrix[35:41, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 6)
-                elif a == 12:
-                    aberr_matrix[41:43, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 2)
-                elif a == 13:
-                    aberr_matrix[43:49, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 6)
-                elif a == 14:
-                    aberr_matrix[49:51, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 2)
-                elif a == 15:
-                    aberr_matrix[51:53, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 2)
-                elif a == 16:
-                    aberr_matrix[53:55, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 2)
-                elif a == 17:
-                    aberr_matrix[55:61, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 6)
-                elif a == 18:
-                    aberr_matrix[61:67, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 6)
-                elif a == 19:
-                    aberr_matrix[67:71, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 4)
-        except Exception as e:
-            print(e)
+        # try:
+        #     for a in range(config['ML']['zern_num']):
+        #         if a in [0,1,3]:
+        #             pass
+        #         elif a == 2:
+        #             aberr_matrix[0:2, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 2)
+        #         elif a == 4:
+        #             aberr_matrix[2:5, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 3)
+        #         elif a == 5:
+        #             aberr_matrix[5:8, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 3)
+        #         elif a == 6:
+        #             aberr_matrix[8:12, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 4)
+        #         elif a == 7:
+        #             aberr_matrix[12:21, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 9)
+        #         elif a == 8:
+        #             aberr_matrix[21:29, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 8)
+        #         elif a == 9:
+        #             aberr_matrix[29:33, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 4)
+        #         elif a == 10:
+        #             aberr_matrix[33:35, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 2)
+        #         elif a == 11:
+        #             aberr_matrix[35:41, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 6)
+        #         elif a == 12:
+        #             aberr_matrix[41:43, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 2)
+        #         elif a == 13:
+        #             aberr_matrix[43:49, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 6)
+        #         elif a == 14:
+        #             aberr_matrix[49:51, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 2)
+        #         elif a == 15:
+        #             aberr_matrix[51:53, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 2)
+        #         elif a == 16:
+        #             aberr_matrix[53:55, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 2)
+        #         elif a == 17:
+        #             aberr_matrix[55:61, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 6)
+        #         elif a == 18:
+        #             aberr_matrix[61:67, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 6)
+        #         elif a == 19:
+        #             aberr_matrix[67:71, a] = np.linspace(-config['ML']['zern_amp_' + str(a + 1)], config['ML']['zern_amp_' + str(a + 1)], 4)
+        # except Exception as e:
+        #     print(e)
 
         # Generate zernike coefficients within range
-        # for a in range(config['ML']['aberr_num']):
-        #     if a == 0:
-        #         aberr_matrix[a, a + 2] = 0.05
-        #     elif a == 1:
-        #         aberr_matrix[a, a + 3] = 0.2
-        #     elif a == 2:
-        #         aberr_matrix[a, a + 3] = 0.2
-        #     elif a == 3:
-        #         aberr_matrix[a, a + 3] = 0.1
-        #     elif a == 4:
-        #         aberr_matrix[a, a + 3] = 0.5
-        #     elif a == 5:
-        #         aberr_matrix[a, a + 3] = 0.4
-        #     elif a == 6:
-        #         aberr_matrix[a, a + 3] = 0.1
-        #     elif a == 7:
-        #         aberr_matrix[a, a + 3] = 0.05
-        #     elif a == 8:
-        #         aberr_matrix[a, a + 3] = 0.05
-        #     elif a == 9:
-        #         aberr_matrix[a, a + 3] = 0.1
+        for a in range(config['ML']['aberr_num']):
+            aberr_matrix[a, a + 2] = 0.1  # 0.05
+            # if a == 0:
+            #     aberr_matrix[a, a + 2] = 0.1  # 0.05
+            # elif a == 1:
+            #     aberr_matrix[a, a + 1] = 0.3  # 0.2
+            # elif a == 2:
+            #     aberr_matrix[a, a + 3] = 0.1
+            # elif a == 3:
+            #     aberr_matrix[a, a + 2] = 0.3
+            # elif a == 4:
+            #     aberr_matrix[a, a + 5] = 0.1
+            # elif a == 5:
+            #     aberr_matrix[a, a + 4] = 0.3
+            # elif a == 6:
+            #     aberr_matrix[a, a + 3] = 0.1
+            # elif a == 7:
+            #     aberr_matrix[a, a + 2] = 0.3
+            # elif a == 8:
+            #     aberr_matrix[a, a + 1] = 0.5
+            # elif a == 9:
+            #     aberr_matrix[a, a + 3] = 0.1
         
         return aberr_matrix
 
@@ -195,6 +199,7 @@ class ML_Dataset_Gen(QObject):
 
         # Normalise amplitude PSF
         self.amp_PSF = self.amp_PSF / np.amax(self.amp_PSF)
+        # print(np.where(self.amp_PSF == np.amax(self.amp_PSF)))
 
         # Crop amplitude PSF to convolve with sample reflectance profile
         start_1 = (np.shape(self.amp_PSF)[0] - config['ML']['obj_grid_size']) // 2
@@ -316,17 +321,25 @@ class ML_Dataset_Gen(QObject):
             # Scan each sample with a given amount of aberration combination
             for i in range(config['ML']['samp_num']):
 
+                # Generate and save aberration matrix
                 self.aberr_matrix = self.aberr_gen()
 
                 if i == 0:
                     sp.io.savemat('data/ML_dataset/test/test' + str(self.folder_flag) + '/aberr_matrix.mat', dict(aberr_matrix = self.aberr_matrix))
 
+                # Load sample profile from file and add phase component
                 self.samp_prof = h5py.File('sensorbasedAO/sample_ML/test' + str(self.folder_flag) + '/sample' + str(i) + '.mat','r').get('temp_image')
+                self.samp_prof = np.asarray(self.samp_prof).astype('complex128')
+                self.samp_prof[self.samp_prof == 1.0] = self.samp_phase
+
+                # sp.io.savemat('data/ML_dataset/test/test' + str(self.folder_flag) + '/complex_samp.mat', dict(complex_samp = self.samp_prof))      
 
                 for j in range(config['ML']['aberr_num']):
 
+                    # Initialise matrix to store detected aberrations during the scan process 
                     self.scan_aberr_det = np.zeros([config['ML']['scan_num_x'] * config['ML']['scan_num_y'], config['ML']['zern_num']])
 
+                    # Select the set of Zernike coefficients to apply to the present scan process
                     self.zern_coeff = self.aberr_matrix[j,:]
                     # self.zern_coeff = np.zeros(config['ML']['zern_num'])
                     # self.zern_coeff[2] = 0.01
