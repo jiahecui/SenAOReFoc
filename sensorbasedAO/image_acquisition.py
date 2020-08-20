@@ -12,21 +12,22 @@ from sensor import SENSOR
 
 logger = log.get_logger(__name__)
 
-def acq_image(sensor, width, height, acq_mode = 0):
+def acq_image(sensor, height, width, acq_mode = 0):
     """
     Acquires single image or image data list according to acq_mode, 0 for single image, 1 for a sequence of images
     """
     # Create instance of dataimage array and data list to store image data
+    dataimage = np.zeros((config['camera']['sensor_height'], config['camera']['sensor_width']))
     data = []
 
     # Create instance of Ximea Image to store image data and metadata
     img = xiapi.Image()
-    dataimage = np.zeros((2048,2048))
 
     # Start data acquisition for each frame
     sensor.start_acquisition()
     
     if acq_mode == 0:
+
         # Acquire one image
         try:           
             # Get data and pass them from camera to img
@@ -34,10 +35,15 @@ def acq_image(sensor, width, height, acq_mode = 0):
 
             # Create numpy array with data from camera, dimensions are determined by imgdataformats
             dataimage = img.get_image_data_numpy()
+
+            # Bin numpy arrays by cropping central region of sensor to fit on viewer
+            start_1 = (np.shape(dataimage)[0] - height) // 2
+            start_2 = (np.shape(dataimage)[1] - width) // 2
+            dataimage = dataimage[start_1 : start_1 + height, start_2 : start_2 + width]
             
-            # Bin numpy arrays by averaging pixels to fit on viewer
-            shape = (width, dataimage.shape[0] // width, height, dataimage.shape[1] // height)
-            dataimage = dataimage.reshape(shape).mean(-1).mean(1)
+            # # Bin numpy arrays by averaging pixels to fit on viewer
+            # shape = (width, dataimage.shape[0] // width, height, dataimage.shape[1] // height)
+            # dataimage = dataimage.reshape(shape).mean(-1).mean(1)
 
         except xiapi.Xi_error as err:
             if err.status == 10:
@@ -46,6 +52,7 @@ def acq_image(sensor, width, height, acq_mode = 0):
                 raise
 
     elif acq_mode == 1:
+
         # Acquire a sequence of images and append to data list
         for i in range(config['camera']['frame_ave_num']):
 
@@ -61,9 +68,14 @@ def acq_image(sensor, width, height, acq_mode = 0):
                 # Create numpy array with data from camera, dimensions are determined by imgdataformats
                 dataimage = img.get_image_data_numpy()
 
-                # Bin numpy arrays by averaging pixels to fit on S-H viewer
-                shape = (width, dataimage.shape[0] // width, height, dataimage.shape[1] // height)
-                dataimage = dataimage.reshape(shape).mean(-1).mean(1)
+                # Bin numpy arrays by cropping central region of sensor to fit on viewer
+                start_1 = (np.shape(dataimage)[0] - height) // 2
+                start_2 = (np.shape(dataimage)[1] - width) // 2
+                dataimage = dataimage[start_1 : start_1 + height, start_2 : start_2 + width]
+
+                # # Bin numpy arrays by averaging pixels to fit on S-H viewer
+                # shape = (width, dataimage.shape[0] // width, height, dataimage.shape[1] // height)
+                # dataimage = dataimage.reshape(shape).mean(-1).mean(1)
 
                 # Append dataimage to data list
                 data.append(dataimage)

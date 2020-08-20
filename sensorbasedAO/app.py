@@ -89,8 +89,8 @@ class App(QApplication):
         else:
             try:
                 sensor = SENSOR.get(config['camera']['SN'])
-                # sensor.open(config['camera']['SN'])
-                # sensor.open_device_by_SN(config['camera']['SN'])
+                sensor.open(config['camera']['SN'])
+                sensor.open_device_by_SN(config['camera']['SN'])
                 print('Sensor load success.')
             except Exception as e:
                 logger.warning('Sensor load error', e)
@@ -99,12 +99,15 @@ class App(QApplication):
         self.devices['sensor'] = sensor
         
         # Add deformable mirror
-        try:
-            mirror = MIRROR.get(config['DM']['SN'])
-            print('Mirror load success.')
-        except Exception as e:
-            logger.warning('Mirror load error', e)
-            mirror = None
+        if config['dummy']:
+            mirror = MIRROR.get('debug')
+        else:
+            try:
+                mirror = MIRROR.get(config['DM']['SN'])
+                print('Mirror load success.')
+            except Exception as e:
+                logger.warning('Mirror load error', e)
+                mirror = None
 
         self.devices['mirror'] = mirror
 
@@ -753,17 +756,17 @@ class App(QApplication):
             self.threads[thread].wait()
 
         # Stop and reset mirror instance
-        # try:
-        #    self.devices['mirror'].Stop()
-        #    self.devices['mirror'].Reset()
-        # except Exception as e:
-        #     logger.warning("Error on mirror stop: {}".format(e))
+        try:
+           self.devices['mirror'].Stop()
+           self.devices['mirror'].Reset()
+        except Exception as e:
+            logger.warning("Error on mirror stop: {}".format(e))
 
-        # # Stop sensor instance
-        # try:
-        #     self.devices['sensor'].stop_acquisition()
-        # except Exception as e:
-        #     logger.warning("Error on sensor stop: {}".format(e))
+        # Stop sensor instance
+        try:
+            self.devices['sensor'].stop_acquisition()
+        except Exception as e:
+            logger.warning("Error on sensor stop: {}".format(e))
 
     def quit(self):
         """ 
@@ -788,8 +791,8 @@ class App(QApplication):
 
         # Stop and close sensor instance
         try:
-            # self.devices['sensor'].stop_acquisition()
-            # self.devices['sensor'].close_device()
+            self.devices['sensor'].stop_acquisition()
+            self.devices['sensor'].close_device()
             self.devices['sensor'].close()
         except Exception as e:
             logger.warning("Error on sensor quit: {}".format(e))

@@ -152,16 +152,20 @@ class Calibration(QObject):
                 self.elem_size = self.SB_settings['SB_diam'] / config['search_block']['div_elem']
 
                 # Get reference centroid coordinates with pupil centre as zero coordinate
-                if (self.SB_settings['SB_across_width'] % 2 == 0 and self.SB_settings['sensor_width'] % 2 == 0) or \
-                    (self.SB_settings['SB_across_width'] % 2 == 1 and self.SB_settings['sensor_width'] % 2 == 1):
+                self.centred_ref_cent_coord_x = self.SB_settings['act_ref_cent_coord_x'] - self.SB_settings['sensor_width'] // 2
+                self.centred_ref_cent_coord_y = self.SB_settings['act_ref_cent_coord_y'] - self.SB_settings['sensor_height'] // 2
 
-                    self.centred_ref_cent_coord_x = self.SB_settings['act_ref_cent_coord_x'] - self.SB_settings['sensor_width'] // 2
-                    self.centred_ref_cent_coord_y = self.SB_settings['act_ref_cent_coord_y'] - self.SB_settings['sensor_width'] // 2
+                # # Get reference centroid coordinates with pupil centre as zero coordinate
+                # if (self.SB_settings['SB_across_width'] % 2 == 0 and self.SB_settings['sensor_width'] % 2 == 0) or \
+                #     (self.SB_settings['SB_across_width'] % 2 == 1 and self.SB_settings['sensor_width'] % 2 == 1):
 
-                else:
+                #     self.centred_ref_cent_coord_x = self.SB_settings['act_ref_cent_coord_x'] - self.SB_settings['sensor_width'] // 2
+                #     self.centred_ref_cent_coord_y = self.SB_settings['act_ref_cent_coord_y'] - self.SB_settings['sensor_width'] // 2
 
-                    self.centred_ref_cent_coord_x = self.SB_settings['act_ref_cent_coord_x'] - (self.SB_settings['sensor_width'] // 2 - self.SB_settings['SB_rad'])
-                    self.centred_ref_cent_coord_y = self.SB_settings['act_ref_cent_coord_y'] - (self.SB_settings['sensor_width'] // 2 - self.SB_settings['SB_rad'])
+                # else:
+
+                #     self.centred_ref_cent_coord_x = self.SB_settings['act_ref_cent_coord_x'] - (self.SB_settings['sensor_width'] // 2 - self.SB_settings['SB_rad'])
+                #     self.centred_ref_cent_coord_y = self.SB_settings['act_ref_cent_coord_y'] - (self.SB_settings['sensor_width'] // 2 - self.SB_settings['SB_rad'])
 
                 # Start calibrating DM by calculating averaged derivatives of Gaussian distribution actuator influence function
                 if self.calibrate:
@@ -246,7 +250,7 @@ class Calibration(QObject):
                     if self.calibrate:                    
 
                         try:
-                            # print('On actuator', i + 1)
+                            print('On actuator', i + 1)
 
                             # Apply highest voltage
                             voltages[i] = config['DM']['vol_max']
@@ -258,7 +262,7 @@ class Calibration(QObject):
                             time.sleep(config['DM']['settling_time'])
                             
                             # Acquire S-H spot image and display
-                            image_max = acq_image(self.sensor, self.SB_settings['sensor_width'], self.SB_settings['sensor_height'], acq_mode = 0)
+                            image_max = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
 
                             # Image thresholding to remove background
                             image_max = image_max - config['image']['threshold'] * np.amax(image_max)
@@ -278,7 +282,7 @@ class Calibration(QObject):
                             time.sleep(config['DM']['settling_time'])
 
                             # Acquire S-H spot image and display
-                            image_min = acq_image(self.sensor, self.SB_settings['sensor_width'], self.SB_settings['sensor_height'], acq_mode = 0)
+                            image_min = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
 
                             # Image thresholding to remove background
                             image_min = image_min - config['image']['threshold'] * np.amax(image_min)
@@ -301,7 +305,7 @@ class Calibration(QObject):
                 data_file.close()
 
                 prev2 = time.perf_counter()
-                # print('Time for calibration image acquisition process is:', (prev2 - prev1))
+                print('Time for calibration image acquisition process is:', (prev2 - prev1))
 
                 # Reset mirror
                 self.mirror.Reset()

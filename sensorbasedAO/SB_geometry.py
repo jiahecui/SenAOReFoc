@@ -32,7 +32,7 @@ class Setup_SB(QObject):
         self.lenslet_pitch = config['lenslet']['lenslet_pitch']
 
         # Get search block layer parameters
-        self.pixel_size = config['camera']['pixel_size'] * config['camera']['bin_factor']
+        self.pixel_size = config['camera']['pixel_size']
         self.sensor_width = int(config['camera']['sensor_width'] // config['camera']['bin_factor'])
         self.sensor_height = int(config['camera']['sensor_height'] // config['camera']['bin_factor'])
 
@@ -50,7 +50,7 @@ class Setup_SB(QObject):
         self.SB_info = {}
 
         # Initialise search block layer
-        self.SB_layer_2D = np.zeros([self.sensor_width, self.sensor_height], dtype='uint8')
+        self.SB_layer_2D = np.zeros([self.sensor_height, self.sensor_width], dtype = 'uint8')
 
         super().__init__()
 
@@ -121,7 +121,6 @@ class Setup_SB(QObject):
             if self.register:
 
                 self.layer.emit(self.SB_layer_2D)
-                time.sleep(1)
             else:
 
                 self.done.emit()
@@ -130,7 +129,7 @@ class Setup_SB(QObject):
             Calculates search block geometry from given number of spots across diameter
             """
             # Clear search block layer
-            self.SB_layer_2D = np.zeros([self.sensor_width, self.sensor_height], dtype='uint8')
+            self.SB_layer_2D = np.zeros([self.sensor_height, self.sensor_width], dtype = 'uint8')
 
             # Initialise list of 1D and 2D coords of reference centroids within pupil diameter
             self.act_ref_cent_coord, self.act_ref_cent_coord_x, self.act_ref_cent_coord_y = ([] for i in range(3))
@@ -138,9 +137,9 @@ class Setup_SB(QObject):
             # Get number of spots within pupil diameter
             self.spots_across_diam = self.pupil_diam // self.lenslet_pitch
 
-            # Get actual serach block reference centroids within pupil diameter
-            if (self.spots_across_diam % 2 == 0 and self.sensor_width % 2 == 0) or \
-                (self.spots_across_diam % 2 == 1 and self.sensor_width % 2 == 1):
+            # Get actual search block reference centroids within pupil diameter
+            if (self.spots_across_diam % 2 == 0 and self.SB_across_width % 2 == 0) or \
+                (self.spots_across_diam % 2 == 1 and self.SB_across_width % 2 == 1):
 
                 for j in self.ref_cent_y:
                     for i in self.ref_cent_x:
@@ -164,11 +163,45 @@ class Setup_SB(QObject):
                 map(np.array, (self.act_ref_cent_coord, self.act_ref_cent_coord_x, self.act_ref_cent_coord_y))
             self.act_ref_cent_num = len(self.act_ref_cent_coord)
 
-            # If odd number of spots across diameter, shift to centre
-            if self.spots_across_diam % 2 == 1:
+            # Shift search blocks to the centre if the number of spots across diameter and the number of search blocks across sensor width 
+            # aren't both odd or both even
+            if (self.spots_across_diam % 2 == 0 and self.SB_across_width % 2 == 1) or \
+                (self.spots_across_diam % 2 == 1 and self.SB_across_width % 2 == 0):
                 self.act_ref_cent_coord_x += int(self.SB_rad)
                 self.act_ref_cent_coord_y += int(self.SB_rad)
-                self.act_ref_cent_coord += int(self.SB_rad) + self.sensor_width + int(self.SB_rad)
+                self.act_ref_cent_coord += int(self.SB_rad) * self.sensor_width + int(self.SB_rad)
+
+            # # Get actual search block reference centroids within pupil diameter
+            # if (self.spots_across_diam % 2 == 0 and self.sensor_width % 2 == 0) or \
+            #     (self.spots_across_diam % 2 == 1 and self.sensor_width % 2 == 1):
+
+            #     for j in self.ref_cent_y:
+            #         for i in self.ref_cent_x:
+            #             if ((np.sqrt(((abs((i - self.sensor_width // 2)) + self.SB_rad) * self.pixel_size) ** 2 + \
+            #                 ((abs((j - self.sensor_height // 2)) + self.SB_rad) * self.pixel_size) ** 2)) <= self.pupil_rad):
+            #                 self.act_ref_cent_coord.append(int(j) * self.sensor_width + int(i))
+            #                 self.act_ref_cent_coord_x.append(i)
+            #                 self.act_ref_cent_coord_y.append(j)
+
+            # else:
+
+            #     for j in self.ref_cent_y:
+            #         for i in self.ref_cent_x:
+            #             if ((np.sqrt(((abs((i - (self.sensor_width // 2 - self.SB_rad))) + self.SB_rad) * self.pixel_size) ** 2 + \
+            #                 ((abs((j - (self.sensor_height // 2 - self.SB_rad))) + self.SB_rad) * self.pixel_size) ** 2)) <= self.pupil_rad):
+            #                 self.act_ref_cent_coord.append(int(j) * self.sensor_width + int(i))
+            #                 self.act_ref_cent_coord_x.append(i)
+            #                 self.act_ref_cent_coord_y.append(j)
+
+            # (self.act_ref_cent_coord, self.act_ref_cent_coord_x, self.act_ref_cent_coord_y) = \
+            #     map(np.array, (self.act_ref_cent_coord, self.act_ref_cent_coord_x, self.act_ref_cent_coord_y))
+            # self.act_ref_cent_num = len(self.act_ref_cent_coord)
+
+            # # If odd number of spots across diameter, shift to centre
+            # if self.spots_across_diam % 2 == 1:
+            #     self.act_ref_cent_coord_x += int(self.SB_rad)
+            #     self.act_ref_cent_coord_y += int(self.SB_rad)
+            #     self.act_ref_cent_coord += int(self.SB_rad) * self.sensor_width + int(self.SB_rad)
 
             print("Number of search blocks within pupil is: {}".format(self.act_ref_cent_num))
         
@@ -208,9 +241,9 @@ class Setup_SB(QObject):
                         int(self.act_ref_cent_coord_x[i] + self.SB_rad)] = self.outline_int
 
             # Draw pupil circle on search block layer
-            plot_point_num = int(self.pupil_rad * 2 // self.pixel_size * 10)
+            plot_point_num = int(self.pupil_diam // self.pixel_size * 10)
 
-            theta = np.linspace(0, 2 * math.pi, plot_point_num)
+            theta = np.linspace(0, 2 * np.pi, plot_point_num)
             rho = self.pupil_rad // self.pixel_size
 
             x = (rho * np.cos(theta) + self.sensor_width // 2).astype(int)
@@ -223,7 +256,6 @@ class Setup_SB(QObject):
 
                 self.layer.emit(self.SB_layer_2D)
                 self.message.emit('Search block geometry initialised.')
-                time.sleep(1)
             else:
 
                 self.done.emit()

@@ -16,7 +16,7 @@ camera:
   exposure: 4000  # us
   auto_gain: 0  # Flag for whether to use automatic exposure / gain mode, 0-auto_gain off, 1-auto_gain on
   exp_priority: 0.8  # exposure n, gain (1 - n)
-  ae_max_limit: 500000  # maximum time (us) used for exposure in AEAG procedure
+  ae_max_limit: 100000  # maximum time (us) used for exposure in AEAG procedure
   burst_mode: 0  # Flag for whether to use burst mode, 0-burst_mode off, 1-burst_mode on 
   burst_frames: 10
   acq_timing_mode: "XI_ACQ_TIMING_MODE_FREE_RUN"
@@ -35,12 +35,12 @@ DM:
   vol_max: 1
   vol_bias: 0
   vol_step: 1
-  settling_time: 0.1
+  settling_time: 0.01
 
 DM0: 
   actuator_num: 69  # Alpao
   pitch: 1500  # um
-  aperture: 10.5  # um
+  aperture: 10.5  # mm
   coupling_fac: 0.3  # Inter-actuator coupling factor
 
 DM1:
@@ -54,16 +54,16 @@ relay:
   relay_odd: 0  # Flag for whether there is an odd number of relays in between DM and lenslet
 
 lenslet:
-  lenslet_pitch: 500  # um  500 300
-  lenslet_focal_length: 15300  # um  32800 15300 10000 8700
+  lenslet_pitch: 150  # um  500 300 150
+  lenslet_focal_length: 5200  # um  32800 15300 10000 8700 5200
 
 search_block:
   div_elem: 5  # Number of elements in each dimension of a search block
-  filter_thres: 15  # Cutoff value for low pass filter within each search block after Fourier transform
+  filter_thres: 10  # Cutoff value for low pass filter within each search block after Fourier transform
   sharp_thres: 0.002  # Minimum sharpness threshold within search block below which S-H spot will be considered as obscured
   outline_int: 255  # uint8
-  pupil_diam_0: 7.216  # mm  # Alpao 7.216 / 4.5 / 2.2
-  pupil_diam_1: 10.1  # mm  # Boston 10.1 (500)
+  pupil_diam_0: 2.2  # mm  # Alpao 7.216 (500) / 4.5 (300) / 2.2 (150)
+  pupil_diam_1: 10.1  # mm  # Boston 10.1 (500) / 6.3 (300) / 3.1 (150)
 
 image:
   noise: 0.1  # The uniform noise level for synthetic samples
@@ -80,7 +80,7 @@ AO:
   loop_gain: 0.4  # Fixed loop gain for closed-loop control, 0.6
   loop_max: 10  # Maximum number of loops for closed-loop control
   suppress_gain: 1000  # Gain factor used to suppress certain zernike modes
-  lambda: 0.63  # um 0.63
+  lambda: 0.83  # um 0.63 / 0.83
   tolerance_fact_zern: 0.045  # RMS error tolerance factor via zernikes, 0.045 = lambda / 14
   tolerance_fact_strehl: 0.81  # Strehl ratio tolerance factor according to Marechel criteria, 0.81
 
@@ -128,8 +128,8 @@ ML:
   scan_num_y: 1  # Number of scan points along y direction 20
   obj_grid_size: 128  # Size of object space grid
 
-dummy: 1  # Flag for whether to run in dummy mode, 0-real mode, 1-dummy mode
+dummy: 0  # Flag for whether to run in dummy mode, 0-real mode, 1-dummy mode
 real_phase: 0  # Flag for whether to use real phase data, 0-zernike phase, 1-real phase
 real_zernike: 0  # Flag for whether to generate real zernike modes using DM control matrix, 0-ideal zernike, 1-real zernike
-reflect_on: 1  # Flag for whether to incorporate sample reflectance process
+reflect_on: 0  # Flag for whether to incorporate sample reflectance process
 noise_on: 0  # Flag for whether to add noise to synthetic images

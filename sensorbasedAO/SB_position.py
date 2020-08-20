@@ -75,7 +75,7 @@ class Positioning(QObject):
             Acquires image and allows user to reposition search blocks by keyboard or HDF5 file
             """
             # Initialise search block layer and display initial search blocks
-            self.SB_layer_2D = np.zeros([self.sensor_width, self.sensor_height], dtype='uint8')
+            self.SB_layer_2D = np.zeros([self.sensor_height, self.sensor_width], dtype = 'uint8')
             self.SB_layer_2D_temp = self.SB_layer_2D.copy()
             self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
             self.layer.emit(self.SB_layer_2D_temp)
@@ -98,11 +98,11 @@ class Positioning(QObject):
                     # Option 2: Leave blank if generate real zernike phase profile using DM control matrix or ideal zernike phase profile
                     else:
 
-                        self._image = np.zeros([self.sensor_width, self.sensor_height])
+                        self._image = np.zeros([self.sensor_height, self.sensor_width], dtype = 'uint8')
                         self._image[0, 0] = self.outline_int
 
                         # Retrieve zernike phase map and S-H spot image
-                        # zern_array =  self.SB_settings['zernike_array_test']
+                        # zern_array = self.SB_settings['zernike_array_test']
 
                         # Generate ideal zernike phase profile
                         # phase = zern_phase(self.SB_settings, zern_array)
@@ -112,7 +112,7 @@ class Positioning(QObject):
 
                 else:
 
-                    self._image = acq_image(self.sensor, self.sensor_width, self.sensor_height, acq_mode = 0)               
+                    self._image = acq_image(self.sensor, self.sensor_height, self.sensor_width, acq_mode = 0)               
                             
                 # Image thresholding to remove background
                 self._image = self._image - config['image']['threshold'] * np.amax(self._image)
@@ -181,6 +181,7 @@ class Positioning(QObject):
                     self.layer.emit(self.SB_layer_2D_temp)
 
                     c = click.getchar()
+                    
             elif self.load:
 
                 # Load all search block and mirror info from HDF5 file into settings
