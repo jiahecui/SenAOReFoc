@@ -11,8 +11,8 @@ import numpy as np
 
 from datetime import datetime
 
-from alpao.Lib import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
-# from devwraps.ueye import uEye
+from alpao.Lib64 import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
+from devwraps.ueye import uEye
 from ximea import xiapi
 
 import log
@@ -89,7 +89,6 @@ class App(QApplication):
         else:
             try:
                 sensor = SENSOR.get(config['camera']['SN'])
-                sensor.open(config['camera']['SN'])
                 sensor.open_device_by_SN(config['camera']['SN'])
                 print('Sensor load success.')
             except Exception as e:
@@ -793,7 +792,6 @@ class App(QApplication):
         try:
             self.devices['sensor'].stop_acquisition()
             self.devices['sensor'].close_device()
-            self.devices['sensor'].close()
         except Exception as e:
             logger.warning("Error on sensor quit: {}".format(e))
 
