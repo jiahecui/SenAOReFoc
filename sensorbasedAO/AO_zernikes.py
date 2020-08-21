@@ -180,9 +180,9 @@ class AO_Zernikes(QObject):
                         
                         # Update mirror control voltages
                         if i == 0:
-                            voltages = config['DM']['vol_bias']
+                            voltages[:] = config['DM']['vol_bias']
                         else:
-                            voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
+                            voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
                                 zern_err[:config['AO']['control_coeff_num']]))
 
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
@@ -273,7 +273,7 @@ class AO_Zernikes(QObject):
                             time.sleep(config['DM']['settling_time'])
                         
                             # Acquire S-H spots using camera and append to list
-                            AO_image = acq_image(self.sensor, self.SB_settings['sensor_width'], self.SB_settings['sensor_height'], acq_mode = 0)
+                            AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
                             dset_append(data_set_1, 'real_AO_img', AO_image)
 
                         # Image thresholding to remove background
@@ -411,9 +411,9 @@ class AO_Zernikes(QObject):
 
                         # Update mirror control voltages
                         if i == 0:
-                            voltages = config['DM']['vol_bias']
+                            voltages[:] = config['DM']['vol_bias']
                         else:
-                            voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
+                            voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
                                 zern_err[:config['AO']['control_coeff_num']]))
 
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
@@ -503,7 +503,7 @@ class AO_Zernikes(QObject):
                             time.sleep(config['DM']['settling_time'])
                         
                             # Acquire S-H spots using camera and append to list
-                            AO_image = acq_image(self.sensor, self.SB_settings['sensor_width'], self.SB_settings['sensor_height'], acq_mode = 0)
+                            AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
                             dset_append(data_set_1, 'real_AO_img', AO_image)
 
                         # Image thresholding to remove background
@@ -701,9 +701,9 @@ class AO_Zernikes(QObject):
 
                             # Update mirror control voltages
                             if i == 0:
-                                voltages = config['DM']['vol_bias'] + voltages_defoc
+                                voltages[:] = config['DM']['vol_bias'] + voltages_defoc
                             else:
-                                voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
+                                voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
                                     zern_err_part[:config['AO']['control_coeff_num']])) 
 
                                 print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
@@ -806,7 +806,7 @@ class AO_Zernikes(QObject):
                                 time.sleep(config['DM']['settling_time'])
                             
                                 # Acquire S-H spots using camera and append to list
-                                AO_image = acq_image(self.sensor, self.SB_settings['sensor_width'], self.SB_settings['sensor_height'], acq_mode = 0)
+                                AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
                                 dset_append(data_set_1, 'real_AO_img', AO_image)
 
                             # Image thresholding to remove background
@@ -976,9 +976,9 @@ class AO_Zernikes(QObject):
 
                             # Update mirror control voltages
                             if i == 0:
-                                voltages = config['DM']['vol_bias'] + voltages_defoc
+                                voltages[:] = config['DM']['vol_bias'] + voltages_defoc
                             else:
-                                voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
+                                voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
                                     zern_err_part[:config['AO']['control_coeff_num']])) 
 
                                 print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
@@ -1081,7 +1081,7 @@ class AO_Zernikes(QObject):
                                 time.sleep(config['DM']['settling_time'])
                             
                                 # Acquire S-H spots using camera and append to list
-                                AO_image = acq_image(self.sensor, self.SB_settings['sensor_width'], self.SB_settings['sensor_height'], acq_mode = 0)
+                                AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
                                 dset_append(data_set_1, 'real_AO_img', AO_image)
 
                             # Image thresholding to remove background
