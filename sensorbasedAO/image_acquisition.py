@@ -17,7 +17,7 @@ def acq_image(sensor, height, width, acq_mode = 0):
     Acquires single image or image data list according to acq_mode, 0 for single image, 1 for a sequence of images
     """
     # Create instance of dataimage array and data list to store image data
-    dataimage = np.zeros((config['camera']['sensor_height'], config['camera']['sensor_width']))
+    dataimage = np.zeros([config['camera']['sensor_height'], config['camera']['sensor_width']])
     data = []
 
     # Create instance of Ximea Image to store image data and metadata
