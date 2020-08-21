@@ -40,10 +40,6 @@ def acq_image(sensor, height, width, acq_mode = 0):
             start_1 = (np.shape(dataimage)[0] - height) // 2
             start_2 = (np.shape(dataimage)[1] - width) // 2
             dataimage = dataimage[start_1 : start_1 + height, start_2 : start_2 + width]
-            
-            # # Bin numpy arrays by averaging pixels to fit on viewer
-            # shape = (width, dataimage.shape[0] // width, height, dataimage.shape[1] // height)
-            # dataimage = dataimage.reshape(shape).mean(-1).mean(1)
 
         except xiapi.Xi_error as err:
             if err.status == 10:
@@ -72,10 +68,6 @@ def acq_image(sensor, height, width, acq_mode = 0):
                 start_1 = (np.shape(dataimage)[0] - height) // 2
                 start_2 = (np.shape(dataimage)[1] - width) // 2
                 dataimage = dataimage[start_1 : start_1 + height, start_2 : start_2 + width]
-
-                # # Bin numpy arrays by averaging pixels to fit on S-H viewer
-                # shape = (width, dataimage.shape[0] // width, height, dataimage.shape[1] // height)
-                # dataimage = dataimage.reshape(shape).mean(-1).mean(1)
 
                 # Append dataimage to data list
                 data.append(dataimage)

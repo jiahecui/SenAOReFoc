@@ -10,11 +10,11 @@ fpga:
 camera:
   SN: "26883050"
   # SN: "4002885218"
-  dataformat: "XI_MONO16"
+  dataformat: "XI_MONO8"
   data_min: 0  # Minimum image output value
   data_max: 255  # Maximum image output value for dataformat 1023 for actual camera
-  exposure: 33  # us
-  auto_gain: 1  # Flag for whether to use automatic exposure / gain mode, 0-auto_gain off, 1-auto_gain on
+  exposure: 30  # us
+  auto_gain: 0  # Flag for whether to use automatic exposure / gain mode, 0-auto_gain off, 1-auto_gain on
   exp_priority: 0.8  # exposure n, gain (1 - n)
   ae_max_limit: 100000  # maximum time (us) used for exposure in AEAG procedure
   burst_mode: 0  # Flag for whether to use burst mode, 0-burst_mode off, 1-burst_mode on 
@@ -31,11 +31,11 @@ camera:
 DM:
   SN: "HSDM69-15-014" 
   DM_num: 0  # Flag for choosing the working DM, 0-Alpao, 1-Boston
-  vol_min: -0.05  # V
-  vol_max: 0.05
+  vol_min: -0.1  # V
+  vol_max: 0.1
   vol_bias: 0
   vol_step: 1
-  settling_time: 0.1
+  settling_time: 0.01
 
 DM0: 
   actuator_num: 69  # Alpao

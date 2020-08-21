@@ -424,7 +424,7 @@ class App(QApplication):
         """
         Handle display of S-H spot images
         """
-        self.main.update_image(obj, flag = 1)
+        self.main.update_image(obj, flag = 1, SB_settings = self.data_info['SB_info'])
 
     def handle_message_disp(self, obj):
         """"

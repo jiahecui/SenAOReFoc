@@ -100,7 +100,7 @@ class Main(QMainWindow):
 
         return focus_settings
 
-    def update_image(self, image, flag):
+    def update_image(self, image, flag, SB_settings = None):
         """
         Update image on S-H viewer
 
@@ -109,7 +109,7 @@ class Main(QMainWindow):
             flag = 0 for search block layer display
             flag = 1 for S-H spot image display
         """
-        self.ui.SHViewer.set_image(image, flag)       
+        self.ui.SHViewer.set_image(image, flag, SB_settings)       
 
     def update_message(self, text):
         """

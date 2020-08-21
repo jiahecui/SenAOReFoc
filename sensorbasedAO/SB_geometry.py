@@ -283,6 +283,7 @@ class Setup_SB(QObject):
                 self.SB_info['act_ref_cent_coord_x'] = self.act_ref_cent_coord_x  # float - actual reference centroid positions, not whole pixels
                 self.SB_info['act_ref_cent_coord_y'] = self.act_ref_cent_coord_y  # float - actual reference centroid positions, not whole pixels
                 self.SB_info['act_SB_coord'] = self.act_SB_coord  # int - for displaying
+                self.SB_info['act_SB_offset'] = 0  # int - for storing offset relative to centre of sensor
 
                 self.info.emit(self.SB_info)
             else:

@@ -7,7 +7,7 @@ import os
 import argparse
 import time
 import h5py
-import PIL.Image
+from PIL import Image
 import numpy as np
 
 import log

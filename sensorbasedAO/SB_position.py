@@ -7,7 +7,9 @@ import argparse
 import time
 import click
 import h5py
+from scipy import io
 import numpy as np
+import scipy as sp
 
 from ximea import xiapi
 
@@ -75,10 +77,9 @@ class Positioning(QObject):
             Acquires image and allows user to reposition search blocks by keyboard or HDF5 file
             """
             # Initialise search block layer and display initial search blocks
-            self.SB_layer_2D = np.zeros([self.sensor_height, self.sensor_width], dtype = 'uint8')
+            self.SB_layer_2D = np.zeros([self.sensor_height, self.sensor_width])
             self.SB_layer_2D_temp = self.SB_layer_2D.copy()
             self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
-            self.layer.emit(self.SB_layer_2D_temp)
 
             # Acquire phase profile and retrieve S-H spot image 
             if self.acquire:
@@ -98,7 +99,7 @@ class Positioning(QObject):
                     # Option 2: Leave blank if generate real zernike phase profile using DM control matrix or ideal zernike phase profile
                     else:
 
-                        self._image = np.zeros([self.sensor_height, self.sensor_width], dtype = 'uint8')
+                        self._image = np.zeros([self.sensor_height, self.sensor_width])
                         self._image[0, 0] = self.outline_int
 
                         # Retrieve zernike phase map and S-H spot image
@@ -117,7 +118,9 @@ class Positioning(QObject):
                 # Image thresholding to remove background
                 self._image = self._image - config['image']['threshold'] * np.amax(self._image)
                 self._image[self._image < 0] = 0
-                self.image.emit(self._image)
+                self.SB_layer_2D_temp += self._image
+
+                self.layer.emit(self.SB_layer_2D_temp)
 
             else:
 
@@ -178,6 +181,11 @@ class Positioning(QObject):
                     # Display actual search blocks as they move
                     self.SB_layer_2D_temp = self.SB_layer_2D.copy()
                     self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
+                    self._image = acq_image(self.sensor, self.sensor_height, self.sensor_width, acq_mode = 0)
+                    self._image = self._image - config['image']['threshold'] * np.amax(self._image)
+                    self._image[self._image < 0] = 0
+                    self.SB_layer_2D_temp += self._image
+
                     self.layer.emit(self.SB_layer_2D_temp)
 
                     c = click.getchar()
@@ -200,6 +208,11 @@ class Positioning(QObject):
                 # Display original search block positions from previous calibration
                 self.SB_layer_2D_temp = self.SB_layer_2D.copy()
                 self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
+                self._image = acq_image(self.sensor, self.sensor_height, self.sensor_width, acq_mode = 0)
+                self._image = self._image - config['image']['threshold'] * np.amax(self._image)
+                self._image[self._image < 0] = 0
+                self.SB_layer_2D_temp += self._image
+
                 self.layer.emit(self.SB_layer_2D_temp)        
             else:
 

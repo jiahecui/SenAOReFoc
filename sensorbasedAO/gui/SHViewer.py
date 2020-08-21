@@ -24,13 +24,11 @@ class SHViewer(QWidget):
         self.ui.setupUi(self)
 
         # Initialise image array and datatype
+        self.dtype = dtype
         self.sensor_width = config['camera']['sensor_width'] // config['camera']['bin_factor']
         self.sensor_height = config['camera']['sensor_height'] // config['camera']['bin_factor']
-        self.array_raw_img = Image(np.zeros(shape = (self.sensor_width, self.sensor_height)))
-        self.array_raw_SB = Image(np.zeros(shape = (self.sensor_width, self.sensor_height)))
-        self.array = Image(np.zeros(shape = (self.sensor_width, self.sensor_height)))
-        self.img_array = Image(np.zeros(shape = (self.sensor_width, self.sensor_height)))
-        self.dtype = dtype
+        self.array_raw_img, self.array_raw_SB, self.array, self.img_array = \
+            (np.zeros([self.sensor_height, self.sensor_width]) for i in range(4))
 
         # Get image display settings
         self.settings = self.get_settings()
@@ -50,7 +48,7 @@ class SHViewer(QWidget):
         return settings
 
     #==========Methods==========#
-    def set_image(self, array, flag = 0):
+    def set_image(self, array, flag = 0, SB_settings = None):
         """
         Conditions the image for display on S-H viewer
 
@@ -67,11 +65,13 @@ class SHViewer(QWidget):
 
         # Update image display settings
         if flag:
+            if SB_settings is not None:
+                self.array.ravel()[SB_settings['act_SB_coord']] = config['search_block']['outline_int']
+            self.array += self.array_raw_img.copy()
             self.update()
-            self.img_array = self.array.copy()
-            self.array += self.array_raw_SB.copy()
         else:
-            self.array = self.img_array.copy() + self.array_raw_SB.copy()
+            self.array = self.array_raw_SB.copy()
+            self.update()
 
         # Display image on image viewer
         self.ui.graphicsView.setImage(array2qimage(self.array))
@@ -80,8 +80,6 @@ class SHViewer(QWidget):
         """
         Normalises and rescales image
         """
-        self.array = self.array_raw_img.copy()
-
         # Get image display settings
         settings = self.get_settings()
 

@@ -1,7 +1,6 @@
 from ximea import xiapi
 import numpy as np
-import PIL.Image
-
+from PIL import Image
 # create instance for first connected camera
 cam = xiapi.Camera()
 
