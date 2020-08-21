@@ -162,18 +162,22 @@ class Positioning(QObject):
                         self.SB_settings['act_ref_cent_coord'] -= self.sensor_width
                         self.SB_settings['act_SB_coord'] -= self.sensor_width
                         self.SB_settings['act_ref_cent_coord_y'] -= 1
+                        self.SB_settings['act_SB_offset_y'] -= 1
                     elif c == '\xe0P' or c == '\x00P':
                         self.SB_settings['act_ref_cent_coord'] += self.sensor_width
                         self.SB_settings['act_SB_coord'] += self.sensor_width
                         self.SB_settings['act_ref_cent_coord_y'] += 1
+                        self.SB_settings['act_SB_offset_y'] += 1
                     elif c == '\xe0K' or c == '\x00K':
                         self.SB_settings['act_ref_cent_coord'] -= 1
                         self.SB_settings['act_SB_coord'] -= 1
                         self.SB_settings['act_ref_cent_coord_x'] -= 1
+                        self.SB_settings['act_SB_offset_x'] -= 1
                     elif c == '\xe0M' or c == '\x00M':
                         self.SB_settings['act_ref_cent_coord'] += 1
                         self.SB_settings['act_SB_coord'] += 1
                         self.SB_settings['act_ref_cent_coord_x'] += 1
+                        self.SB_settings['act_SB_offset_x'] += 1
                     else:
                         self.message.emit('\nSearch block position confirmed.')
                         break

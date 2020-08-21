@@ -8,7 +8,6 @@ from qimage2ndarray import array2qimage, gray2qimage
 import numpy as np
 
 from sensorbasedAO.gui.ui.SHViewer import Ui_SHViewer
-from sensorbasedAO.data import Image
 from sensorbasedAO.config import config
 
 class SHViewer(QWidget):

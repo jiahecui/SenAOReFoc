@@ -41,17 +41,6 @@ class Centroiding(QObject):
         # Get sensor instance
         self.sensor = device
 
-        # Get sensor parameters
-        self.sensor_width = self.SB_settings['sensor_width']
-        self.sensor_height = self.SB_settings['sensor_height']
-
-        # Get search block outline parameter
-        self.outline_int = config['search_block']['outline_int']
-
-        # Get information of search blocks
-        self.SB_diam = self.SB_settings['SB_diam']
-        self.SB_rad = self.SB_settings['SB_rad']
-
         # Initialise actual S-H spot centroid coords array
         self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y = (np.zeros(self.SB_settings['act_ref_cent_num']) for i in range(3))
 
@@ -79,9 +68,9 @@ class Centroiding(QObject):
             data_set = data_file['centroiding_img']
 
             # Initialise search block layer and display search blocks
-            self.SB_layer_2D = np.zeros([self.sensor_width, self.sensor_height], dtype = 'uint8')
+            self.SB_layer_2D = np.zeros([self.SB_settings['sensor_height'], self.SB_settings['sensor_width']])
             self.SB_layer_2D_temp = self.SB_layer_2D.copy()
-            self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
+            self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = config['search_block']['outline_int']
             self.layer.emit(self.SB_layer_2D_temp)
 
             # Acquire image using sensor or simulate Gaussian profile S-H spots
@@ -89,12 +78,13 @@ class Centroiding(QObject):
                 spot_img = SpotSim(self.SB_settings)
                 self._image, self.spot_cent_x, self.spot_cent_y = spot_img.SH_spot_sim(centred = 1)
             else:
-                self._image = acq_image(self.sensor, self.SB_settings['sensor_width'], self.SB_settings['sensor_height'], acq_mode = 0)
+                self._image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
 
             # Image thresholding to remove background
             self._image = self._image - config['image']['threshold'] * np.amax(self._image)
             self._image[self._image < 0] = 0
-            self.image.emit(self._image)
+            self.SB_layer_2D_temp += self._image
+            self.layer.emit(self.SB_layer_2D_temp)
 
             # Append image to list
             if config['dummy']:
@@ -114,8 +104,8 @@ class Centroiding(QObject):
                     map(np.asarray, [self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y])
 
                 # Draw actual S-H spot centroids on image layer
-                self._image.ravel()[self.act_cent_coord.astype(int)] = 0
-                self.image.emit(self._image)
+                self.SB_layer_2D_temp.ravel()[self.act_cent_coord.astype(int)] = 0
+                self.layer.emit(self.SB_layer_2D_temp)
                 self.message.emit('\nS-H spot centroid positions confirmed.')
             else:
 

@@ -30,15 +30,6 @@ class Conversion(QObject):
         # Get search block settings
         self.SB_settings = settings
 
-        # Initialise sensor parameters
-        self.sensor_width = self.SB_settings['sensor_width']
-
-        # Initialise search block parameters
-        self.SB_rad = self.SB_settings['SB_rad']
-        self.SB_across_width = self.SB_settings['SB_across_width']
-        self.act_ref_cent_coord_x = self.SB_settings['act_ref_cent_coord_x']
-        self.act_ref_cent_coord_y = self.SB_settings['act_ref_cent_coord_y']
-
         # Choose working DM along with its parameters
         if config['DM']['DM_num'] == 0:
             self.pupil_diam = config['search_block']['pupil_diam_0']
@@ -74,7 +65,7 @@ class Conversion(QObject):
                 self.rescale = 2 / (self.pupil_diam * 1e3 / self.SB_settings['pixel_size'])
 
                 # Get normalised search block radius
-                self.norm_rad = self.SB_rad * self.rescale
+                self.norm_rad = self.SB_settings['SB_rad'] * self.rescale
 
                 # Get size of each individual element in unit circle
                 self.elem_size = self.SB_settings['SB_diam'] / config['search_block']['div_elem'] * self.rescale
@@ -82,17 +73,11 @@ class Conversion(QObject):
                 # print('Rescale: {}, norm_rad: {}, elem_size: {}'.format(self.rescale, self.norm_rad, self.elem_size))
                 
                 # Get reference centroid coordinates for unit circle
-                if (self.SB_across_width % 2 == 0 and self.sensor_width % 2 == 0) or \
-                    (self.SB_across_width % 2 == 1 and self.sensor_width % 2 == 1):
+                self.norm_ref_cent_coord_x = (self.SB_settings['act_ref_cent_coord_x'] - \
+                    self.SB_settings['sensor_width'] // 2 - self.SB_settings['act_SB_offset_x']) * self.rescale
+                self.norm_ref_cent_coord_y = (self.SB_settings['act_ref_cent_coord_y'] - \
+                    self.SB_settings['sensor_height'] // 2 - self.SB_settings['act_SB_offset_y']) * self.rescale
 
-                    self.norm_ref_cent_coord_x = (self.act_ref_cent_coord_x - self.sensor_width // 2) * self.rescale
-                    self.norm_ref_cent_coord_y = (self.act_ref_cent_coord_y - self.sensor_width // 2) * self.rescale
-
-                else:
-
-                    self.norm_ref_cent_coord_x = (self.act_ref_cent_coord_x - (self.sensor_width // 2 - self.SB_rad)) * self.rescale
-                    self.norm_ref_cent_coord_y = (self.act_ref_cent_coord_y - (self.sensor_width // 2 - self.SB_rad)) * self.rescale
- 
                 # Take account of odd number of relays and mirrors between DM and lenslet
                 # If an odd no of lens relays the y slopes will have the wrong sign, otherwise the x slopes will be the wrong sign?
                 # If an odd no of mirrors the x slopes will have the wrong sign in the case of odd lens relays, but the right sign for even relays?

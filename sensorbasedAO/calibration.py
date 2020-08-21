@@ -152,20 +152,10 @@ class Calibration(QObject):
                 self.elem_size = self.SB_settings['SB_diam'] / config['search_block']['div_elem']
 
                 # Get reference centroid coordinates with pupil centre as zero coordinate
-                self.centred_ref_cent_coord_x = self.SB_settings['act_ref_cent_coord_x'] - self.SB_settings['sensor_width'] // 2
-                self.centred_ref_cent_coord_y = self.SB_settings['act_ref_cent_coord_y'] - self.SB_settings['sensor_height'] // 2
-
-                # # Get reference centroid coordinates with pupil centre as zero coordinate
-                # if (self.SB_settings['SB_across_width'] % 2 == 0 and self.SB_settings['sensor_width'] % 2 == 0) or \
-                #     (self.SB_settings['SB_across_width'] % 2 == 1 and self.SB_settings['sensor_width'] % 2 == 1):
-
-                #     self.centred_ref_cent_coord_x = self.SB_settings['act_ref_cent_coord_x'] - self.SB_settings['sensor_width'] // 2
-                #     self.centred_ref_cent_coord_y = self.SB_settings['act_ref_cent_coord_y'] - self.SB_settings['sensor_width'] // 2
-
-                # else:
-
-                #     self.centred_ref_cent_coord_x = self.SB_settings['act_ref_cent_coord_x'] - (self.SB_settings['sensor_width'] // 2 - self.SB_settings['SB_rad'])
-                #     self.centred_ref_cent_coord_y = self.SB_settings['act_ref_cent_coord_y'] - (self.SB_settings['sensor_width'] // 2 - self.SB_settings['SB_rad'])
+                self.centred_ref_cent_coord_x = self.SB_settings['act_ref_cent_coord_x'] - \
+                    self.SB_settings['sensor_width'] // 2 - self.SB_settings['act_SB_offset_x']
+                self.centred_ref_cent_coord_y = self.SB_settings['act_ref_cent_coord_y'] - \
+                    self.SB_settings['sensor_height'] // 2 - self.SB_settings['act_SB_offset_y']
 
                 # Start calibrating DM by calculating averaged derivatives of Gaussian distribution actuator influence function
                 if self.calibrate:

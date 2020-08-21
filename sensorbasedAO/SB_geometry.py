@@ -171,38 +171,6 @@ class Setup_SB(QObject):
                 self.act_ref_cent_coord_y += int(self.SB_rad)
                 self.act_ref_cent_coord += int(self.SB_rad) * self.sensor_width + int(self.SB_rad)
 
-            # # Get actual search block reference centroids within pupil diameter
-            # if (self.spots_across_diam % 2 == 0 and self.sensor_width % 2 == 0) or \
-            #     (self.spots_across_diam % 2 == 1 and self.sensor_width % 2 == 1):
-
-            #     for j in self.ref_cent_y:
-            #         for i in self.ref_cent_x:
-            #             if ((np.sqrt(((abs((i - self.sensor_width // 2)) + self.SB_rad) * self.pixel_size) ** 2 + \
-            #                 ((abs((j - self.sensor_height // 2)) + self.SB_rad) * self.pixel_size) ** 2)) <= self.pupil_rad):
-            #                 self.act_ref_cent_coord.append(int(j) * self.sensor_width + int(i))
-            #                 self.act_ref_cent_coord_x.append(i)
-            #                 self.act_ref_cent_coord_y.append(j)
-
-            # else:
-
-            #     for j in self.ref_cent_y:
-            #         for i in self.ref_cent_x:
-            #             if ((np.sqrt(((abs((i - (self.sensor_width // 2 - self.SB_rad))) + self.SB_rad) * self.pixel_size) ** 2 + \
-            #                 ((abs((j - (self.sensor_height // 2 - self.SB_rad))) + self.SB_rad) * self.pixel_size) ** 2)) <= self.pupil_rad):
-            #                 self.act_ref_cent_coord.append(int(j) * self.sensor_width + int(i))
-            #                 self.act_ref_cent_coord_x.append(i)
-            #                 self.act_ref_cent_coord_y.append(j)
-
-            # (self.act_ref_cent_coord, self.act_ref_cent_coord_x, self.act_ref_cent_coord_y) = \
-            #     map(np.array, (self.act_ref_cent_coord, self.act_ref_cent_coord_x, self.act_ref_cent_coord_y))
-            # self.act_ref_cent_num = len(self.act_ref_cent_coord)
-
-            # # If odd number of spots across diameter, shift to centre
-            # if self.spots_across_diam % 2 == 1:
-            #     self.act_ref_cent_coord_x += int(self.SB_rad)
-            #     self.act_ref_cent_coord_y += int(self.SB_rad)
-            #     self.act_ref_cent_coord += int(self.SB_rad) * self.sensor_width + int(self.SB_rad)
-
             print("Number of search blocks within pupil is: {}".format(self.act_ref_cent_num))
         
             # Draw actual search blocks on search block layer
@@ -283,7 +251,8 @@ class Setup_SB(QObject):
                 self.SB_info['act_ref_cent_coord_x'] = self.act_ref_cent_coord_x  # float - actual reference centroid positions, not whole pixels
                 self.SB_info['act_ref_cent_coord_y'] = self.act_ref_cent_coord_y  # float - actual reference centroid positions, not whole pixels
                 self.SB_info['act_SB_coord'] = self.act_SB_coord  # int - for displaying
-                self.SB_info['act_SB_offset'] = 0  # int - for storing offset relative to centre of sensor
+                self.SB_info['act_SB_offset_x'] = 0  # int - for storing x_offset relative to centre of sensor
+                self.SB_info['act_SB_offset_y'] = 0  # int - for storing y_offset relative to centre of sensor
 
                 self.info.emit(self.SB_info)
             else:

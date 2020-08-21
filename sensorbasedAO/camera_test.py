@@ -1,6 +1,7 @@
 from ximea import xiapi
 import numpy as np
 from PIL import Image
+
 # create instance for first connected camera
 cam = xiapi.Camera()
 
@@ -13,7 +14,7 @@ print('Device name is %s' % cam.get_device_name())
 
 # camera settings
 cam.set_imgdataformat("XI_MONO8")
-cam.set_exposure(2000)
+cam.set_exposure(30)
 print('Exposure set to %i us' % cam.get_exposure())
 
 # create instance of Image to store image data and metadata
@@ -27,7 +28,7 @@ cam.start_acquisition()
 # get data and pass them from camera to img
 # if timeout error is raised, print it and continue
 try:
-    cam.get_image(img, timeout=10)
+    cam.get_image(img, timeout = 10)
 
     #create numpy array with data from camera. Dimensions of array are determined
     #by imgdataformats
