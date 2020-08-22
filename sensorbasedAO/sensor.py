@@ -3,7 +3,7 @@ import sys
 import time
 
 from ximea import xiapi
-from devwraps.ueye import uEye
+# from devwraps.ueye import uEye
 
 import log
 from config import config
@@ -42,42 +42,42 @@ class SENSOR_XIMEA(xiapi.Camera):
 
         super().__init__()
 
-class SENSOR_IDS(uEye):
-    """
-    Create an instance of the uEye class to access its methods, attributes, and the target device at serial port.
-    """
-    def __init__(self):
+# class SENSOR_IDS(uEye):
+#     """
+#     Create an instance of the uEye class to access its methods, attributes, and the target device at serial port.
+#     """
+#     def __init__(self):
 
-        # Create uEye instance
-        self.sensor = uEye()
+#         # Create uEye instance
+#         self.sensor = uEye()
 
-        # Get uEye device
-        self.sensor.get_devices()
+#         # Get uEye device
+#         self.sensor.get_devices()
 
-        # Open uEye device
-        self.sensor.open(config['camera']['SN'])
+#         # Open uEye device
+#         self.sensor.open(config['camera']['SN'])
 
-        # Get sensor shape upon initialisation
-        shape = self.sensor.shape()
-        print('Shape of sensor upon initialisation is', shape)
+#         # Get sensor shape upon initialisation
+#         shape = self.sensor.shape()
+#         print('Shape of sensor upon initialisation is', shape)
 
-        # Get sensor frame rate upon initialisation and frame rate range 
-        # frame_rate = self.sensor.get_framerate()
-        # frame_rate_range = self.sensor.get_framerate_range()
-        # print('Frame rate of sensor upon initialisation is', frame_rate)
-        # print('Frame rate range of sensor is', frame_rate_range)
+#         # Get sensor frame rate upon initialisation and frame rate range 
+#         # frame_rate = self.sensor.get_framerate()
+#         # frame_rate_range = self.sensor.get_framerate_range()
+#         # print('Frame rate of sensor upon initialisation is', frame_rate)
+#         # print('Frame rate range of sensor is', frame_rate_range)
 
-        # Set sensor exposure time (ms)
-        self.sensor.set_exposure(10.0)
-        # exp_time = self.sensor.get_exposure()
-        # print('Exposure time of sensor is', exp_time)
+#         # Set sensor exposure time (ms)
+#         self.sensor.set_exposure(10.0)
+#         # exp_time = self.sensor.get_exposure()
+#         # print('Exposure time of sensor is', exp_time)
 
-        # Set sensor auto gain
-        self.sensor.set_auto_gain(1)
-        # auto_gain = self.sensor.get_auto_gain()
-        # print('Auto gain of sensor is', auto_gain)
+#         # Set sensor auto gain
+#         self.sensor.set_auto_gain(1)
+#         # auto_gain = self.sensor.get_auto_gain()
+#         # print('Auto gain of sensor is', auto_gain)
 
-        super().__init__()
+#         super().__init__()
 
 
 class SENSOR():

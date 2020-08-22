@@ -185,9 +185,10 @@ class Positioning(QObject):
                     # Display actual search blocks as they move
                     self.SB_layer_2D_temp = self.SB_layer_2D.copy()
                     self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
-                    self._image = acq_image(self.sensor, self.sensor_height, self.sensor_width, acq_mode = 0)
-                    self._image = self._image - config['image']['threshold'] * np.amax(self._image)
-                    self._image[self._image < 0] = 0
+                    if not config['dummy']:
+                        self._image = acq_image(self.sensor, self.sensor_height, self.sensor_width, acq_mode = 0)
+                        self._image = self._image - config['image']['threshold'] * np.amax(self._image)
+                        self._image[self._image < 0] = 0
                     self.SB_layer_2D_temp += self._image
 
                     self.layer.emit(self.SB_layer_2D_temp)
@@ -208,15 +209,16 @@ class Positioning(QObject):
                 data_file.close()
 
                 self.message.emit('\nSearch block position loaded.')
-
+                print('got here')
                 # Display original search block positions from previous calibration
                 self.SB_layer_2D_temp = self.SB_layer_2D.copy()
                 self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
-                self._image = acq_image(self.sensor, self.sensor_height, self.sensor_width, acq_mode = 0)
-                self._image = self._image - config['image']['threshold'] * np.amax(self._image)
-                self._image[self._image < 0] = 0
+                if not config['dummy']:
+                    self._image = acq_image(self.sensor, self.sensor_height, self.sensor_width, acq_mode = 0)
+                    self._image = self._image - config['image']['threshold'] * np.amax(self._image)
+                    self._image[self._image < 0] = 0
                 self.SB_layer_2D_temp += self._image
-
+                print('got here')
                 self.layer.emit(self.SB_layer_2D_temp)        
             else:
 

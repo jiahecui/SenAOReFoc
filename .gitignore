@@ -29,3 +29,6 @@ build/
 
 # sample file
 sensorbasedAO/sample_ML/
+
+# labfile
+labfiles/

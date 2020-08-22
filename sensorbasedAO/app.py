@@ -11,8 +11,8 @@ import numpy as np
 
 from datetime import datetime
 
-from alpao.Lib64 import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
-from devwraps.ueye import uEye
+# from alpao.Lib64 import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
+# from devwraps.ueye import uEye
 from ximea import xiapi
 
 import log
@@ -558,6 +558,7 @@ class App(QApplication):
         """
         Handle end of search block posiioning
         """
+        print('got here')
         self.threads['pos_thread'].quit()
         self.threads['pos_thread'].wait()
         self.main.ui.positionBtn.setChecked(False)

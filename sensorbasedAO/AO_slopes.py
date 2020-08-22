@@ -44,12 +44,20 @@ class AO_Slopes(QObject):
 
         # Get AO settings
         self.AO_settings = settings['AO_info']
+
+        # Get sensor instance
+        self.sensor = sensor
+
+        # Get mirror instance
+        self.mirror = mirror
         
+        # Initialise Zernike coefficient array
+        self.zern_coeff = np.zeros(config['AO']['control_coeff_num'])
+
         # Get remote focusing settings on demand and initialise relevant parameters and arrays for closed-loop correction process
         if self.AO_settings['focus_enable'] == 1:
             self.focus_settings = settings['focusing_info']
             self.correct_num = int(self.focus_settings['step_num'])
-            self.zern_coeff = np.zeros(config['AO']['control_coeff_num'])
             self.loop_rms_slopes = np.zeros([config['AO']['loop_max'] + 1, self.correct_num])
             self.loop_rms_zern, self.loop_rms_zern_part = (np.zeros([config['AO']['loop_max'] + 1, self.correct_num]) for i in range(2))
             self.strehl, self.strehl_2 = (np.zeros([config['AO']['loop_max'] + 1, self.correct_num]) for i in range(2))
@@ -57,13 +65,7 @@ class AO_Slopes(QObject):
             self.correct_num = 1
             self.loop_rms_slopes = np.zeros(config['AO']['loop_max'] + 1)
             self.loop_rms_zern, self.loop_rms_zern_part = (np.zeros(config['AO']['loop_max'] + 1) for i in range(2))
-            self.strehl, self.strehl_2 = (np.zeros(config['AO']['loop_max'] + 1) for i in range(2))
-
-        # Get sensor instance
-        self.sensor = sensor
-
-        # Get mirror instance
-        self.mirror = mirror
+            self.strehl, self.strehl_2 = (np.zeros(config['AO']['loop_max'] + 1) for i in range(2))        
 
         # Choose working DM along with its parameters
         if config['DM']['DM_num'] == 0:
@@ -315,14 +317,16 @@ class AO_Slopes(QObject):
                         self.loop_rms_zern_part[i] = rms_zern_part
 
                         strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
-                        strehl_2 = self.strehl_calc(phase)
                         self.strehl[i] = strehl
-                        self.strehl_2[i] = strehl_2
+                        if config['dummy']:
+                            strehl_2 = self.strehl_calc(phase)
+                            self.strehl_2[i] = strehl_2
 
                         print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
                         print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
                         print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
-                        print('Strehl ratio {} from phase profile is: {} \n'.format(i, strehl_2))                       
+                        if config['dummy']:
+                            print('Strehl ratio {} from phase profile is: {} \n'.format(i, strehl_2))                       
 
                         # Append data to list
                         if config['dummy']:
@@ -339,7 +343,7 @@ class AO_Slopes(QObject):
                             dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                        if strehl_2 >= config['AO']['tolerance_fact_strehl']:
+                        if strehl >= config['AO']['tolerance_fact_strehl']:
                             break                 
 
                     except Exception as e:
@@ -367,7 +371,8 @@ class AO_Slopes(QObject):
                 self.AO_info['slope_AO_1']['residual_phase_err_zern'] = self.loop_rms_zern
                 self.AO_info['slope_AO_1']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['slope_AO_1']['strehl_ratio'] = self.strehl
-                self.AO_info['slope_AO_1']['strehl_ratio_2'] = self.strehl_2
+                if config['dummy']:
+                    self.AO_info['slope_AO_1']['strehl_ratio_2'] = self.strehl_2
 
                 self.info.emit(self.AO_info)
                 self.write.emit()
@@ -584,14 +589,16 @@ class AO_Slopes(QObject):
                         self.loop_rms_zern_part[i] = rms_zern_part
 
                         strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
-                        strehl_2 = self.strehl_calc(phase)
                         self.strehl[i] = strehl
-                        self.strehl_2[i] = strehl_2
+                        if config['dummy']:
+                            strehl_2 = self.strehl_calc(phase)
+                            self.strehl_2[i] = strehl_2
 
                         print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
                         print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
                         print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
-                        print('Strehl ratio {} from phase profile is: {} \n'.format(i, strehl_2))                            
+                        if config['dummy']:
+                            print('Strehl ratio {} from phase profile is: {} \n'.format(i, strehl_2))                            
 
                         # Append data to list
                         if config['dummy']:
@@ -600,7 +607,7 @@ class AO_Slopes(QObject):
                             dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                        if strehl_2 >= config['AO']['tolerance_fact_strehl']:
+                        if strehl >= config['AO']['tolerance_fact_strehl']:
                             break                 
 
                     except Exception as e:
@@ -628,7 +635,8 @@ class AO_Slopes(QObject):
                 self.AO_info['slope_AO_2']['residual_phase_err_zern'] = self.loop_rms_zern
                 self.AO_info['slope_AO_2']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['slope_AO_2']['strehl_ratio'] = self.strehl
-                self.AO_info['slope_AO_2']['strehl_ratio_2'] = self.strehl_2
+                if config['dummy']:
+                    self.AO_info['slope_AO_2']['strehl_ratio_2'] = self.strehl_2
 
                 self.info.emit(self.AO_info)
                 self.write.emit()
@@ -857,14 +865,16 @@ class AO_Slopes(QObject):
                             self.loop_rms_zern_part[i,j] = rms_zern_part
 
                             strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
-                            strehl_2 = self.strehl_calc(phase)
                             self.strehl[i,j] = strehl
-                            self.strehl_2[i,j] = strehl_2
+                            if config['dummy']:
+                                strehl_2 = self.strehl_calc(phase)
+                                self.strehl_2[i,j] = strehl_2
 
                             print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
                             print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
                             print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
-                            print('Strehl ratio {} from phase profile is: {} \n'.format(i, strehl_2))                              
+                            if config['dummy']:
+                                print('Strehl ratio {} from phase profile is: {} \n'.format(i, strehl_2))                              
 
                             # Append data to list
                             if config['dummy']:
@@ -918,7 +928,8 @@ class AO_Slopes(QObject):
                 self.AO_info['slope_AO_3']['residual_phase_err_zern'] = self.loop_rms_zern
                 self.AO_info['slope_AO_3']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['slope_AO_3']['strehl_ratio'] = self.strehl
-                self.AO_info['slope_AO_3']['strehl_ratio_2'] = self.strehl_2
+                if config['dummy']:
+                    self.AO_info['slope_AO_3']['strehl_ratio_2'] = self.strehl_2
 
                 self.info.emit(self.AO_info)
                 self.write.emit()
@@ -1178,14 +1189,16 @@ class AO_Slopes(QObject):
                             self.loop_rms_zern_part[i,j] = rms_zern_part
 
                             strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
-                            strehl_2 = self.strehl_calc(phase)
                             self.strehl[i,j] = strehl
-                            self.strehl_2[i,j] = strehl_2
+                            if config['dummy']:
+                                strehl_2 = self.strehl_calc(phase)
+                                self.strehl_2[i,j] = strehl_2
 
                             print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
                             print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
                             print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
-                            print('Strehl ratio {} from phase profile is: {} \n'.format(i, strehl_2))                        
+                            if config['dummy']:
+                                print('Strehl ratio {} from phase profile is: {} \n'.format(i, strehl_2))                        
                             
                             # Append data to list
                             if config['dummy']:
@@ -1231,7 +1244,8 @@ class AO_Slopes(QObject):
                 self.AO_info['slope_AO_full']['residual_phase_err_zern'] = self.loop_rms_zern
                 self.AO_info['slope_AO_full']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['slope_AO_full']['strehl_ratio'] = self.strehl
-                self.AO_info['slope_AO_full']['strehl_ratio_2'] = self.strehl_2
+                if config['dummy']:
+                    self.AO_info['slope_AO_full']['strehl_ratio_2'] = self.strehl_2
 
                 self.info.emit(self.AO_info)
                 self.write.emit()
