@@ -29,6 +29,7 @@ from calibration_zern import Calibration_Zern
 from AO_zernikes_test import AO_Zernikes_Test
 from AO_zernikes import AO_Zernikes
 from AO_slopes import AO_Slopes
+from SH_acquisition import Acquisition
 from ML_dataset_gen import ML_Dataset_Gen
 
 logger = log.get_logger(__name__)
@@ -368,6 +369,36 @@ class App(QApplication):
         # Start slopes AO thread
         slopes_AO_thread.start()
 
+    def acq_SH_image(self, sensor, mode):
+        """
+        Acquire SH images
+        """
+        # Create SH image acquisition worker and thread
+        acq_thread = QThread()
+        acq_thread.setObjectName('acq_thread')
+        acq_worker = Acquisition(sensor)
+        acq_worker.moveToThread(acq_thread)
+
+        # Connect to signals
+        if mode == 0:
+            acq_thread.started.connect(acq_worker.run0)
+        if mode == 1:
+            acq_thread.started.connect(acq_worker.run1)
+        if mode == 2:
+            acq_thread.started.connect(acq_worker.run2)
+
+        acq_worker.done.connect(self.handle_acq_done)
+        acq_worker.message.connect(lambda obj: self.handle_message_disp(obj))
+        acq_worker.error.connect(lambda obj: self.handle_error(obj))
+        acq_worker.image.connect(lambda obj: self.handle_image_disp(obj))
+
+        # Store Zernike AO worker and thread
+        self.workers['acq_worker'] = acq_worker
+        self.threads['acq_thread'] = acq_thread
+
+        # Start Zernike AO thread
+        acq_thread.start()
+
     def ML_dataset_gen(self, sensor, mirror, data_info):
         """
         Generate ML dataset
@@ -539,7 +570,7 @@ class App(QApplication):
     def handle_SB_done(self):
         """
         Handle end of search block geometry setup
-        """
+        """       
         self.threads['SB_thread'].quit()
         self.threads['SB_thread'].wait()
         self.main.ui.initialiseBtn.setChecked(False)
@@ -554,7 +585,6 @@ class App(QApplication):
         """
         Handle end of search block posiioning
         """
-        print('got here')
         self.threads['pos_thread'].quit()
         self.threads['pos_thread'].wait()
         self.main.ui.positionBtn.setChecked(False)
@@ -686,6 +716,47 @@ class App(QApplication):
             self.main.ui.slopeAOBtn_3.setChecked(False)
         elif mode == 4:
             self.main.ui.slopeFullBtn.setChecked(False)
+
+    def handle_acq_live_start(self):
+        """
+        Handle start of live acquisition of SHWS
+        """
+        self.acq_SH_image(self.devices['sensor'], mode = 0)
+
+    def handle_acq_burst_start(self):
+        """
+        Handle start of burst acquisition of SHWS
+        """
+        self.acq_SH_image(self.devices['sensor'], mode = 1)
+
+    def handle_acq_single_start(self):
+        """
+        Handle start of single acquisition of SHWS
+        """
+        self.acq_SH_image(self.devices['sensor'], mode = 2)
+
+    def stop_acq(self):
+        """
+        Stops SHWS image acquisition
+        """
+        try:
+            self.workers['acq_worker'].stop()
+            self.threads['acq_thread'].quit()
+            self.threads['acq_thread'].wait()
+        except KeyError:
+            pass
+        except:
+            raise
+
+    def handle_acq_done(self):
+        """
+        Handle end of SHWS image acquisition
+        """
+        self.threads['acq_thread'].quit()
+        self.threads['acq_thread'].wait()
+        self.main.ui.liveAcqBtn.setChecked(False)
+        self.main.ui.burstAcqBtn.setChecked(False)
+        self.main.ui.singleAcqBtn.setChecked(False)
 
     def handle_focus_start(self, AO_type = 0):
         """

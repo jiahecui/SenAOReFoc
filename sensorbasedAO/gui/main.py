@@ -42,6 +42,9 @@ class Main(QMainWindow):
         self.ui.slopeAOBtn_3.clicked.connect(self.on_slope_AO_3)
         self.ui.ZernikeFullBtn.clicked.connect(self.on_zern_AO_full)
         self.ui.slopeFullBtn.clicked.connect(self.on_slope_AO_full)
+        self.ui.liveAcqBtn.clicked.connect(self.on_live_acq)
+        self.ui.burstAcqBtn.clicked.connect(self.on_burst_acq)
+        self.ui.singleAcqBtn.clicked.connect(self.on_single_acq)
         self.ui.scanFocusCheck.stateChanged.connect(self.on_focussettings)
         self.ui.focusDepthSpin.valueChanged.connect(self.on_focussettings)
         self.ui.stepIncreSpin.valueChanged.connect(self.on_focussettings)
@@ -410,6 +413,57 @@ class Main(QMainWindow):
             # Start slope_AO_full
             self.app.handle_slope_AO_start(mode = 4)
             btn.setChecked(True)
+
+    def on_live_acq(self, checked):
+        """
+        Live acquisition of SHWS
+        """
+        btn = self.sender()
+
+        # Stop running acquisition
+        self.app.stop_acq()
+        self.ui.burstAcqBtn.setChecked(False)
+        self.ui.singleAcqBtn.setChecked(False)
+
+        # Start running live_acq if pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            self.app.handle_acq_live_start()
+
+    def on_burst_acq(self, checked):
+        """
+        Burst acquisition of SHWS
+        """
+        btn = self.sender()
+
+        # Stop running live_acq
+        self.app.stop_acq()
+        self.ui.liveAcqBtn.setChecked(False)
+        self.ui.singleAcqBtn.setChecked(False)
+
+        # Start running burst_acq if pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            self.app.handle_acq_burst_start()
+
+    def on_single_acq(self, checked):
+        """
+        Single acquisition of SHWS
+        """
+        btn = self.sender()
+
+        # Stop running live_acq and burst_acq
+        self.app.stop_acq()
+        self.ui.liveAcqBtn.setChecked(False)
+        self.ui.burstAcqBtn.setChecked(False)
+
+        # Start running single_acq if pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            self.app.handle_acq_single_start()        
 
     def on_focussettings(self):
         """

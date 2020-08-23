@@ -18,8 +18,10 @@ def acq_image(sensor, height, width, acq_mode = 0):
     """
     # Create instance of dataimage array and data list to store image data
     dataimage = np.zeros([config['camera']['sensor_height'], config['camera']['sensor_width']])
-    data = []
-
+    image_width = int(config['camera']['sensor_width'] // config['camera']['bin_factor'])
+    image_height = int(config['camera']['sensor_height'] // config['camera']['bin_factor'])
+    data = np.zeros([image_height, image_width, config['camera']['frame_num']])
+    
     # Create instance of Ximea Image to store image data and metadata
     img = xiapi.Image()
 
@@ -50,7 +52,7 @@ def acq_image(sensor, height, width, acq_mode = 0):
     elif acq_mode == 1:
 
         # Acquire a sequence of images and append to data list
-        for i in range(config['camera']['frame_ave_num']):
+        for i in range(config['camera']['frame_num']):
 
             prev1 = time.perf_counter()
 
@@ -59,7 +61,7 @@ def acq_image(sensor, height, width, acq_mode = 0):
                 sensor.get_image(img, timeout = 25)
 
                 prev2 = time.perf_counter()
-                print('Time for acquisition of frame {} is: {}'.format((i + 1), (prev2 - prev1)))
+                print('Time for acquisition of frame {} is: {} s'.format((i + 1), (prev2 - prev1)))
 
                 # Create numpy array with data from camera, dimensions are determined by imgdataformats
                 dataimage = img.get_image_data_numpy()
@@ -69,8 +71,8 @@ def acq_image(sensor, height, width, acq_mode = 0):
                 start_2 = (np.shape(dataimage)[1] - width) // 2
                 dataimage = dataimage[start_1 : start_1 + height, start_2 : start_2 + width]
 
-                # Append dataimage to data list
-                data.append(dataimage)
+                # Append dataimage to data
+                data[:,:,i] = dataimage
         
             except xiapi.Xi_error as err:
                 if err.status == 10:
@@ -79,9 +81,9 @@ def acq_image(sensor, height, width, acq_mode = 0):
                     raise
 
             prev3 = time.perf_counter()
-            print('Time for acquisition of loop {} is: {}'.format((i + 1), (prev3 - prev1)))
+            print('Time for acquisition of loop {} is: {} s'.format((i + 1), (prev3 - prev1)))
 
-        print('Length of data list is:', len(data))
+        print('Length of data list is:', np.shape(data)[2])
 
     # Stop data acquisition
     sensor.stop_acquisition()

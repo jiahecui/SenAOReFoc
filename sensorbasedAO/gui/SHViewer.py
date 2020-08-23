@@ -64,7 +64,7 @@ class SHViewer(QWidget):
 
         # Update image display settings
         if flag:
-            if SB_settings is not None:
+            if 'act_SB_coord' in SB_settings:
                 self.array_raw_SB.ravel()[SB_settings['act_SB_coord']] = config['search_block']['outline_int']
             self.array = self.array_raw_img.copy() + self.array_raw_SB.copy()
             self.update()
