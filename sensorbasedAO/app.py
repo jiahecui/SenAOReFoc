@@ -281,10 +281,6 @@ class App(QApplication):
             zern_thread.started.connect(zern_worker.run0)
         elif mode == 1:
             zern_thread.started.connect(zern_worker.run1)
-        elif mode == 2:
-            zern_thread.started.connect(zern_worker.run2)
-        elif mode == 3:
-            zern_thread.started.connect(zern_worker.run3)
 
         zern_worker.done.connect(self.handle_zern_test_done)
         zern_worker.image.connect(lambda obj: self.handle_image_disp(obj))   
@@ -624,10 +620,8 @@ class App(QApplication):
         Handle start of closed-loop AO control test via Zernikes
 
         Args:
-            mode = 0 - Run closed-loop control for each zernike mode aberration via Zernikes control
-            mode = 1 - Run closed-loop control for each zernike mode aberration via slopes control
-            mode = 2 - Scan synthetic image with a number of scan points and a pre-determined amount of astigmatism
-            mode = 3 - Scan synthetic image with a number of scan points and a pre-determined amount of coma
+            mode = 0 - Run closed-loop control for each generated zernike mode aberration via Zernikes control
+            mode = 1 - Run closed-loop control for each generated zernike mode aberration via slopes control
         """
         self.control_zern_test(self.devices['sensor'], self.devices['mirror'], self.data_info, mode)
 
@@ -691,7 +685,7 @@ class App(QApplication):
         elif mode == 3:
             self.main.ui.slopeAOBtn_3.setChecked(False)
         elif mode == 4:
-            self.main.ui.SlopeFullBtn.setChecked(False)
+            self.main.ui.slopeFullBtn.setChecked(False)
 
     def handle_focus_start(self, AO_type = 0):
         """

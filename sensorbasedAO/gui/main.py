@@ -41,7 +41,7 @@ class Main(QMainWindow):
         self.ui.slopeAOBtn_2.clicked.connect(self.on_slope_AO_2)
         self.ui.slopeAOBtn_3.clicked.connect(self.on_slope_AO_3)
         self.ui.ZernikeFullBtn.clicked.connect(self.on_zern_AO_full)
-        self.ui.SlopeFullBtn.clicked.connect(self.on_slope_AO_full)
+        self.ui.slopeFullBtn.clicked.connect(self.on_slope_AO_full)
         self.ui.scanFocusCheck.stateChanged.connect(self.on_focussettings)
         self.ui.focusDepthSpin.valueChanged.connect(self.on_focussettings)
         self.ui.stepIncreSpin.valueChanged.connect(self.on_focussettings)

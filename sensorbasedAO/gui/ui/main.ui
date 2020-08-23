@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1580</width>
-    <height>1080</height>
+    <height>1180</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,7 +19,7 @@
   <property name="minimumSize">
    <size>
     <width>1580</width>
-    <height>1080</height>
+    <height>1180</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -59,7 +59,7 @@
              </font>
             </property>
             <property name="text">
-             <string>Initialise</string>
+             <string>Initialise SB</string>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -117,7 +117,7 @@
              </font>
             </property>
             <property name="text">
-             <string>Centroid</string>
+             <string>Centroid Spots</string>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -150,7 +150,7 @@
              </font>
             </property>
             <property name="text">
-             <string>Calibrate - S</string>
+             <string>Calibrate-S</string>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -208,7 +208,7 @@
              </font>
             </property>
             <property name="text">
-             <string>Calibrate - Z</string>
+             <string>Calibrate-Z</string>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -221,6 +221,12 @@
          <layout class="QGridLayout" name="gridLayout">
           <item row="2" column="0">
            <widget class="QLineEdit" name="ZernikeArrEdt">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>20</height>
+             </size>
+            </property>
             <property name="font">
              <font>
               <pointsize>10</pointsize>
@@ -236,6 +242,12 @@
           </item>
           <item row="1" column="0">
            <widget class="QSpinBox" name="ZernikeCoeffSpin">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>20</height>
+             </size>
+            </property>
             <property name="font">
              <font>
               <pointsize>10</pointsize>
@@ -271,6 +283,12 @@
           </item>
           <item row="2" column="1">
            <widget class="QPushButton" name="ZernikeOKBtn">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>20</height>
+             </size>
+            </property>
             <property name="text">
              <string>OK</string>
             </property>
@@ -281,6 +299,12 @@
           </item>
           <item row="1" column="1">
            <widget class="QDoubleSpinBox" name="ZernikeValSpin">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>20</height>
+             </size>
+            </property>
             <property name="font">
              <font>
               <pointsize>10</pointsize>
@@ -297,39 +321,8 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <item>
-           <widget class="QPushButton" name="ZernikeTestBtn">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>30</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>10</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Zernike Test</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
          <layout class="QGridLayout" name="gridLayout_2">
-          <item row="0" column="2">
+          <item row="2" column="0">
            <widget class="QPushButton" name="ZernikeAOBtn_3">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -356,7 +349,34 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
+          <item row="2" column="1">
+           <widget class="QPushButton" name="slopeAOBtn_3">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Slope AO 3</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
            <widget class="QPushButton" name="ZernikeAOBtn_2">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -377,33 +397,6 @@
             </property>
             <property name="text">
              <string>Zernike AO 2</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QPushButton" name="slopeAOBtn_1">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>30</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>10</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Slope AO 1</string>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -437,33 +430,6 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
-           <widget class="QPushButton" name="slopeAOBtn_3">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>30</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>10</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Slope AO 3</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="0">
            <widget class="QPushButton" name="ZernikeAOBtn_1">
             <property name="sizePolicy">
@@ -491,11 +457,61 @@
             </property>
            </widget>
           </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_5">
-          <item>
+          <item row="0" column="1">
+           <widget class="QPushButton" name="slopeAOBtn_1">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Slope AO 1</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="QPushButton" name="ZernikeTestBtn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Zernike Test</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
            <widget class="QPushButton" name="ZernikeFullBtn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -522,8 +538,8 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QPushButton" name="SlopeFullBtn">
+          <item row="1" column="2">
+           <widget class="QPushButton" name="slopeFullBtn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -543,6 +559,110 @@
             </property>
             <property name="text">
              <string>Slope Full</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_5"/>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="imageAcqLbl">
+            <property name="font">
+             <font>
+              <family>SimSun-ExtB</family>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Image Acquisition</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="liveAcqBtn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <family>SimSun-ExtB</family>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Live Acq</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="burstAcqBtn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <family>SimSun-ExtB</family>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Burst Acq</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="singleAcqBtn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <family>SimSun-ExtB</family>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Single Acq</string>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -621,16 +741,25 @@
             </item>
             <item>
              <widget class="QDoubleSpinBox" name="focusDepthSpin">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="font">
                <font>
                 <pointsize>10</pointsize>
                </font>
               </property>
               <property name="decimals">
-               <number>1</number>
+               <number>2</number>
               </property>
               <property name="maximum">
                <double>80.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>0.500000000000000</double>
               </property>
              </widget>
             </item>
@@ -648,16 +777,25 @@
             </item>
             <item>
              <widget class="QDoubleSpinBox" name="stepIncreSpin">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="font">
                <font>
                 <pointsize>10</pointsize>
                </font>
               </property>
               <property name="decimals">
-               <number>1</number>
+               <number>2</number>
               </property>
               <property name="maximum">
                <double>80.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>0.500000000000000</double>
               </property>
              </widget>
             </item>
@@ -675,6 +813,12 @@
             </item>
             <item>
              <widget class="QDoubleSpinBox" name="stepNumSpin">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="font">
                <font>
                 <pointsize>10</pointsize>
@@ -702,16 +846,25 @@
             </item>
             <item>
              <widget class="QDoubleSpinBox" name="startDepthSpin">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="font">
                <font>
                 <pointsize>10</pointsize>
                </font>
               </property>
               <property name="decimals">
-               <number>1</number>
+               <number>2</number>
               </property>
               <property name="maximum">
                <double>80.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>0.500000000000000</double>
               </property>
              </widget>
             </item>
@@ -729,6 +882,12 @@
             </item>
             <item>
              <widget class="QDoubleSpinBox" name="pauseTimeSpin">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="font">
                <font>
                 <pointsize>10</pointsize>
@@ -760,6 +919,12 @@
             </item>
             <item>
              <widget class="QComboBox" name="AOTypeCombo">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="font">
                <font>
                 <pointsize>10</pointsize>
@@ -800,6 +965,12 @@
             </item>
             <item>
              <widget class="QPushButton" name="moveBtn">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>30</height>
+               </size>
+              </property>
               <property name="font">
                <font>
                 <pointsize>10</pointsize>
@@ -815,6 +986,12 @@
             </item>
             <item>
              <widget class="QPushButton" name="scanBtn">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>30</height>
+               </size>
+              </property>
               <property name="font">
                <font>
                 <pointsize>10</pointsize>
@@ -847,6 +1024,12 @@
         </item>
         <item>
          <widget class="QPushButton" name="MLDataBtn">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>30</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <pointsize>10</pointsize>

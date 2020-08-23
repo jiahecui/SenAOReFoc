@@ -182,8 +182,22 @@ class AO_Zernikes(QObject):
                         
                         # Update mirror control voltages
                         if i == 0:
-                            voltages[:] = config['DM']['vol_bias']
+
+                            # Determine whether to generate Zernike modes using DM
+                            if not config['dummy'] and config['zern_test']['zern_gen']:
+
+                                # Retrieve input zernike coefficient array
+                                zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
+                                zern_array = np.zeros(config['AO']['control_coeff_num'])
+                                zern_array[:len(zern_array_temp)] = zern_array_temp
+
+                                # Retrieve actuator voltages from zernike coefficient array
+                                voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], zern_array))
+                            else:
+
+                                voltages[:] = config['DM']['vol_bias']
                         else:
+
                             voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
                                 zern_err[:config['AO']['control_coeff_num']]))
 
@@ -416,8 +430,22 @@ class AO_Zernikes(QObject):
 
                         # Update mirror control voltages
                         if i == 0:
-                            voltages[:] = config['DM']['vol_bias']
+
+                            # Determine whether to generate Zernike modes using DM
+                            if not config['dummy'] and config['zern_test']['zern_gen']:
+
+                                # Retrieve input zernike coefficient array
+                                zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
+                                zern_array = np.zeros(config['AO']['control_coeff_num'])
+                                zern_array[:len(zern_array_temp)] = zern_array_temp
+
+                                # Retrieve actuator voltages from zernike coefficient array
+                                voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], zern_array))
+                            else:
+
+                                voltages[:] = config['DM']['vol_bias']
                         else:
+
                             voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
                                 zern_err[:config['AO']['control_coeff_num']]))
 
@@ -709,8 +737,22 @@ class AO_Zernikes(QObject):
 
                             # Update mirror control voltages
                             if i == 0:
-                                voltages[:] = config['DM']['vol_bias'] + voltages_defoc
+
+                                # Determine whether to generate Zernike modes using DM
+                                if not config['dummy'] and config['zern_test']['zern_gen']:
+
+                                    # Retrieve input zernike coefficient array
+                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
+                                    zern_array = np.zeros(config['AO']['control_coeff_num'])
+                                    zern_array[:len(zern_array_temp)] = zern_array_temp
+
+                                    # Retrieve actuator voltages from zernike coefficient array
+                                    voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], zern_array)) + voltages_defoc
+                                else:
+
+                                    voltages[:] = config['DM']['vol_bias'] + voltages_defoc
                             else:
+                                
                                 voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
                                     zern_err_part[:config['AO']['control_coeff_num']])) 
 
@@ -987,8 +1029,22 @@ class AO_Zernikes(QObject):
 
                             # Update mirror control voltages
                             if i == 0:
-                                voltages[:] = config['DM']['vol_bias'] + voltages_defoc
+
+                                # Determine whether to generate Zernike modes using DM
+                                if not config['dummy'] and config['zern_test']['zern_gen']:
+
+                                    # Retrieve input zernike coefficient array
+                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
+                                    zern_array = np.zeros(config['AO']['control_coeff_num'])
+                                    zern_array[:len(zern_array_temp)] = zern_array_temp
+
+                                    # Retrieve actuator voltages from zernike coefficient array
+                                    voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], zern_array)) + voltages_defoc
+                                else:
+
+                                    voltages[:] = config['DM']['vol_bias'] + voltages_defoc
                             else:
+
                                 voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
                                     zern_err_part[:config['AO']['control_coeff_num']])) 
 
@@ -1269,6 +1325,9 @@ class AO_Zernikes(QObject):
             """
             self.message.emit('\nProcess started for remote focusing without AO...')
 
+            # Initialise deformable mirror voltage array
+            voltages = np.zeros(self.actuator_num)
+
             prev1 = time.perf_counter()
 
             # Run correction for each focus depth
@@ -1287,6 +1346,20 @@ class AO_Zernikes(QObject):
                 if self.loop:
 
                     try:
+
+                        # Determine whether to generate Zernike modes using DM
+                        if not config['dummy'] and config['zern_test']['zern_gen']:
+
+                            # Retrieve input zernike coefficient array
+                            zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
+                            zern_array = np.zeros(config['AO']['control_coeff_num'])
+                            zern_array[:len(zern_array_temp)] = zern_array_temp
+
+                            # Retrieve actuator voltages from zernike coefficient array
+                            voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], zern_array)) + voltages_defoc
+                        else:
+
+                            voltages[:] = config['DM']['vol_bias'] + voltages_defoc
 
                         if config['dummy']:
 

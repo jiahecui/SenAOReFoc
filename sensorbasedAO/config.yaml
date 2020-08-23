@@ -85,7 +85,8 @@ AO:
   tolerance_fact_strehl: 0.81  # Strehl ratio tolerance factor according to Marechel criteria, 0.81
 
 zern_test:
-  zern_test_mode: 2  # Flag for the mode that Zernike Test button runs in, explanations in app.py
+  zern_gen: 0  # Flag for whether to generate Zernike modes on DM before correction in AO_zernikes.py and AO_slopes.py
+  zern_test_mode: 0  # Flag for Zernike Test button operation mode, 0 - AO via Zernikes, 1 - AO via slopess
   zern_amp: 0.1  # Amplitude of all zernike modes for comparison
   tilt_amp: 1.5  # Maximum amount of tilt for scanning across synthetic image 2.7
   tip_amp: 1.5  # Maximum amount of tip for scanning across synthetic image 2.7
