@@ -893,7 +893,6 @@ class App(QApplication):
                 self.devices['scanner'].StopDataStream()
                 self.devices['scanner'].SetDeviceParam(MTIParam.MEMSDriverEnable, False)
                 self.devices['scanner'].DisconnectDevice()
-                self.devices['scanner'].DeleteDevice()
             except Exception as e:
                 logger.warning("Error on scanner quit: {}".format(e))
 

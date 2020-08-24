@@ -576,7 +576,7 @@
            <widget class="QLabel" name="imageAcqLbl">
             <property name="font">
              <font>
-              <family>SimSun-ExtB</family>
+              <family>MS Shell Dlg 2</family>
               <pointsize>10</pointsize>
              </font>
             </property>
@@ -601,7 +601,7 @@
             </property>
             <property name="font">
              <font>
-              <family>SimSun-ExtB</family>
+              <family>MS Shell Dlg 2</family>
               <pointsize>10</pointsize>
              </font>
             </property>
@@ -629,7 +629,7 @@
             </property>
             <property name="font">
              <font>
-              <family>SimSun-ExtB</family>
+              <family>MS Shell Dlg 2</family>
               <pointsize>10</pointsize>
              </font>
             </property>
@@ -657,7 +657,7 @@
             </property>
             <property name="font">
              <font>
-              <family>SimSun-ExtB</family>
+              <family>MS Shell Dlg 2</family>
               <pointsize>10</pointsize>
              </font>
             </property>
