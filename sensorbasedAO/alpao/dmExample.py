@@ -33,12 +33,12 @@ def main(args):
     values = [0.] * nbAct
     dm.Send( values )
     
-    print("We will send on all actuator 10% for 1/2 second")
+    print("We will send on all actuator 50% for 1/2 second")
     for i in range( nbAct ):
-        values[i] = 0.10
+        values[i] = 0.5
         # Send values vector
         dm.Send( values )
-        print("Send 0.10 on actuator " + str(i))
+        print("Send 0.50 on actuator " + str(i))
         time.sleep(0.5) # Wait for 0.5 second
         values[i] = 0
     

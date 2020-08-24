@@ -11,14 +11,17 @@ import numpy as np
 
 from datetime import datetime
 
-# from alpao.Lib64 import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
-# from devwraps.ueye import uEye
+from alpao.Lib import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
 from ximea import xiapi
+import mtidevice
+from mtidevice import MTIError, MTIAxes, MTIParam, MTIDataMode, MTISync, MTIDataFormat, MTIAvailableDevices
+# from devwraps.ueye import uEye
 
 import log
 from config import config
 from sensor import SENSOR
 from mirror import MIRROR
+from scanner import SCANNER
 from gui.main import Main
 from SB_geometry import Setup_SB
 from SB_position import Positioning
@@ -110,6 +113,19 @@ class App(QApplication):
                 mirror = None
 
         self.devices['mirror'] = mirror
+
+        # Add scanner
+        if config['dummy']:
+            scanner = SCANNER.get('debug')
+        else:
+            try:
+                scanner = SCANNER.get(config['scanner']['SN'])
+                print('Scanner load success.')
+            except Exception as e:
+                logger.warning('Scanner load error', e)
+                scanner = None
+
+        self.devices['scanner'] = scanner
 
     def setup_SB(self):
         """
@@ -833,6 +849,13 @@ class App(QApplication):
         except Exception as e:
             logger.warning("Error on sensor stop: {}".format(e))
 
+        # Stop scanner instance
+        try:
+            self.devices['scanner'].ResetDevicePosition()
+            self.devices['scanner'].StopDataStream()
+        except Exception as e:
+            logger.warning("Error on scanner stop: {}".format(e))    
+
     def quit(self):
         """ 
         Quit application. 
@@ -848,18 +871,31 @@ class App(QApplication):
             self.threads[thread].wait()
 
         # Stop and reset mirror instance
-        try:
-           self.devices['mirror'].Stop()
-           self.devices['mirror'].Reset()
-        except Exception as e:
-            logger.warning("Error on mirror quit: {}".format(e))
+        if not config['dummy']:
+            try:
+                self.devices['mirror'].Stop()
+                self.devices['mirror'].Reset()
+            except Exception as e:
+                logger.warning("Error on mirror quit: {}".format(e))
 
         # Stop and close sensor instance
-        try:
-            self.devices['sensor'].stop_acquisition()
-            self.devices['sensor'].close_device()
-        except Exception as e:
-            logger.warning("Error on sensor quit: {}".format(e))
+        if not config['dummy']:
+            try:
+                self.devices['sensor'].stop_acquisition()
+                self.devices['sensor'].close_device()
+            except Exception as e:
+                logger.warning("Error on sensor quit: {}".format(e))
+
+        # Stop and reset scanner instance
+        if not config['dummy']:
+            try:
+                self.devices['scanner'].ResetDevicePosition()
+                self.devices['scanner'].StopDataStream()
+                self.devices['scanner'].SetDeviceParam(MTIParam.MEMSDriverEnable, False)
+                self.devices['scanner'].DisconnectDevice()
+                self.devices['scanner'].DeleteDevice()
+            except Exception as e:
+                logger.warning("Error on scanner quit: {}".format(e))
 
         # Close other windows
         self.main.close()

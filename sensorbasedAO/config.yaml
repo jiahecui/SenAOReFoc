@@ -32,8 +32,8 @@ camera:
 DM:
   SN: "HSDM69-15-014" 
   DM_num: 0  # Flag for choosing the working DM, 0-Alpao, 1-Boston
-  vol_min: -1  # V
-  vol_max: 1
+  vol_min: -0.1  # V
+  vol_max: 0.1
   vol_bias: 0
   vol_step: 1
   settling_time: 0.01
@@ -49,6 +49,13 @@ DM1:
   pitch: 400  # um  
   aperture: 4.4  # mm  
   coupling_fac: 0.13  # Inter-actuator coupling factor, 0.26 works better...
+
+scanner:
+  SN: "S31155"
+  portnumber: "3"
+  x_to_voltage: 2.128  
+  V_min: -10 
+  V_max: 10 
 
 relay:
   mirror_odd: 0  # Flag for whether there is an odd number of mirrors in between DM and lenslet
