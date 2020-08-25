@@ -244,7 +244,7 @@ class Main(QMainWindow):
 
     def on_zern_test(self, checked):
         """
-        Closed-loop AO control via Zernikes test 1 handler
+        Closed-loop AO control via Zernikes test handler
         """
         btn = self.sender()
 

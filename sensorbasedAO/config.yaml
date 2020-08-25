@@ -83,6 +83,7 @@ image:
   rescale: 1  # 0-rescale off, 1-rescale on
 
 AO:
+  zern_gen: 0  # Flag for whether to generate Zernike modes on DM before correction in AO_zernikes.py and AO_slopes.py
   recon_coeff_num: 80  # 80
   control_coeff_num: 46  # Alpao 46  # Boston 55  # 3rd - 14, 4th - 20, 5th - 27, 6th - 35, 7th - 44, 8th - 54, 9th - 65, 10th - 77
   loop_gain: 0.4  # Fixed loop gain for closed-loop control, 0.6
@@ -93,9 +94,13 @@ AO:
   tolerance_fact_strehl: 0.81  # Strehl ratio tolerance factor according to Marechel criteria, 0.81
 
 zern_test:
-  zern_gen: 0  # Flag for whether to generate Zernike modes on DM before correction in AO_zernikes.py and AO_slopes.py
-  zern_test_mode: 0  # Flag for Zernike Test button operation mode, 0 - AO via Zernikes, 1 - AO via slopess
+  zern_test_mode: 2  # Flag for Zernike Test button operation mode, 0 - AO via Zernikes, 1 - AO via slopes, 2 - line scan + retrieve Zernike coefficients
   zern_amp: 0.1  # Amplitude of all zernike modes for comparison
+  loop_num: 100  # Number of line scans to loop over in mode 2
+  scan_num_x: 50  # Number of scan points along x direction in mode 2
+  scan_num_y: 50  # Number of scan points along y direction in mode 2
+  x_amp: 0.05  # Normalised voltage range for x scan
+  y_amp: 0.05  # Normalised voltage range for y scan
 
 reflect_prof:
   samp_num: 33  # Flag for choosing the working sample

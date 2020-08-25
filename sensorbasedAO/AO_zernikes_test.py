@@ -7,7 +7,9 @@ import os
 import argparse
 import time
 import h5py
+from scipy import io
 import numpy as np
+import scipy as sp
 
 import log
 from config import config
@@ -33,7 +35,7 @@ class AO_Zernikes_Test(QObject):
     message = Signal(object)
     info = Signal(object)
 
-    def __init__(self, sensor, mirror, settings):
+    def __init__(self, sensor, mirror, scanner, settings):
 
         # Get search block settings
         self.SB_settings = settings['SB_info']
@@ -49,6 +51,9 @@ class AO_Zernikes_Test(QObject):
 
         # Get mirror instance
         self.mirror = mirror
+
+        # Get scanner instance
+        self.scanner = scanner
 
         # Initialise AO information parameter
         self.AO_info = {'zern_test': {}}
@@ -598,6 +603,166 @@ class AO_Zernikes_Test(QObject):
 
                 self.info.emit(self.AO_info)
                 self.write.emit()
+            else:
+
+                self.done.emit()
+
+            # Finished closed-loop AO process
+            self.done.emit()
+
+        except Exception as e:
+            raise
+            self.error.emit(e)
+
+    @Slot(object)
+    def run2(self):
+        try:
+            # Set process flags
+            self.loop = True 
+            self.log = True
+
+            # Start thread
+            self.start.emit()
+
+            """
+            Perform a number of line scans across specimen and retrieve Zernike coefficients from each scan point
+            """
+            # Initialise array for storing retrieved zernike coefficients
+            self.zern_x = np.zeros([config['AO']['recon_coeff_num'], config['zern_test']['scan_num_x'], config['zern_test']['loop_num']])
+            self.zern_y = np.zeros([config['AO']['recon_coeff_num'], config['zern_test']['scan_num_y'], config['zern_test']['loop_num']])
+
+            self.message.emit('\nProcess started for Zernike coefficient retrieval from different points along line scan...')
+
+            # Reset deformable mirror
+            self.mirror.Reset()
+
+            # Generate relevant amounts of x/y scan voltages (normalised) for scanning across sample
+            x_array = -np.linspace(-config['zern_test']['x_amp'], config['zern_test']['x_amp'], config['zern_test']['scan_num_x'])
+            y_array = -np.linspace(-config['zern_test']['y_amp'], config['zern_test']['y_amp'], config['zern_test']['scan_num_y'])
+
+            prev1 = time.perf_counter()
+
+            # Scan multiple points across a line in both x and y directions for a given number of loops
+            for l in range(config['zern_test']['loop_num']):
+
+                # Reset scanner
+                self.scanner.ResetDevicePosition()
+
+                print('x-scan loop', l + 1)
+
+                for m in range(config['zern_test']['scan_num_x']):
+                
+                    if self.loop:
+                        
+                        try:
+
+                            # Send voltages to scanner
+                            self.scanner.GoToDevicePosition(x_array[m], 0, 255, 5)
+                        
+                            # Acquire S-H spots using camera and append to list
+                            AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+
+                            # Image thresholding to remove background
+                            AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                            AO_image[AO_image < 0] = 0
+                            self.image.emit(AO_image)
+
+                            # Calculate centroids of S-H spots
+                            act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 2) 
+                            act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+
+                            # Draw actual S-H spot centroids on image layer
+                            AO_image.ravel()[act_cent_coord.astype(int)] = 0
+                            self.image.emit(AO_image)
+
+                            # Concatenate slopes into one slope matrix
+                            slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+
+                            # Get detected zernike coefficients from slope matrix
+                            self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
+
+                            # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
+                            zern_err = self.zern_coeff_detect.copy()
+                            rms_zern = np.sqrt((zern_err ** 2).sum())
+                            self.zern_x[:,m,l] = zern_err
+
+                            print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))                              
+
+                        except Exception as e:
+                            print(e)
+                    else:
+
+                        self.done.emit()
+
+            for l in range(config['zern_test']['loop_num']):
+
+                # Reset scanner
+                self.scanner.ResetDevicePosition()
+
+                print('y-scan loop', l + 1)
+
+                for m in range(config['zern_test']['scan_num_y']):
+                
+                    if self.loop:
+                        
+                        try:
+
+                            # Send voltages to scanner
+                            self.scanner.GoToDevicePosition(0, y_array[m], 255, 5)
+                        
+                            # Acquire S-H spots using camera and append to list
+                            AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+
+                            # Image thresholding to remove background
+                            AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                            AO_image[AO_image < 0] = 0
+                            self.image.emit(AO_image)
+
+                            # Calculate centroids of S-H spots
+                            act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 2) 
+                            act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+
+                            # Draw actual S-H spot centroids on image layer
+                            AO_image.ravel()[act_cent_coord.astype(int)] = 0
+                            self.image.emit(AO_image)
+
+                            # Concatenate slopes into one slope matrix
+                            slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+
+                            # Get detected zernike coefficients from slope matrix
+                            self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
+
+                            # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
+                            zern_err = self.zern_coeff_detect.copy()
+                            rms_zern = np.sqrt((zern_err ** 2).sum())
+                            self.zern_y[:,m,l] = zern_err
+
+                            print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))                              
+
+                        except Exception as e:
+                            print(e)
+                    else:
+
+                        self.done.emit()
+
+            self.message.emit('\nProcess complete.')
+
+            prev2 = time.perf_counter()
+            print('Time for Zernike coefficient retrieval from different points along line scan is:', (prev2 - prev1))
+
+            """
+            Returns closed-loop AO information into self.AO_info
+            """             
+            if self.log:
+
+                self.AO_info['zern_test']['x_scan_zern_coeff'] = self.zern_x
+                self.AO_info['zern_test']['y_scan_zern_coeff'] = self.zern_y
+
+                self.info.emit(self.AO_info)
+                self.write.emit()
+
+                sp.io.savemat('x_scan_zern_coeff.mat', dict(x_scan_zern_coeff = self.zern_x))
+                sp.io.savemat('y_scan_zern_coeff.mat', dict(y_scan_zern_coeff = self.zern_y))
             else:
 
                 self.done.emit()

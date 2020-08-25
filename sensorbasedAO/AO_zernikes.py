@@ -184,7 +184,7 @@ class AO_Zernikes(QObject):
                         if i == 0:
 
                             # Determine whether to generate Zernike modes using DM
-                            if not config['dummy'] and config['zern_test']['zern_gen']:
+                            if not config['dummy'] and config['AO']['zern_gen']:
 
                                 # Retrieve input zernike coefficient array
                                 zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
@@ -432,7 +432,7 @@ class AO_Zernikes(QObject):
                         if i == 0:
 
                             # Determine whether to generate Zernike modes using DM
-                            if not config['dummy'] and config['zern_test']['zern_gen']:
+                            if not config['dummy'] and config['AO']['zern_gen']:
 
                                 # Retrieve input zernike coefficient array
                                 zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
@@ -739,7 +739,7 @@ class AO_Zernikes(QObject):
                             if i == 0:
 
                                 # Determine whether to generate Zernike modes using DM
-                                if not config['dummy'] and config['zern_test']['zern_gen']:
+                                if not config['dummy'] and config['AO']['zern_gen']:
 
                                     # Retrieve input zernike coefficient array
                                     zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
@@ -1031,7 +1031,7 @@ class AO_Zernikes(QObject):
                             if i == 0:
 
                                 # Determine whether to generate Zernike modes using DM
-                                if not config['dummy'] and config['zern_test']['zern_gen']:
+                                if not config['dummy'] and config['AO']['zern_gen']:
 
                                     # Retrieve input zernike coefficient array
                                     zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
@@ -1348,7 +1348,7 @@ class AO_Zernikes(QObject):
                     try:
 
                         # Determine whether to generate Zernike modes using DM
-                        if not config['dummy'] and config['zern_test']['zern_gen']:
+                        if not config['dummy'] and config['AO']['zern_gen']:
 
                             # Retrieve input zernike coefficient array
                             zern_array_temp = np.array(self.SB_settings['zernike_array_test'])

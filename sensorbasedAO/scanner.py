@@ -46,8 +46,6 @@ logger = log.get_logger(__name__)
 
 #         # Set controller data mode
 #         self.mtidevice.ResetDevicePosition()
-#         self.mtidevice.StopDataStream()
-#         self.mtidevice.SetDeviceParam(MTIParam.DataMode, MTIDataMode.Analog_Input_To_Output)
 #         self.mtidevice.StartDataStream()
 
 #         # Turn the MEMS controller on
