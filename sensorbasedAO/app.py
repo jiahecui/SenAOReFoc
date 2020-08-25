@@ -11,10 +11,10 @@ import numpy as np
 
 from datetime import datetime
 
-from alpao.Lib import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
+# from alpao.Lib import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
 from ximea import xiapi
-import mtidevice
-from mtidevice import MTIError, MTIAxes, MTIParam, MTIDataMode, MTISync, MTIDataFormat, MTIAvailableDevices
+# import mtidevice
+# from mtidevice import MTIError, MTIAxes, MTIParam, MTIDataMode, MTISync, MTIDataFormat, MTIAvailableDevices
 # from devwraps.ueye import uEye
 
 import log
@@ -773,6 +773,25 @@ class App(QApplication):
         self.main.ui.liveAcqBtn.setChecked(False)
         self.main.ui.burstAcqBtn.setChecked(False)
         self.main.ui.singleAcqBtn.setChecked(False)
+
+    def handle_DM_reset(self):
+        """
+        Handle reset of deformable mirror
+        """
+        try:
+            self.devices['mirror'].Stop()
+            self.devices['mirror'].Reset()
+        except Exception as e:
+            logger.warning("Error on mirror reset: {}".format(e))
+
+    def handle_scanner_reset(self):
+        """
+        Handle reset of scanner
+        """
+        try:
+            self.devices['scanner'].ResetDevicePosition()
+        except Exception as e:
+            logger.warning("Error on scanner reset: {}".format(e))
 
     def handle_focus_start(self, AO_type = 0):
         """

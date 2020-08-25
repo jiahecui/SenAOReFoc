@@ -45,6 +45,8 @@ class Main(QMainWindow):
         self.ui.liveAcqBtn.clicked.connect(self.on_live_acq)
         self.ui.burstAcqBtn.clicked.connect(self.on_burst_acq)
         self.ui.singleAcqBtn.clicked.connect(self.on_single_acq)
+        self.ui.DMRstBtn.clicked.connect(self.on_DM_reset)
+        self.ui.scannerRstBtn.clicked.connect(self.on_scanner_reset)
         self.ui.scanFocusCheck.stateChanged.connect(self.on_focussettings)
         self.ui.focusDepthSpin.valueChanged.connect(self.on_focussettings)
         self.ui.stepIncreSpin.valueChanged.connect(self.on_focussettings)
@@ -463,7 +465,31 @@ class Main(QMainWindow):
         if not btn.isChecked():
             btn.setChecked(False)
         else:
-            self.app.handle_acq_single_start()        
+            self.app.handle_acq_single_start()
+
+    def on_DM_reset(self, checked):
+        """
+        Reset DM
+        """
+        btn = self.sender()
+
+        # Reset DM if pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            self.app.handle_DM_reset()
+
+    def on_scanner_reset(self, checked):
+        """
+        Reset scanner
+        """
+        btn = self.sender()
+
+        # Reset scanner if pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            self.app.handle_scanner_reset()
 
     def on_focussettings(self):
         """

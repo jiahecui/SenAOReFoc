@@ -41,8 +41,8 @@
            <widget class="QPushButton" name="initialiseBtn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
+              <horstretch>100</horstretch>
+              <verstretch>30</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
@@ -70,8 +70,8 @@
            <widget class="QPushButton" name="positionBtn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
+              <horstretch>100</horstretch>
+              <verstretch>30</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
@@ -99,8 +99,8 @@
            <widget class="QPushButton" name="centroidBtn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
+              <horstretch>100</horstretch>
+              <verstretch>30</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
@@ -132,8 +132,8 @@
            <widget class="QPushButton" name="calibrateBtn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
+              <horstretch>100</horstretch>
+              <verstretch>30</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
@@ -161,8 +161,8 @@
            <widget class="QPushButton" name="conversionBtn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
+              <horstretch>100</horstretch>
+              <verstretch>30</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
@@ -190,8 +190,8 @@
            <widget class="QPushButton" name="calibrateBtn_2">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
+              <horstretch>100</horstretch>
+              <verstretch>30</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
@@ -326,8 +326,8 @@
            <widget class="QPushButton" name="ZernikeAOBtn_3">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
+              <horstretch>100</horstretch>
+              <verstretch>30</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
@@ -353,8 +353,8 @@
            <widget class="QPushButton" name="slopeAOBtn_3">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
+              <horstretch>100</horstretch>
+              <verstretch>30</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
@@ -380,8 +380,8 @@
            <widget class="QPushButton" name="ZernikeAOBtn_2">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
+              <horstretch>100</horstretch>
+              <verstretch>30</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
@@ -407,8 +407,8 @@
            <widget class="QPushButton" name="slopeAOBtn_2">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
+              <horstretch>100</horstretch>
+              <verstretch>30</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
@@ -434,8 +434,8 @@
            <widget class="QPushButton" name="ZernikeAOBtn_1">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
+              <horstretch>100</horstretch>
+              <verstretch>30</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
@@ -461,8 +461,8 @@
            <widget class="QPushButton" name="slopeAOBtn_1">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
+              <horstretch>100</horstretch>
+              <verstretch>30</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
@@ -488,13 +488,13 @@
            <widget class="QPushButton" name="ZernikeTestBtn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
+              <horstretch>130</horstretch>
+              <verstretch>30</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
-              <width>100</width>
+              <width>130</width>
               <height>30</height>
              </size>
             </property>
@@ -515,13 +515,13 @@
            <widget class="QPushButton" name="ZernikeFullBtn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
+              <horstretch>130</horstretch>
+              <verstretch>30</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
-              <width>100</width>
+              <width>130</width>
               <height>30</height>
              </size>
             </property>
@@ -542,13 +542,13 @@
            <widget class="QPushButton" name="slopeFullBtn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
+              <horstretch>130</horstretch>
+              <verstretch>30</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
-              <width>100</width>
+              <width>130</width>
               <height>30</height>
              </size>
             </property>
@@ -568,15 +568,23 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_5"/>
-        </item>
-        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_4">
           <item>
            <widget class="QLabel" name="imageAcqLbl">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>170</width>
+              <height>30</height>
+             </size>
+            </property>
             <property name="font">
              <font>
-              <family>MS Shell Dlg 2</family>
               <pointsize>10</pointsize>
              </font>
             </property>
@@ -589,19 +597,18 @@
            <widget class="QPushButton" name="liveAcqBtn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
+              <horstretch>100</horstretch>
+              <verstretch>30</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
-              <width>100</width>
+              <width>90</width>
               <height>30</height>
              </size>
             </property>
             <property name="font">
              <font>
-              <family>MS Shell Dlg 2</family>
               <pointsize>10</pointsize>
              </font>
             </property>
@@ -617,8 +624,8 @@
            <widget class="QPushButton" name="burstAcqBtn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
+              <horstretch>100</horstretch>
+              <verstretch>30</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
@@ -629,7 +636,6 @@
             </property>
             <property name="font">
              <font>
-              <family>MS Shell Dlg 2</family>
               <pointsize>10</pointsize>
              </font>
             </property>
@@ -645,8 +651,8 @@
            <widget class="QPushButton" name="singleAcqBtn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
+              <horstretch>100</horstretch>
+              <verstretch>30</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
@@ -657,7 +663,6 @@
             </property>
             <property name="font">
              <font>
-              <family>MS Shell Dlg 2</family>
               <pointsize>10</pointsize>
              </font>
             </property>
@@ -668,6 +673,114 @@
              <bool>true</bool>
             </property>
            </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <widget class="QLabel" name="deviceRstLbl">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>170</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Device Reset</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="DMRstBtn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>100</horstretch>
+              <verstretch>30</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>90</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Reset DM</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="scannerRstBtn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>100</horstretch>
+              <verstretch>30</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Reset Scanner</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
           </item>
          </layout>
         </item>

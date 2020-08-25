@@ -2,7 +2,7 @@ import os
 import sys
 import time
 
-from alpao.Lib import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
+# from alpao.Lib import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
 
 import log
 from config import config
@@ -10,22 +10,22 @@ from config import config
 logger = log.get_logger(__name__)
 
 
-class MIRROR_ALPAO(asdk.DM):
-    """
-    Creates an instance of the DM class to access its methods, attributes, and the target device at serial port.
-    """
-    def __init__(self, serialNumber):
-        # Create Mirror instance
-        self.mirror = asdk.DM(serialNumber)
+# class MIRROR_ALPAO(asdk.DM):
+#     """
+#     Creates an instance of the DM class to access its methods, attributes, and the target device at serial port.
+#     """
+#     def __init__(self, serialNumber):
+#         # Create Mirror instance
+#         self.mirror = asdk.DM(serialNumber)
 
-        # Get number of actuators for Mirror instance
-        nbAct = int(self.mirror.Get('NBOfActuator')) 
-        print('Number of actuators for ' + serialNumber + ': ' + str(nbAct))
+#         # Get number of actuators for Mirror instance
+#         nbAct = int(self.mirror.Get('NBOfActuator')) 
+#         print('Number of actuators for ' + serialNumber + ': ' + str(nbAct))
     
-        # Reset Mirror instance
-        self.mirror.Reset()
+#         # Reset Mirror instance
+#         self.mirror.Reset()
 
-        super().__init__(serialNumber)
+#         super().__init__(serialNumber)
 
 
 class MIRROR():
