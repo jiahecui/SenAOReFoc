@@ -317,7 +317,7 @@ class AO_Zernikes(QObject):
                         # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                         zern_err = self.zern_coeff_detect.copy()
                         zern_err_part = self.zern_coeff_detect.copy()
-                        zern_err_part[[0, 1, 3], 0] = 0
+                        zern_err_part[[0, 1], 0] = 0
                         rms_zern = np.sqrt((zern_err ** 2).sum())
                         rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
                         self.loop_rms_zern[i] = rms_zern
@@ -614,7 +614,7 @@ class AO_Zernikes(QObject):
                         # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                         zern_err = self.zern_coeff_detect.copy()
                         zern_err_part = self.zern_coeff_detect.copy()
-                        zern_err_part[[0, 1, 3], 0] = 0
+                        zern_err_part[[0, 1], 0] = 0
                         rms_zern = np.sqrt((zern_err ** 2).sum())
                         rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
                         self.loop_rms_zern[i] = rms_zern
@@ -884,7 +884,7 @@ class AO_Zernikes(QObject):
                             # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                             zern_err = self.zern_coeff_detect.copy()
                             zern_err_part = self.zern_coeff_detect.copy()
-                            zern_err_part[[0, 1, 3], 0] = 0
+                            zern_err_part[[0, 1], 0] = 0
                             rms_zern = np.sqrt((zern_err ** 2).sum())
                             rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
                             self.loop_rms_zern[i,j] = rms_zern
@@ -1226,7 +1226,7 @@ class AO_Zernikes(QObject):
                             # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                             zern_err = self.zern_coeff_detect.copy()
                             zern_err_part = self.zern_coeff_detect.copy()
-                            zern_err_part[[0, 1, 3], 0] = 0
+                            zern_err_part[[0, 1], 0] = 0
                             rms_zern = np.sqrt((zern_err ** 2).sum())
                             rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
                             self.loop_rms_zern[i,j] = rms_zern

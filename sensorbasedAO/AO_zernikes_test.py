@@ -655,7 +655,7 @@ class AO_Zernikes_Test(QObject):
                     if self.loop:
                         
                         try:
-
+                            
                             # Send voltages to scanner
                             self.scanner.GoToDevicePosition(x_array[m], 0, 255, 5)
                         
@@ -684,9 +684,9 @@ class AO_Zernikes_Test(QObject):
                             # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                             zern_err = self.zern_coeff_detect.copy()
                             rms_zern = np.sqrt((zern_err ** 2).sum())
-                            self.zern_x[:,m,l] = zern_err
+                            self.zern_x[:,m,l] = zern_err[:,0]
 
-                            print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))                              
+                            print('Full zernike root mean square error {} is {} um'.format(l, rms_zern))                              
 
                         except Exception as e:
                             print(e)
@@ -735,9 +735,9 @@ class AO_Zernikes_Test(QObject):
                             # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                             zern_err = self.zern_coeff_detect.copy()
                             rms_zern = np.sqrt((zern_err ** 2).sum())
-                            self.zern_y[:,m,l] = zern_err
+                            self.zern_y[:,m,l] = zern_err[:,0]
 
-                            print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))                              
+                            print('Full zernike root mean square error {} is {} um'.format(l, rms_zern))                              
 
                         except Exception as e:
                             print(e)

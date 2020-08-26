@@ -809,9 +809,9 @@ class App(QApplication):
         Handle reset of deformable mirror
         """
         try:
-            self.devices['mirror'].Stop()
             self.devices['mirror'].Reset()
             self.main.ui.DMRstBtn.setChecked(False)
+            print('DM reset success.')
         except Exception as e:
             logger.warning("Error on mirror reset: {}".format(e))
 
@@ -822,6 +822,7 @@ class App(QApplication):
         try:
             self.devices['scanner'].ResetDevicePosition()
             self.main.ui.scannerRstBtn.setChecked(False)
+            print('Scanner reset success.')
         except Exception as e:
             logger.warning("Error on scanner reset: {}".format(e))
 

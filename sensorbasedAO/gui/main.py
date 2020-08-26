@@ -482,7 +482,6 @@ class Main(QMainWindow):
             btn.setChecked(False)
         else:
             self.app.handle_DM_reset()
-            btn.setChecked(True)
 
     def on_scanner_reset(self, checked):
         """
@@ -495,7 +494,6 @@ class Main(QMainWindow):
             btn.setChecked(False)
         else:
             self.app.handle_scanner_reset()
-            btn.setChecked(True)
 
     def on_focussettings(self):
         """

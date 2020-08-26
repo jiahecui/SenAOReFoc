@@ -76,7 +76,7 @@ class Calibration_RF(QObject):
             voltages = np.zeros(self.actuator_num)
 
             # Iterate through each step and retrieve the voltages that correct for the aberration at that step
-            for i in range(config['RF_calib']['step_num']):
+            # for i in range(config['RF_calib']['step_num']):
 
         except Exception as e:
             raise
