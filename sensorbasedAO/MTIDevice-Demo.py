@@ -38,8 +38,8 @@ def main():
     # the first two parameters are critical to match device limitations provided in datasheet
     # VdifferenceMax should not exceed maximum voltage shown in page 1 of datasheet
     # HardwareFilterBw should not significantly exceed recommended filter setting in page 1 of datasheet
-    params.VdifferenceMax = 177
-    params.HardwareFilterBw = 2200
+    params.VdifferenceMax = 159
+    params.HardwareFilterBw = 500
 
     # The rest of the parameters are more user-requirement specific
     params.DataMode = MTIDataMode.Sample_Output			# This is default mode, reiterated for demo
@@ -47,7 +47,7 @@ def main():
     params.SampleRate = 20000
     params.DeviceAxes = MTIAxes.Normal					# This is default mode, reiterated for demo
     params.SyncMode = MTISync.Output_DOut0				# This is default mode, reiterated for demo
-    params.Vbias = 90
+    params.Vbias = 80
 
     mti.SetDeviceParams( params )	# Now, set the controller's params with the params in the structure
     lastError = mti.GetLastError()	# Query API handle for last error - helpful for debugging

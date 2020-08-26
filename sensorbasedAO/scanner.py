@@ -37,9 +37,9 @@ class MEMS_MIRRORCLE(mtidevice.MTIDevice):
         # Initialise controller parameters
         params = self.mtidevice.GetDeviceParams()
         params.VdifferenceMax = 159
-        params.HardwareFilterBw = 900
+        params.HardwareFilterBw = 500
         params.Vbias = 80
-        params.SampleRate = 100000
+        params.SampleRate = 20000
         self.mtidevice.SetDeviceParams(params)
 
         params_temp = self.mtidevice.GetDeviceParams()

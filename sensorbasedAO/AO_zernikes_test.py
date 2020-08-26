@@ -637,8 +637,8 @@ class AO_Zernikes_Test(QObject):
             self.mirror.Reset()
 
             # Generate relevant amounts of x/y scan voltages (normalised) for scanning across sample
-            x_array = -np.linspace(-config['zern_test']['x_amp'], config['zern_test']['x_amp'], config['zern_test']['scan_num_x'])
-            y_array = -np.linspace(-config['zern_test']['y_amp'], config['zern_test']['y_amp'], config['zern_test']['scan_num_y'])
+            x_array = np.linspace(-config['zern_test']['x_amp'], config['zern_test']['x_amp'], config['zern_test']['scan_num_x'])
+            y_array = np.linspace(-config['zern_test']['y_amp'], config['zern_test']['y_amp'], config['zern_test']['scan_num_y'])
 
             prev1 = time.perf_counter()
 
@@ -657,7 +657,7 @@ class AO_Zernikes_Test(QObject):
                         try:
                             
                             # Send voltages to scanner
-                            self.scanner.GoToDevicePosition(x_array[m], 0, 255, 5)
+                            self.scanner.GoToDevicePosition(x_array[m], 0, 255, 10)
                         
                             # Acquire S-H spots using camera and append to list
                             AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
@@ -708,7 +708,7 @@ class AO_Zernikes_Test(QObject):
                         try:
 
                             # Send voltages to scanner
-                            self.scanner.GoToDevicePosition(0, y_array[m], 255, 5)
+                            self.scanner.GoToDevicePosition(0, y_array[m], 255, 10)
                         
                             # Acquire S-H spots using camera and append to list
                             AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)

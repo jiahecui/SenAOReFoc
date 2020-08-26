@@ -13,7 +13,7 @@ camera:
   dataformat: "XI_MONO8"
   data_min: 0  # Minimum image output value
   data_max: 255  # Maximum image output value for dataformat 1023 for actual camera
-  exposure: 300  # us
+  exposure: 100  # us
   auto_gain: 0  # Flag for whether to use automatic exposure / gain mode, 0-auto_gain off, 1-auto_gain on
   exp_priority: 0.8  # exposure n, gain (1 - n)
   ae_max_limit: 100000  # maximum time (us) used for exposure in AEAG procedure
@@ -32,8 +32,8 @@ camera:
 DM:
   SN: "HSDM69-15-014" 
   DM_num: 0  # Flag for choosing the working DM, 0-Alpao, 1-Boston
-  vol_min: -0.15  # V
-  vol_max: 0.15
+  vol_min: -0.1  # V
+  vol_max: 0.1
   vol_bias: 0
   vol_step: 1
   settling_time: 0.01
@@ -94,13 +94,13 @@ AO:
   tolerance_fact_strehl: 1  # Strehl ratio tolerance factor according to Marechel criteria, 0.81
 
 zern_test:
-  zern_test_mode: 0  # Flag for Zernike Test button operation mode, 0 - AO via Zernikes, 1 - AO via slopes, 2 - line scan + retrieve Zernike coefficients
+  zern_test_mode: 2  # Flag for Zernike Test button operation mode, 0 - AO via Zernikes, 1 - AO via slopes, 2 - line scan + retrieve Zernike coefficients
   zern_amp: 0.1  # Amplitude of all zernike modes for comparison
-  loop_num: 5  # Number of line scans to loop over in mode 2
+  loop_num: 1  # Number of line scans to loop over in mode 2
   scan_num_x: 5  # Number of scan points along x direction in mode 2
   scan_num_y: 5  # Number of scan points along y direction in mode 2
-  x_amp: 0.05  # Normalised voltage range for x scan
-  y_amp: 0.05  # Normalised voltage range for y scan
+  x_amp: 0.5  # Normalised voltage range for x scan
+  y_amp: 0.5  # Normalised voltage range for y scan
 
 RF_calib:
   step_num: 40  # Number of steps used in one direction during calibration of remote focusing
