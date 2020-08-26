@@ -102,6 +102,9 @@ zern_test:
   x_amp: 0.05  # Normalised voltage range for x scan
   y_amp: 0.05  # Normalised voltage range for y scan
 
+RF_calib:
+  step_num: 40  # Number of steps used in one direction during calibration of remote focusing
+
 reflect_prof:
   samp_num: 33  # Flag for choosing the working sample
   samp_width: 128  # pixels  # Note that this has to be a factor of the sensor width

@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Tue Aug 25 16:07:33 2020
+# Created: Tue Aug 25 23:39:07 2020
 #      by: pyside2-uic  running on PySide2 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -39,7 +39,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(30)
         sizePolicy.setHeightForWidth(self.initialiseBtn.sizePolicy().hasHeightForWidth())
         self.initialiseBtn.setSizePolicy(sizePolicy)
-        self.initialiseBtn.setMinimumSize(QtCore.QSize(100, 30))
+        self.initialiseBtn.setMinimumSize(QtCore.QSize(150, 30))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setWeight(50)
@@ -54,7 +54,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(30)
         sizePolicy.setHeightForWidth(self.positionBtn.sizePolicy().hasHeightForWidth())
         self.positionBtn.setSizePolicy(sizePolicy)
-        self.positionBtn.setMinimumSize(QtCore.QSize(100, 30))
+        self.positionBtn.setMinimumSize(QtCore.QSize(150, 30))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setWeight(50)
@@ -69,7 +69,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(30)
         sizePolicy.setHeightForWidth(self.centroidBtn.sizePolicy().hasHeightForWidth())
         self.centroidBtn.setSizePolicy(sizePolicy)
-        self.centroidBtn.setMinimumSize(QtCore.QSize(100, 30))
+        self.centroidBtn.setMinimumSize(QtCore.QSize(150, 30))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setWeight(50)
@@ -87,7 +87,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(30)
         sizePolicy.setHeightForWidth(self.calibrateBtn.sizePolicy().hasHeightForWidth())
         self.calibrateBtn.setSizePolicy(sizePolicy)
-        self.calibrateBtn.setMinimumSize(QtCore.QSize(100, 30))
+        self.calibrateBtn.setMinimumSize(QtCore.QSize(150, 30))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setWeight(50)
@@ -102,7 +102,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(30)
         sizePolicy.setHeightForWidth(self.conversionBtn.sizePolicy().hasHeightForWidth())
         self.conversionBtn.setSizePolicy(sizePolicy)
-        self.conversionBtn.setMinimumSize(QtCore.QSize(100, 30))
+        self.conversionBtn.setMinimumSize(QtCore.QSize(150, 30))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setWeight(50)
@@ -117,7 +117,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(30)
         sizePolicy.setHeightForWidth(self.calibrateBtn_2.sizePolicy().hasHeightForWidth())
         self.calibrateBtn_2.setSizePolicy(sizePolicy)
-        self.calibrateBtn_2.setMinimumSize(QtCore.QSize(100, 30))
+        self.calibrateBtn_2.setMinimumSize(QtCore.QSize(150, 30))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setWeight(50)
@@ -526,6 +526,14 @@ class Ui_MainWindow(object):
         self.AOTypeCombo.addItem("")
         self.AOTypeCombo.addItem("")
         self.verticalLayout_5.addWidget(self.AOTypeCombo)
+        self.calibrateRFBtn = QtWidgets.QPushButton(self.centralwidget)
+        self.calibrateRFBtn.setMinimumSize(QtCore.QSize(0, 30))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.calibrateRFBtn.setFont(font)
+        self.calibrateRFBtn.setCheckable(True)
+        self.calibrateRFBtn.setObjectName("calibrateRFBtn")
+        self.verticalLayout_5.addWidget(self.calibrateRFBtn)
         self.moveBtn = QtWidgets.QPushButton(self.centralwidget)
         self.moveBtn.setMinimumSize(QtCore.QSize(0, 30))
         font = QtGui.QFont()
@@ -663,6 +671,7 @@ class Ui_MainWindow(object):
         self.AOTypeCombo.setItemText(2, QtWidgets.QApplication.translate("MainWindow", "Zernike Full", None, -1))
         self.AOTypeCombo.setItemText(3, QtWidgets.QApplication.translate("MainWindow", "Slope AO 3", None, -1))
         self.AOTypeCombo.setItemText(4, QtWidgets.QApplication.translate("MainWindow", "Slope Full", None, -1))
+        self.calibrateRFBtn.setText(QtWidgets.QApplication.translate("MainWindow", "CALIBRATE", None, -1))
         self.moveBtn.setText(QtWidgets.QApplication.translate("MainWindow", "MOVE", None, -1))
         self.scanBtn.setText(QtWidgets.QApplication.translate("MainWindow", "SCAN", None, -1))
         self.MLDataBtn.setText(QtWidgets.QApplication.translate("MainWindow", "ML Dataset", None, -1))

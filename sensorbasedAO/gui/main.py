@@ -54,6 +54,7 @@ class Main(QMainWindow):
         self.ui.startDepthSpin.valueChanged.connect(self.on_focussettings)
         self.ui.pauseTimeSpin.valueChanged.connect(self.on_focussettings)
         self.ui.AOTypeCombo.currentIndexChanged.connect(self.on_focussettings)
+        self.ui.calibrateRFBtn.clicked.connect(self.on_calibrate_RF)
         self.ui.moveBtn.clicked.connect(self.on_move)
         self.ui.scanBtn.clicked.connect(self.on_scan)
         self.ui.MLDataBtn.clicked.connect(self.on_ML_dataset)
@@ -432,6 +433,7 @@ class Main(QMainWindow):
             btn.setChecked(False)
         else:
             self.app.handle_acq_live_start()
+            btn.setChecked(True)
 
     def on_burst_acq(self, checked):
         """
@@ -449,6 +451,7 @@ class Main(QMainWindow):
             btn.setChecked(False)
         else:
             self.app.handle_acq_burst_start()
+            btn.setChecked(True)
 
     def on_single_acq(self, checked):
         """
@@ -466,6 +469,7 @@ class Main(QMainWindow):
             btn.setChecked(False)
         else:
             self.app.handle_acq_single_start()
+            btn.setChecked(True)
 
     def on_DM_reset(self, checked):
         """
@@ -478,6 +482,7 @@ class Main(QMainWindow):
             btn.setChecked(False)
         else:
             self.app.handle_DM_reset()
+            btn.setChecked(True)
 
     def on_scanner_reset(self, checked):
         """
@@ -490,6 +495,7 @@ class Main(QMainWindow):
             btn.setChecked(False)
         else:
             self.app.handle_scanner_reset()
+            btn.setChecked(True)
 
     def on_focussettings(self):
         """
@@ -511,6 +517,17 @@ class Main(QMainWindow):
             self.ui.stepNumSpin.setReadOnly(True)
             self.ui.startDepthSpin.setReadOnly(True)
             self.ui.pauseTimeSpin.setReadOnly(True)
+
+    def on_calibrate_RF(self, checked):
+        """
+        Remote focusing calibration handler
+        """
+        # Reset scanner if pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            self.app.handle_calib_RF_start()
+            btn.setChecked(True)
 
     def on_move(self, checked):
         """

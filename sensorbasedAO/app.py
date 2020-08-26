@@ -11,10 +11,10 @@ import numpy as np
 
 from datetime import datetime
 
-# from alpao.Lib import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
+from alpao.Lib import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
 from ximea import xiapi
-# import mtidevice
-# from mtidevice import MTIError, MTIAxes, MTIParam, MTIDataMode, MTISync, MTIDataFormat, MTIAvailableDevices
+import mtidevice
+from mtidevice import MTIError, MTIAxes, MTIParam, MTIDataMode, MTISync, MTIDataFormat, MTIAvailableDevices
 # from devwraps.ueye import uEye
 
 import log
@@ -29,6 +29,7 @@ from centroiding import Centroiding
 from calibration import Calibration
 from conversion import Conversion
 from calibration_zern import Calibration_Zern
+from calibration_RF import Calibration_RF
 from AO_zernikes_test import AO_Zernikes_Test
 from AO_zernikes import AO_Zernikes
 from AO_slopes import AO_Slopes
@@ -417,6 +418,32 @@ class App(QApplication):
         # Start Zernike AO thread
         acq_thread.start()
 
+    def calibrate_RF(self, sensor, mirror, data_info):
+        """
+        Calibrate remote focusing
+        """
+        # Create calibration worker and thread
+        calib_RF_thread = QThread()
+        calib_RF_thread.setObjectName('calib_RF_thread')
+        calib_RF_worker = Calibration_RF(sensor, mirror, data_info)
+        calib_RF_worker.moveToThread(calib_RF_thread)
+
+        # Connect to signals
+        calib_RF_thread.started.connect(calib_RF_worker.run)
+        calib_RF_worker.image.connect(lambda obj: self.handle_image_disp(obj))
+        calib_RF_worker.message.connect(lambda obj: self.handle_message_disp(obj))
+        calib_RF_worker.info.connect(lambda obj: self.handle_mirror_info(obj))
+        calib_RF_worker.write.connect(self.write_mirror_info)
+        calib_RF_worker.error.connect(lambda obj: self.handle_error(obj))
+        calib_RF_worker.done.connect(self.handle_calib_RF_done)
+
+        # Store calib_RFration worker and thread
+        self.workers['calib_RF_worker'] = calib_RF_worker
+        self.threads['calib_RF_thread'] = calib_RF_thread
+
+        # Start calib_RFration thread
+        calib_RF_thread.start()
+
     def ML_dataset_gen(self, sensor, mirror, data_info):
         """
         Generate ML dataset
@@ -784,6 +811,7 @@ class App(QApplication):
         try:
             self.devices['mirror'].Stop()
             self.devices['mirror'].Reset()
+            self.main.ui.DMRstBtn.setChecked(False)
         except Exception as e:
             logger.warning("Error on mirror reset: {}".format(e))
 
@@ -793,8 +821,23 @@ class App(QApplication):
         """
         try:
             self.devices['scanner'].ResetDevicePosition()
+            self.main.ui.scannerRstBtn.setChecked(False)
         except Exception as e:
             logger.warning("Error on scanner reset: {}".format(e))
+
+    def handle_calib_RF_start(self):
+        """
+        Handle calibration of remote focusing
+        """
+        self.calibrate_RF(self.devices['sensor'], self.devices['mirror'], self.data_info)
+
+    def handle_calib_RF_done(self):
+        """
+        Handle calibration of remote focusing
+        """
+        self.threads['calib_RF_thread'].quit()
+        self.threads['calib_RF_thread'].wait()
+        self.main.ui.calibrateRFBtn.setChecked(False)
 
     def handle_focus_start(self, AO_type = 0):
         """

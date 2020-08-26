@@ -7,9 +7,7 @@ import argparse
 import time
 import click
 import h5py
-from scipy import io
 import numpy as np
-import scipy as sp
 
 from ximea import xiapi
 
