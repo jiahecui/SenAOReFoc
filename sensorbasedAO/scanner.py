@@ -15,7 +15,7 @@ class MEMS_MIRRORCLE(mtidevice.MTIDevice):
     Creates an instance of the MTIDevice class to access its methods and attributes, locates the target device at serial port,
     loads parameters provided in mtidevice.ini file, and updates the controller
     """
-    def __init__(self, serialNumber):
+    def __init__(self):
         # Create MEMS instance, locate serial port and connect to device
         self.mtidevice = mtidevice.MTIDevice()
         table = self.mtidevice.GetAvailableDevices()
@@ -65,7 +65,7 @@ class SCANNER():
     def get(type = config['scanner']['SN']):
         if type.lower() == 's31155':
             try:
-                scanner = MEMS_MIRRORCLE(type)
+                scanner = MEMS_MIRRORCLE()
             except:
                 logger.warning('Unable to load Mirrorcle mirror.')
         elif type.lower() == 'debug':

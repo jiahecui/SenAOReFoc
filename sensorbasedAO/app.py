@@ -120,7 +120,40 @@ class App(QApplication):
             scanner = SCANNER.get('debug')
         else:
             try:
-                scanner = SCANNER.get(config['scanner']['SN'])
+                scanner = mtidevice.MTIDevice()
+                table = scanner.GetAvailableDevices()
+
+                if table.NumDevices == 0:
+                    print('There are no devices available.')
+                    return None
+
+                scanner.ListAvailableDevices(table)
+                portnumber = config['scanner']['portnumber']
+                
+                if os.name == 'nt':
+                    portName = 'COM' + portnumber
+                else:
+                    portName = '/dev/ttyUSB' + portnumber
+
+                scanner.ConnectDevice(portName)
+
+                # Initialise controller parameters
+                params = scanner.GetDeviceParams()
+                params.VdifferenceMax = 159
+                params.HardwareFilterBw = 500
+                params.Vbias = 80
+                params.SampleRate = 20000
+                scanner.SetDeviceParams(params)
+
+                params_temp = scanner.GetDeviceParams()
+
+                # Set controller data mode
+                scanner.ResetDevicePosition()
+                scanner.StartDataStream()
+
+                # Turn the MEMS controller on
+                scanner.SetDeviceParam(MTIParam.MEMSDriverEnable, True)
+
                 print('Scanner load success.')
             except Exception as e:
                 logger.warning('Scanner load error', e)

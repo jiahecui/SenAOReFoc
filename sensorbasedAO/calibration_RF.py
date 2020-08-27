@@ -11,6 +11,7 @@ import numpy as np
 
 import log
 from config import config
+from HDF5_dset import dset_append, get_dset
 from image_acquisition import acq_image
 from centroid_acquisition import acq_centroid
 
@@ -45,12 +46,6 @@ class Calibration_RF(QObject):
         # Get mirror instance
         self.mirror = mirror
 
-        # Initialise Zernike coefficient array
-        self.zern_coeff = np.zeros(config['AO']['control_coeff_num'])
-
-        # Initialise array to store remote focusing calibration voltages
-        self.calib_array = np.zeros([config['AO']['control_coeff_num'], config['RF_calib']['step_num'] * 2 + 1])
-
         # Choose working DM along with its parameters
         if config['DM']['DM_num'] == 0:
             self.actuator_num = config['DM0']['actuator_num']
@@ -59,6 +54,12 @@ class Calibration_RF(QObject):
             self.actuator_num = config['DM1']['actuator_num']
             self.pupil_diam = config['search_block']['pupil_diam_1']
 
+        # Initialise Zernike coefficient array
+        self.zern_coeff = np.zeros(config['AO']['control_coeff_num'])
+
+        # Initialise array to store remote focusing calibration voltages
+        self.calib_array = np.zeros([self.actuator_num, config['RF_calib']['step_num'] * 2 - 1])
+
         super().__init__()
 
     @Slot(object)
@@ -66,19 +67,216 @@ class Calibration_RF(QObject):
         try:
             # Set process flags
             self.loop = True
+            self.log = True
 
             # Start thread
             self.start.emit()
 
+            """
+            Calibrates for remote focusing by moving a mirror sample to different positions along axis,
+            correcting for that amount of defocus, then storing the actuator voltages for each position
+            """
             self.message.emit('\nProcess started for calibration of remote focusing...')
 
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
 
-            # Iterate through each step and retrieve the voltages that correct for the aberration at that step
-            # for i in range(config['RF_calib']['step_num']):
+            prev1 = time.perf_counter()
+
+            # Iterate through each position and retrieve voltages to correct for that position for positive defocus
+            for l in range(config['RF_calib']['step_num']):
+
+                # Ask user to move mirror sample to different positions along the z-axis
+                self.message.emit('\nMove mirror to position {}. Press [y] to confirm.'.format(l))
+                c = click.getchar()
+
+                while True:
+                    if c == 'y':
+                        break
+                    else:
+                        self.message.emit('\nInvalid input. Please try again.')
+
+                if self.loop:
+
+                    # Run closed-loop control until tolerance value or maximum loop iteration is reached
+                    for i in range(config['AO']['loop_max'] + 1):
+                    
+                        try:
+
+                            # Update mirror control voltages
+                            if l == 0 and i == 0:                     
+                                voltages[:] = config['DM']['vol_bias']
+                            elif l > 0 and i == 0:
+                                voltages = self.calib_array[:, l - 1]
+                            elif l > 0 and i > 0:
+                                voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
+                                    zern_err_part[:config['AO']['control_coeff_num']]))
+
+                            print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
+
+                            # Send values vector to mirror
+                            self.mirror.Send(voltages)
+                            
+                            # Wait for DM to settle
+                            time.sleep(config['DM']['settling_time'])
+                        
+                            # Acquire S-H spots using camera and append to list
+                            AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                            dset_append(data_set_1, 'real_AO_img', AO_image)
+
+                            # Image thresholding to remove background
+                            AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                            AO_image[AO_image < 0] = 0
+                            self.image.emit(AO_image)
+
+                            # Calculate centroids of S-H spots
+                            act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 7)
+                            act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+                        
+                            # print('slope_x:', slope_x)
+                            # print('slope_y:', slope_y)
+
+                            # Draw actual S-H spot centroids on image layer
+                            AO_image.ravel()[act_cent_coord.astype(int)] = 0
+                            self.image.emit(AO_image)
+
+                            # Concatenate slopes into one slope matrix
+                            slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+
+                            # Get detected zernike coefficients from slope matrix
+                            self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
+
+                            # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
+                            zern_err = self.zern_coeff_detect.copy()
+                            zern_err_part = self.zern_coeff_detect.copy()
+                            zern_err_part[[0, 1, 3], 0] = 0
+
+                            strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
+
+                            if strehl >= config['AO']['tolerance_fact_strehl']:
+                                self.calib_array[:,l] = voltages
+                                break
+
+                        except Exception as e:
+                            print(e)
+
+                else:
+
+                    self.done.emit()
+
+            # Iterate through each position and retrieve voltages to correct for that position for negative defocus
+            for l in range(config['RF_calib']['step_num'] - 1):
+
+                # Ask user to move mirror sample to different positions along the z-axis
+                self.message.emit('\nMove mirror to position {}. Press [y] to confirm.'.format(l + 41))
+                c = click.getchar()
+
+                while True:
+                    if c == 'y':
+                        break
+                    else:
+                        self.message.emit('\nInvalid input. Please try again.')
+
+                if self.loop:
+
+                    # Run closed-loop control until tolerance value or maximum loop iteration is reached
+                    for i in range(config['AO']['loop_max'] + 1):
+                    
+                        try:
+
+                            # Update mirror control voltages
+                            if l == 0 and i == 0:                     
+                                voltages = self.calib_array[:, l]
+                            elif l > 0 and i == 0:
+                                voltages = self.calib_array[:, l + 40]
+                            elif l > 0 and i > 0:
+                                voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
+                                    zern_err_part[:config['AO']['control_coeff_num']]))
+
+                            print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
+
+                            # Send values vector to mirror
+                            self.mirror.Send(voltages)
+                            
+                            # Wait for DM to settle
+                            time.sleep(config['DM']['settling_time'])
+                        
+                            # Acquire S-H spots using camera and append to list
+                            AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                            dset_append(data_set_1, 'real_AO_img', AO_image)
+
+                            # Image thresholding to remove background
+                            AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                            AO_image[AO_image < 0] = 0
+                            self.image.emit(AO_image)
+
+                            # Calculate centroids of S-H spots
+                            act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 7)
+                            act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+                        
+                            # print('slope_x:', slope_x)
+                            # print('slope_y:', slope_y)
+
+                            # Draw actual S-H spot centroids on image layer
+                            AO_image.ravel()[act_cent_coord.astype(int)] = 0
+                            self.image.emit(AO_image)
+
+                            # Concatenate slopes into one slope matrix
+                            slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+
+                            # Get detected zernike coefficients from slope matrix
+                            self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
+
+                            # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
+                            zern_err = self.zern_coeff_detect.copy()
+                            zern_err_part = self.zern_coeff_detect.copy()
+                            zern_err_part[[0, 1, 3], 0] = 0
+
+                            strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
+
+                            if strehl >= config['AO']['tolerance_fact_strehl']:
+                                self.calib_array[:,l + 41] = voltages
+                                break
+
+                        except Exception as e:
+                            print(e)
+
+                else:
+
+                    self.done.emit()
+
+            # Close HDF5 file
+            data_file.close()
+
+            self.message.emit('\nProcess complete.')
+
+            prev2 = time.perf_counter()
+            print('Time for remote focusing calibration process is:', (prev2 - prev1))
+
+            # Reset mirror
+            self.mirror.Reset()
+
+            """
+            Returns remote focusing calibration information into self.mirror_info
+            """ 
+            if self.log:
+
+                self.mirror_info['remote_focus_voltages'] = self.calib_array
+
+                self.info.emit(self.mirror_info)
+                self.write.emit()
+            else:
+
+                self.done.emit()
+
+            # Finished remote focusing calibration process
+            self.done.emit()
 
         except Exception as e:
             raise
             self.error.emit(e)
 
+    @Slot(object)
+    def stop(self):
+        self.loop = False
+        self.log = False

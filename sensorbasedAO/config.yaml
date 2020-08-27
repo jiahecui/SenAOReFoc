@@ -94,16 +94,16 @@ AO:
   tolerance_fact_strehl: 1  # Strehl ratio tolerance factor according to Marechel criteria, 0.81
 
 zern_test:
-  zern_test_mode: 2  # Flag for Zernike Test button operation mode, 0 - AO via Zernikes, 1 - AO via slopes, 2 - line scan + retrieve Zernike coefficients
+  zern_test_mode: 0  # Flag for Zernike Test button operation mode, 0 - AO via Zernikes, 1 - AO via slopes, 2 - line scan + retrieve Zernike coefficients
   zern_amp: 0.1  # Amplitude of all zernike modes for comparison
-  loop_num: 1  # Number of line scans to loop over in mode 2
-  scan_num_x: 5  # Number of scan points along x direction in mode 2
-  scan_num_y: 5  # Number of scan points along y direction in mode 2
-  x_amp: 0.5  # Normalised voltage range for x scan
-  y_amp: 0.5  # Normalised voltage range for y scan
+  loop_num: 20  # Number of line scans to loop over in mode 2
+  scan_num_x: 20  # Number of scan points along x direction in mode 2
+  scan_num_y: 20  # Number of scan points along y direction in mode 2
+  x_amp: 0.1  # Normalised voltage range for x scan
+  y_amp: 0.1  # Normalised voltage range for y scan
 
 RF_calib:
-  step_num: 40  # Number of steps used in one direction during calibration of remote focusing
+  step_num: 2  # Number of steps used in one direction during calibration of remote focusing
 
 reflect_prof:
   samp_num: 33  # Flag for choosing the working sample

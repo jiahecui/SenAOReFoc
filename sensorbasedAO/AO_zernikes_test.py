@@ -627,6 +627,15 @@ class AO_Zernikes_Test(QObject):
             """
             Perform a number of line scans across specimen and retrieve Zernike coefficients from each scan point
             """
+            # Initialise AO information parameter
+            self.AO_info = {'zern_test': {}}
+
+            # Create new datasets in HDF5 file to store closed-loop AO data and open file
+            get_dset(self.SB_settings, 'zern_test', flag = 0)
+            data_file = h5py.File('data_info.h5', 'a')
+            data_set_1 = data_file['AO_img']['zern_test']
+            data_set_2 = data_file['AO_info']['zern_test']
+
             # Initialise array for storing retrieved zernike coefficients
             self.zern_x = np.zeros([config['AO']['recon_coeff_num'], config['zern_test']['scan_num_x'], config['zern_test']['loop_num']])
             self.zern_y = np.zeros([config['AO']['recon_coeff_num'], config['zern_test']['scan_num_y'], config['zern_test']['loop_num']])
@@ -657,10 +666,11 @@ class AO_Zernikes_Test(QObject):
                         try:
                             
                             # Send voltages to scanner
-                            self.scanner.GoToDevicePosition(x_array[m], 0, 255, 10)
+                            self.scanner.GoToDevicePosition(x_array[m], 0, 255, 5)
                         
                             # Acquire S-H spots using camera and append to list
                             AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                            dset_append(data_set_1, 'real_AO_img', AO_image)
 
                             # Image thresholding to remove background
                             AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
@@ -708,10 +718,11 @@ class AO_Zernikes_Test(QObject):
                         try:
 
                             # Send voltages to scanner
-                            self.scanner.GoToDevicePosition(0, y_array[m], 255, 10)
+                            self.scanner.GoToDevicePosition(0, y_array[m], 255, 5)
                         
                             # Acquire S-H spots using camera and append to list
                             AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                            dset_append(data_set_1, 'real_AO_img', AO_image)
 
                             # Image thresholding to remove background
                             AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
@@ -744,6 +755,9 @@ class AO_Zernikes_Test(QObject):
                     else:
 
                         self.done.emit()
+
+            # Close HDF5 file
+            data_file.close()
 
             self.message.emit('\nProcess complete.')
 

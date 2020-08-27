@@ -33,7 +33,7 @@ def get_dset(settings, name, flag = 0):
         group.create_dataset(name, (0,) + data.shape, maxshape = (1000,) + data.shape, dtype = data.dtype)
 
     # Create dataset shape placeholders
-    data_set_img = np.zeros([settings['sensor_width'], settings['sensor_height']])
+    data_set_img = np.zeros([settings['sensor_height'], settings['sensor_width']])
     data_set_cent = np.zeros(settings['act_ref_cent_num'])
     data_set_slope = np.zeros([settings['act_ref_cent_num'] * 2, 1])
     data_set_zern = np.zeros([config['AO']['recon_coeff_num'], 1])

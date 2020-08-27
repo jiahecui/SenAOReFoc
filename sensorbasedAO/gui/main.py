@@ -520,6 +520,8 @@ class Main(QMainWindow):
         """
         Remote focusing calibration handler
         """
+        btn = self.sender()
+        
         # Reset scanner if pressed
         if not btn.isChecked():
             btn.setChecked(False)
