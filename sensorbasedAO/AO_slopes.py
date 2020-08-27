@@ -728,15 +728,15 @@ class AO_Slopes(QObject):
             # Run correction for each focus depth
             for j in range(self.correct_num):
 
-                # Retrieve defocus component and generate zernike coefficient array
+                # Retrieve voltages for remote focusing component
                 if self.AO_settings['focus_enable'] == 1:
                     if self.focus_settings['focus_mode_flag'] == 0:
-                        self.zern_coeff[3] = self.focus_settings['focus_depth_defoc']
+                        RF_index = self.focus_settings['focus_depth_defoc'] // config['RF_calib']['step_incre']
+                        voltages_defoc = np.ravel(self.mirror_settings['remote_focus_voltages'][:, RF_index])
                     else:
-                        self.zern_coeff[3] = self.focus_settings['start_depth_defoc'] + self.focus_settings['step_incre_defoc'] * j
-
-                # Retrieve actuator voltages from zernike coefficient array
-                voltages_defoc = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], self.zern_coeff))
+                        RF_index = self.focus_settings['start_depth_defoc'] // config['RF_calib']['step_incre'] \
+                            + self.focus_settings['step_incre_defoc'] // config['RF_calib']['step_incre'] * j
+                        voltages_defoc = np.ravel(self.mirror_settings['remote_focus_voltages'][:, RF_index])
 
                 # Run closed-loop control until tolerance value or maximum loop iteration is reached
                 for i in range(config['AO']['loop_max'] + 1):
@@ -1032,15 +1032,15 @@ class AO_Slopes(QObject):
             # Run correction for each focus depth
             for j in range(self.correct_num):
 
-                # Retrieve defocus component and generate zernike coefficient array
+                # Retrieve voltages for remote focusing component
                 if self.AO_settings['focus_enable'] == 1:
                     if self.focus_settings['focus_mode_flag'] == 0:
-                        self.zern_coeff[3] = self.focus_settings['focus_depth_defoc']
+                        RF_index = self.focus_settings['focus_depth_defoc'] // config['RF_calib']['step_incre']
+                        voltages_defoc = np.ravel(self.mirror_settings['remote_focus_voltages'][:, RF_index])
                     else:
-                        self.zern_coeff[3] = self.focus_settings['start_depth_defoc'] + self.focus_settings['step_incre_defoc'] * j
-
-                # Retrieve actuator voltages from zernike coefficient array
-                voltages_defoc = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], self.zern_coeff))
+                        RF_index = self.focus_settings['start_depth_defoc'] // config['RF_calib']['step_incre'] \
+                            + self.focus_settings['step_incre_defoc'] // config['RF_calib']['step_incre'] * j
+                        voltages_defoc = np.ravel(self.mirror_settings['remote_focus_voltages'][:, RF_index])
 
                 # Run closed-loop control until tolerance value or maximum loop iteration is reached
                 for i in range(config['AO']['loop_max'] + 1):

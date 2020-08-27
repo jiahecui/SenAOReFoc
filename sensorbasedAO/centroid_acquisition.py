@@ -27,6 +27,7 @@ def acq_centroid(settings, flag = 0):
         flag = 8 for closed-loop AO control via slopes with partial correction
         flag = 9 for full closed-loop AO control via Zernikes
         flag = 10 for full closed-loop AO control via slopes
+        flag = 11 for remote focusing calibration process
     """
     # Open HDF5 file to retrieve calibration images
     data_file = h5py.File('data_info.h5', 'a')
@@ -41,7 +42,8 @@ def acq_centroid(settings, flag = 0):
                         7 : data_file['AO_img']['zern_AO_3'],
                         8 : data_file['AO_img']['slope_AO_3'],
                         9 : data_file['AO_img']['zern_AO_full'],
-                        10 : data_file['AO_img']['slope_AO_full']}
+                        10 : data_file['AO_img']['slope_AO_full'],
+                        11 : data_file['calibration_RF_img']}
 
     cent_options = {0 : 'real_cent_img', 1 : 'dummy_cent_img'}
 
@@ -89,6 +91,8 @@ def acq_centroid(settings, flag = 0):
             image_temp = subgroup_options[flag][cent_options[config['dummy']]][l, :, :]
         elif flag == 1:
             image_temp = subgroup_options[flag][calib_options[config['dummy']]][l, :, :]
+        elif flag == 11:
+            image_temp = subgroup_options[flag]['real_calib_RF_img'][-1, :, :]
         else:
             image_temp = subgroup_options[flag][AO_options[config['dummy']]][-1, :, :]
         

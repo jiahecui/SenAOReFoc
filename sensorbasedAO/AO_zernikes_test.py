@@ -696,7 +696,7 @@ class AO_Zernikes_Test(QObject):
                             rms_zern = np.sqrt((zern_err ** 2).sum())
                             self.zern_x[:,m,l] = zern_err[:,0]
 
-                            print('Full zernike root mean square error {} is {} um'.format(l, rms_zern))                              
+                            print('Full zernike root mean square error {} is {} um'.format(m + 1, rms_zern))                              
 
                         except Exception as e:
                             print(e)
@@ -748,7 +748,7 @@ class AO_Zernikes_Test(QObject):
                             rms_zern = np.sqrt((zern_err ** 2).sum())
                             self.zern_y[:,m,l] = zern_err[:,0]
 
-                            print('Full zernike root mean square error {} is {} um'.format(l, rms_zern))                              
+                            print('Full zernike root mean square error {} is {} um'.format(m + 1, rms_zern))                              
 
                         except Exception as e:
                             print(e)

@@ -53,9 +53,6 @@ DM1:
 scanner:
   SN: "S31155"
   portnumber: "3"
-  x_to_voltage: 2.128  
-  V_min: -10 
-  V_max: 10 
 
 relay:
   mirror_odd: 0  # Flag for whether there is an odd number of mirrors in between DM and lenslet
@@ -104,6 +101,7 @@ zern_test:
 
 RF_calib:
   step_num: 2  # Number of steps used in one direction during calibration of remote focusing
+  step_incre: 1  # Axial increment between each step / um
 
 reflect_prof:
   samp_num: 33  # Flag for choosing the working sample

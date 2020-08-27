@@ -25,6 +25,7 @@ def get_dset(settings, name, flag = 0):
         flag = 2 for AO_slopes
         flag = 3 for centroiding
         flag = 4 for calibration
+        flag = 5 for remote focusing calibration
     """
     def make_dset(group, name, data):
         """
@@ -41,7 +42,7 @@ def get_dset(settings, name, flag = 0):
     # Initialise data set key lists
     key_list_1 = ['dummy_cent_img', 'dummy_calib_img', 'dummy_AO_img', 'dummy_spot_cent_x', 'dummy_spot_cent_y', 'dummy_spot_slope_x',\
         'dummy_spot_slope_y', 'dummy_spot_slope', 'dummy_spot_zern_err', 'dummy_spot_slope_err']
-    key_list_2 = ['real_cent_img', 'real_calib_img', 'real_AO_img', 'real_spot_slope_x', 'real_spot_slope_y', 'real_spot_slope', \
+    key_list_2 = ['real_cent_img', 'real_calib_img', 'real_calib_RF_img', 'real_AO_img', 'real_spot_slope_x', 'real_spot_slope_y', 'real_spot_slope', \
         'real_spot_zern_err', 'real_spot_slope_err']
         
     # Get data file and groups
@@ -105,6 +106,8 @@ def get_dset(settings, name, flag = 0):
                 if flag == 3 and k == 'real_cent_img':
                     make_dset(group, k, data_set_img)
                 elif flag == 4 and k == 'real_calib_img':
+                    make_dset(group, k, data_set_img)
+                elif flag == 5 and k == 'real_calib_RF_img':
                     make_dset(group, k, data_set_img)
 
 def get_mat_dset(settings, flag = 1):

@@ -54,9 +54,6 @@ class Calibration_RF(QObject):
             self.actuator_num = config['DM1']['actuator_num']
             self.pupil_diam = config['search_block']['pupil_diam_1']
 
-        # Initialise Zernike coefficient array
-        self.zern_coeff = np.zeros(config['AO']['control_coeff_num'])
-
         # Initialise array to store remote focusing calibration voltages
         self.calib_array = np.zeros([self.actuator_num, config['RF_calib']['step_num'] * 2 - 1])
 
@@ -76,6 +73,11 @@ class Calibration_RF(QObject):
             Calibrates for remote focusing by moving a mirror sample to different positions along axis,
             correcting for that amount of defocus, then storing the actuator voltages for each position
             """
+            # Create new datasets in HDF5 file to store remote focusing calibration data
+            get_dset(self.SB_settings, 'calibration_RF_img', flag = 5)
+            data_file = h5py.File('data_info.h5', 'a')
+            data_set = data_file['calibration_RF_img']
+
             self.message.emit('\nProcess started for calibration of remote focusing...')
 
             # Initialise deformable mirror voltage array
@@ -108,7 +110,7 @@ class Calibration_RF(QObject):
                                 voltages[:] = config['DM']['vol_bias']
                             elif l > 0 and i == 0:
                                 voltages = self.calib_array[:, l - 1]
-                            elif l > 0 and i > 0:
+                            elif i > 0:
                                 voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
                                     zern_err_part[:config['AO']['control_coeff_num']]))
 
@@ -122,7 +124,7 @@ class Calibration_RF(QObject):
                         
                             # Acquire S-H spots using camera and append to list
                             AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
-                            dset_append(data_set_1, 'real_AO_img', AO_image)
+                            dset_append(data_set, 'real_calib_RF_img', AO_image)
 
                             # Image thresholding to remove background
                             AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
@@ -130,7 +132,7 @@ class Calibration_RF(QObject):
                             self.image.emit(AO_image)
 
                             # Calculate centroids of S-H spots
-                            act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 7)
+                            act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 11)
                             act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
                         
                             # print('slope_x:', slope_x)
@@ -149,7 +151,7 @@ class Calibration_RF(QObject):
                             # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                             zern_err = self.zern_coeff_detect.copy()
                             zern_err_part = self.zern_coeff_detect.copy()
-                            zern_err_part[[0, 1, 3], 0] = 0
+                            zern_err_part[[0, 1], 0] = 0
 
                             strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
 
@@ -168,7 +170,7 @@ class Calibration_RF(QObject):
             for l in range(config['RF_calib']['step_num'] - 1):
 
                 # Ask user to move mirror sample to different positions along the z-axis
-                self.message.emit('\nMove mirror to position {}. Press [y] to confirm.'.format(l + 41))
+                self.message.emit('\nMove mirror to position {}. Press [y] to confirm.'.format(l + config['RF_calib']['step_num']))
                 c = click.getchar()
 
                 while True:
@@ -188,8 +190,8 @@ class Calibration_RF(QObject):
                             if l == 0 and i == 0:                     
                                 voltages = self.calib_array[:, l]
                             elif l > 0 and i == 0:
-                                voltages = self.calib_array[:, l + 40]
-                            elif l > 0 and i > 0:
+                                voltages = self.calib_array[:, l + config['RF_calib']['step_num'] - 1]
+                            elif i > 0:
                                 voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
                                     zern_err_part[:config['AO']['control_coeff_num']]))
 
@@ -203,7 +205,7 @@ class Calibration_RF(QObject):
                         
                             # Acquire S-H spots using camera and append to list
                             AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
-                            dset_append(data_set_1, 'real_AO_img', AO_image)
+                            dset_append(data_set, 'real_calib_RF_img', AO_image)
 
                             # Image thresholding to remove background
                             AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
@@ -211,7 +213,7 @@ class Calibration_RF(QObject):
                             self.image.emit(AO_image)
 
                             # Calculate centroids of S-H spots
-                            act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 7)
+                            act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 11)
                             act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
                         
                             # print('slope_x:', slope_x)
@@ -230,12 +232,12 @@ class Calibration_RF(QObject):
                             # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                             zern_err = self.zern_coeff_detect.copy()
                             zern_err_part = self.zern_coeff_detect.copy()
-                            zern_err_part[[0, 1, 3], 0] = 0
+                            zern_err_part[[0, 1], 0] = 0
 
                             strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
 
                             if strehl >= config['AO']['tolerance_fact_strehl']:
-                                self.calib_array[:,l + 41] = voltages
+                                self.calib_array[:, l + config['RF_calib']['step_num']] = voltages
                                 break
 
                         except Exception as e:

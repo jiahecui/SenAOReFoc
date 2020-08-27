@@ -65,7 +65,7 @@ class App(QApplication):
 
         # Initialise dictionary for storing data info throughout processing of software
         self.data_info = {'SB_info': {}, 'mirror_info': {}, 'centroiding_info': {}, 'AO_info': {}, 'centroiding_img': {}, \
-            'calibration_img': {}, 'AO_img': {}, 'focusing_info': {}}
+            'calibration_img': {}, 'calibration_RF_img': {}, 'AO_img': {}, 'focusing_info': {}}
         self.AO_group = {'zern_test': {}, 'zern_AO_1': {}, 'zern_AO_2': {}, 'zern_AO_3': {}, 'zern_AO_full': {}, \
             'slope_AO_1': {}, 'slope_AO_2': {}, 'slope_AO_3': {}, 'slope_AO_full': {}}
 
