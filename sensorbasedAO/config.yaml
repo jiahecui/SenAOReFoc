@@ -13,7 +13,7 @@ camera:
   dataformat: "XI_MONO8"
   data_min: 0  # Minimum image output value
   data_max: 255  # Maximum image output value for dataformat 1023 for actual camera
-  exposure: 100  # us
+  exposure: 150  # us
   auto_gain: 0  # Flag for whether to use automatic exposure / gain mode, 0-auto_gain off, 1-auto_gain on
   exp_priority: 0.8  # exposure n, gain (1 - n)
   ae_max_limit: 100000  # maximum time (us) used for exposure in AEAG procedure
@@ -32,8 +32,8 @@ camera:
 DM:
   SN: "HSDM69-15-014" 
   DM_num: 0  # Flag for choosing the working DM, 0-Alpao, 1-Boston
-  vol_min: -0.1  # V
-  vol_max: 0.1
+  vol_min: -0.06  # V  -0.06
+  vol_max: 0.06  # V  0.06
   vol_bias: 0
   vol_step: 1
   settling_time: 0.01
@@ -81,8 +81,8 @@ image:
 
 AO:
   zern_gen: 1  # Flag for whether to generate Zernike modes on DM before correction in AO_zernikes.py and AO_slopes.py
-  recon_coeff_num: 80  # 80
-  control_coeff_num: 46  # Alpao 46  # Boston 55  # 3rd - 14, 4th - 20, 5th - 27, 6th - 35, 7th - 44, 8th - 54, 9th - 65, 10th - 77
+  recon_coeff_num: 36  # 80
+  control_coeff_num: 20  # Alpao 46  # Boston 55  # 3rd - 14, 4th - 20, 5th - 27, 6th - 35, 7th - 44, 8th - 54, 9th - 65, 10th - 77
   loop_gain: 0.2  # Fixed loop gain for closed-loop control, 0.6
   loop_max: 10  # Maximum number of loops for closed-loop control
   suppress_gain: 1000  # Gain factor used to suppress certain zernike modes
@@ -100,7 +100,7 @@ zern_test:
   y_amp: 0.1  # Normalised voltage range for y scan
 
 RF_calib:
-  step_num: 2  # Number of steps used in one direction during calibration of remote focusing
+  step_num: 5  # Number of steps used in one direction during calibration of remote focusing
   step_incre: 1  # Axial increment between each step / um
 
 reflect_prof:

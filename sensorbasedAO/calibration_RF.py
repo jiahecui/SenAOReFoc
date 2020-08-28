@@ -54,6 +54,9 @@ class Calibration_RF(QObject):
             self.actuator_num = config['DM1']['actuator_num']
             self.pupil_diam = config['search_block']['pupil_diam_1']
 
+        # Initialise deformable mirror information parameter
+        self.mirror_info = {}
+
         # Initialise array to store remote focusing calibration voltages
         self.calib_array = np.zeros([self.actuator_num, config['RF_calib']['step_num'] * 2 - 1])
 
@@ -109,9 +112,9 @@ class Calibration_RF(QObject):
                             if l == 0 and i == 0:                     
                                 voltages[:] = config['DM']['vol_bias']
                             elif l > 0 and i == 0:
-                                voltages = self.calib_array[:, l - 1]
+                                voltages = self.calib_array[:, l - 1].copy()
                             elif i > 0:
-                                voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
+                                voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
                                     zern_err_part[:config['AO']['control_coeff_num']]))
 
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
@@ -152,10 +155,14 @@ class Calibration_RF(QObject):
                             zern_err = self.zern_coeff_detect.copy()
                             zern_err_part = self.zern_coeff_detect.copy()
                             zern_err_part[[0, 1], 0] = 0
+                            rms_zern = np.sqrt((zern_err ** 2).sum())
+                            rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
 
                             strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
 
-                            if strehl >= config['AO']['tolerance_fact_strehl']:
+                            print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
+
+                            if strehl >= config['AO']['tolerance_fact_strehl'] or i == config['AO']['loop_max']:
                                 self.calib_array[:,l] = voltages
                                 break
 
@@ -188,11 +195,11 @@ class Calibration_RF(QObject):
 
                             # Update mirror control voltages
                             if l == 0 and i == 0:                     
-                                voltages = self.calib_array[:, l]
+                                voltages = self.calib_array[:, l].copy()
                             elif l > 0 and i == 0:
-                                voltages = self.calib_array[:, l + config['RF_calib']['step_num'] - 1]
+                                voltages = self.calib_array[:, l + config['RF_calib']['step_num'] - 1].copy()
                             elif i > 0:
-                                voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
+                                voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
                                     zern_err_part[:config['AO']['control_coeff_num']]))
 
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
@@ -233,10 +240,14 @@ class Calibration_RF(QObject):
                             zern_err = self.zern_coeff_detect.copy()
                             zern_err_part = self.zern_coeff_detect.copy()
                             zern_err_part[[0, 1], 0] = 0
+                            rms_zern = np.sqrt((zern_err ** 2).sum())
+                            rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
 
                             strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
 
-                            if strehl >= config['AO']['tolerance_fact_strehl']:
+                            print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
+
+                            if strehl >= config['AO']['tolerance_fact_strehl'] or i == config['AO']['loop_max']:
                                 self.calib_array[:, l + config['RF_calib']['step_num']] = voltages
                                 break
 
