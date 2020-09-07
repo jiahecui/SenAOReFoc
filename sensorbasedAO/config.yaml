@@ -67,7 +67,7 @@ search_block:
   filter_thres: 10  # Cutoff value for low pass filter within each search block after Fourier transform
   sharp_thres: 0.001  # Minimum sharpness threshold within search block below which S-H spot will be considered as obscured
   outline_int: 255  # uint8
-  pupil_diam_0: 1.92  # mm  # Alpao 7.216 (500) / 4.5 (300) / 2.2 (150)
+  pupil_diam_0: 1.92  # mm  # Alpao 7.216 (500) / 4.5 (300) / 2.2 (1.92) (150)
   pupil_diam_1: 10.1  # mm  # Boston 10.1 (500) / 6.3 (300) / 3.1 (150)
 
 image:
@@ -81,8 +81,8 @@ image:
 
 AO:
   zern_gen: 1  # Flag for whether to generate Zernike modes on DM before correction in AO_zernikes.py and AO_slopes.py
-  recon_coeff_num: 36  # 80
-  control_coeff_num: 20  # Alpao 46  # Boston 55  # 3rd - 14, 4th - 20, 5th - 27, 6th - 35, 7th - 44, 8th - 54, 9th - 65, 10th - 77
+  recon_coeff_num: 80  # 80
+  control_coeff_num: 69  # Alpao 46  # Boston 55  # 3rd - 14, 4th - 20, 5th - 27, 6th - 35, 7th - 44, 8th - 54, 9th - 65, 10th - 77
   loop_gain: 0.2  # Fixed loop gain for closed-loop control, 0.6
   loop_max: 10  # Maximum number of loops for closed-loop control
   suppress_gain: 1000  # Gain factor used to suppress certain zernike modes
