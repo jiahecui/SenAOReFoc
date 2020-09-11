@@ -32,8 +32,8 @@ camera:
 DM:
   SN: "HSDM69-15-014" 
   DM_num: 0  # Flag for choosing the working DM, 0-Alpao, 1-Boston
-  vol_min: -0.06  # V  -0.06
-  vol_max: 0.06  # V  0.06
+  vol_min: -0.05  # V  -0.06
+  vol_max: 0.05  # V  0.06
   vol_bias: 0
   vol_step: 1
   settling_time: 0.01
@@ -65,7 +65,7 @@ lenslet:
 search_block:
   div_elem: 5  # Number of elements in each dimension of a search block
   filter_thres: 10  # Cutoff value for low pass filter within each search block after Fourier transform
-  sharp_thres: 0.001  # Minimum sharpness threshold within search block below which S-H spot will be considered as obscured
+  sharp_thres: 0.002  # Minimum sharpness threshold within search block below which S-H spot will be considered as obscured
   outline_int: 255  # uint8
   pupil_diam_0: 1.92  # mm  # Alpao 7.216 (500) / 4.5 (300) / 2.2 (1.92) (150)
   pupil_diam_1: 10.1  # mm  # Boston 10.1 (500) / 6.3 (300) / 3.1 (150)
@@ -80,7 +80,7 @@ image:
   rescale: 1  # 0-rescale off, 1-rescale on
 
 AO:
-  zern_gen: 1  # Flag for whether to generate Zernike modes on DM before correction in AO_zernikes.py and AO_slopes.py
+  zern_gen: 0  # Flag for whether to generate Zernike modes on DM before correction in AO_zernikes.py and AO_slopes.py
   recon_coeff_num: 80  # 80
   control_coeff_num: 69  # Alpao 46  # Boston 55  # 3rd - 14, 4th - 20, 5th - 27, 6th - 35, 7th - 44, 8th - 54, 9th - 65, 10th - 77
   loop_gain: 0.2  # Fixed loop gain for closed-loop control, 0.6
@@ -91,13 +91,13 @@ AO:
   tolerance_fact_strehl: 1  # Strehl ratio tolerance factor according to Marechel criteria, 0.81
 
 zern_test:
-  zern_test_mode: 0  # Flag for Zernike Test button operation mode, 0 - AO via Zernikes, 1 - AO via slopes, 2 - line scan + retrieve Zernike coefficients
+  zern_test_mode: 2  # Flag for Zernike Test button operation mode, 0 - AO via Zernikes, 1 - AO via slopes, 2 - line scan + retrieve Zernike coefficients
   zern_amp: 0.1  # Amplitude of all zernike modes for comparison
   loop_num: 20  # Number of line scans to loop over in mode 2
-  scan_num_x: 20  # Number of scan points along x direction in mode 2
-  scan_num_y: 20  # Number of scan points along y direction in mode 2
-  x_amp: 0.1  # Normalised voltage range for x scan
-  y_amp: 0.1  # Normalised voltage range for y scan
+  scan_num_x: 50  # Number of scan points along x direction in mode 2
+  scan_num_y: 50  # Number of scan points along y direction in mode 2
+  x_amp: 0.1  # Normalised voltage range for x scan, max/min +/-1V (600 um)
+  y_amp: 0.1  # Normalised voltage range for y scan, max/min +/-1V (600 um)
 
 RF_calib:
   step_num: 5  # Number of steps used in one direction during calibration of remote focusing

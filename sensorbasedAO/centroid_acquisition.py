@@ -189,6 +189,7 @@ def acq_centroid(settings, flag = 0):
                 if flag in [5, 6, 9, 10]:
 
                     # Obscured subaperture removal function incorporated
+                    # print('Sharpness is:', (image_crop ** 2).sum() / (image_crop.sum()) ** 2)
                     if image_crop.sum() == 0 or (image_crop ** 2).sum() / (image_crop.sum()) ** 2 < config['search_block']['sharp_thres']:
                         
                         # If aperture is obscured, set sum_x, sum_y to 0
