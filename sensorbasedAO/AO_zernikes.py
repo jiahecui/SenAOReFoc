@@ -289,7 +289,8 @@ class AO_Zernikes(QObject):
                             time.sleep(config['DM']['settling_time'])
                         
                             # Acquire S-H spots using camera and append to list
-                            AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                            AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                            AO_image = np.mean(AO_image_stack, axis = 2)
                             dset_append(data_set_1, 'real_AO_img', AO_image)
 
                         # Image thresholding to remove background
@@ -536,7 +537,8 @@ class AO_Zernikes(QObject):
                             time.sleep(config['DM']['settling_time'])
                         
                             # Acquire S-H spots using camera and append to list
-                            AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                            AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                            AO_image = np.mean(AO_image_stack, axis = 2)
                             dset_append(data_set_1, 'real_AO_img', AO_image)
 
                         # Image thresholding to remove background
@@ -856,7 +858,8 @@ class AO_Zernikes(QObject):
                                 time.sleep(config['DM']['settling_time'])
                             
                                 # Acquire S-H spots using camera and append to list
-                                AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                                AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                                AO_image = np.mean(AO_image_stack, axis = 2)
                                 dset_append(data_set_1, 'real_AO_img', AO_image)
 
                             # Image thresholding to remove background
@@ -1148,7 +1151,8 @@ class AO_Zernikes(QObject):
                                 time.sleep(config['DM']['settling_time'])
                             
                                 # Acquire S-H spots using camera and append to list
-                                AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                                AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                                AO_image = np.mean(AO_image_stack, axis = 2)
                                 dset_append(data_set_1, 'real_AO_img', AO_image)
 
                             # Image thresholding to remove background
@@ -1422,7 +1426,8 @@ class AO_Zernikes(QObject):
                             time.sleep(config['DM']['settling_time'])
 
                             # Acquire S-H spot image 
-                            self._image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                            self._image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                            self._image = np.mean(AO_image_stack, axis = 2)
 
                             # Pause for specified amount of time
                             time.sleep(self.focus_settings['pause_time'])               
