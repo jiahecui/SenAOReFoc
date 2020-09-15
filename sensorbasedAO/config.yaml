@@ -81,6 +81,8 @@ image:
 
 AO:
   zern_gen: 0  # Flag for whether to generate Zernike modes on DM before correction in AO_zernikes.py and AO_slopes.py
+  scan_flag: 0  # Flag for whether to perform scanning during AO correction
+  scan_num_x: 20  # Number of scan points along x direction
   recon_coeff_num: 80  # 80
   control_coeff_num: 69  # Alpao 46  # Boston 55  # 3rd - 14, 4th - 20, 5th - 27, 6th - 35, 7th - 44, 8th - 54, 9th - 65, 10th - 77
   loop_gain: 0.2  # Fixed loop gain for closed-loop control, 0.6

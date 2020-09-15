@@ -72,6 +72,13 @@ class AO_Slopes(QObject):
             self.actuator_num = config['DM1']['actuator_num']
             self.pupil_diam = config['search_block']['pupil_diam_1']
 
+        # Determine number of scan points during AO correction
+        if config['dummy'] or config['AO']['scan_flag'] == 0:
+            self.scan_num_x = 1
+        elif config['AO']['scan_flag'] == 1:
+            self.scan_num_x = config['AO']['scan_num_x']
+            self.scan_slope_x = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, config['AO']['scan_num_x']])
+
         super().__init__()
 
     def strehl_calc(self, phase):
@@ -286,7 +293,8 @@ class AO_Slopes(QObject):
                             time.sleep(config['DM']['settling_time'])
                         
                             # Acquire S-H spots using camera and append to list
-                            AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                            AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                            AO_image = np.mean(AO_image_stack, axis = 2)
                             dset_append(data_set_1, 'real_AO_img', AO_image)
 
                         # Image thresholding to remove background
@@ -542,7 +550,8 @@ class AO_Slopes(QObject):
                             time.sleep(config['DM']['settling_time'])
                         
                             # Acquire S-H spots using camera and append to list
-                            AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                            AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                            AO_image = np.mean(AO_image_stack, axis = 2)
                             dset_append(data_set_1, 'real_AO_img', AO_image)
 
                         # Image thresholding to remove background
@@ -864,7 +873,8 @@ class AO_Slopes(QObject):
                                 time.sleep(config['DM']['settling_time'])
                             
                                 # Acquire S-H spots using camera and append to list
-                                AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                                AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                                AO_image = np.mean(AO_image_stack, axis = 2)
                                 dset_append(data_set_1, 'real_AO_img', AO_image)
 
                             # Image thresholding to remove background
@@ -1170,7 +1180,8 @@ class AO_Slopes(QObject):
                                 time.sleep(config['DM']['settling_time'])
                             
                                 # Acquire S-H spots using camera and append to list
-                                AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                                AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                                AO_image = np.mean(AO_image_stack, axis = 2)
                                 dset_append(data_set_1, 'real_AO_img', AO_image)
 
                             # Image thresholding to remove background
