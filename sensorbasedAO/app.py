@@ -973,7 +973,7 @@ class App(QApplication):
         if not config['dummy']:
             try:
                 self.devices['mirror'].Stop()
-                self.devices['mirror'].Reset()
+                # self.devices['mirror'].Reset()
             except Exception as e:
                 logger.warning("Error on mirror quit: {}".format(e))
 

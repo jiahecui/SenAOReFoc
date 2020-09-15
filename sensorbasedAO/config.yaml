@@ -84,7 +84,7 @@ AO:
   recon_coeff_num: 80  # 80
   control_coeff_num: 69  # Alpao 46  # Boston 55  # 3rd - 14, 4th - 20, 5th - 27, 6th - 35, 7th - 44, 8th - 54, 9th - 65, 10th - 77
   loop_gain: 0.2  # Fixed loop gain for closed-loop control, 0.6
-  loop_max: 10  # Maximum number of loops for closed-loop control
+  loop_max: 20  # Maximum number of loops for closed-loop control
   suppress_gain: 1000  # Gain factor used to suppress certain zernike modes
   lambda: 0.83  # um 0.63 / 0.83
   tolerance_fact_zern: 0  # RMS error tolerance factor via zernikes, 0.045 = lambda / 14
