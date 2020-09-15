@@ -73,6 +73,13 @@ class AO_Zernikes(QObject):
             self.actuator_num = config['DM1']['actuator_num']
             self.pupil_diam = config['search_block']['pupil_diam_1']
 
+        # Determine number of scan points during AO correction and initialise additional array if needed
+        if config['dummy'] or config['AO']['scan_flag'] == 0:
+            self.scan_num_x = 1
+        elif config['AO']['scan_flag'] == 1:
+            self.scan_num_x = config['AO']['scan_num_x']
+            self.scan_zern_x = np.zeros([config['AO']['recon_coeff_num'], config['AO']['scan_num_x']])
+
         super().__init__()
 
     def strehl_calc(self, phase):

@@ -75,6 +75,13 @@ class AO_Slopes(QObject):
             self.actuator_num = config['DM1']['actuator_num']
             self.pupil_diam = config['search_block']['pupil_diam_1']
 
+        # Determine number of scan points during AO correction
+        if config['dummy'] or config['AO']['scan_flag'] == 0:
+            self.scan_num_x = 1
+        elif config['AO']['scan_flag'] == 1:
+            self.scan_num_x = config['AO']['scan_num_x']
+            self.scan_slope_x = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, config['AO']['scan_num_x']])
+
         super().__init__()
 
     def strehl_calc(self, phase):
