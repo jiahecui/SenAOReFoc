@@ -252,7 +252,8 @@ class Calibration(QObject):
                             time.sleep(config['DM']['settling_time'])
                             
                             # Acquire S-H spot image and display
-                            image_max = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                            image_max_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                            image_max = np.mean(image_max_stack, axis = 2)
 
                             # Image thresholding to remove background
                             image_max = image_max - config['image']['threshold'] * np.amax(image_max)
@@ -272,7 +273,8 @@ class Calibration(QObject):
                             time.sleep(config['DM']['settling_time'])
 
                             # Acquire S-H spot image and display
-                            image_min = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                            image_min_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                            image_min = np.mean(image_min_stack, axis = 2)
 
                             # Image thresholding to remove background
                             image_min = image_min - config['image']['threshold'] * np.amax(image_min)

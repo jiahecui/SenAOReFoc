@@ -83,7 +83,7 @@ def acq_image(sensor, height, width, acq_mode = 0):
             prev3 = time.perf_counter()
             # print('Time for acquisition of loop {} is: {} s'.format((i + 1), (prev3 - prev1)))
 
-        print('Length of data list is:', np.shape(data)[2])
+        # print('Length of data list is:', np.shape(data)[2])
 
     # Stop data acquisition
     sensor.stop_acquisition()

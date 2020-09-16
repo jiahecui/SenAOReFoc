@@ -13,7 +13,7 @@ camera:
   dataformat: "XI_MONO8"
   data_min: 0  # Minimum image output value
   data_max: 255  # Maximum image output value for dataformat 1023 for actual camera
-  exposure: 150  # us
+  exposure: 250  # us
   auto_gain: 0  # Flag for whether to use automatic exposure / gain mode, 0-auto_gain off, 1-auto_gain on
   exp_priority: 0.8  # exposure n, gain (1 - n)
   ae_max_limit: 100000  # maximum time (us) used for exposure in AEAG procedure
@@ -32,8 +32,8 @@ camera:
 DM:
   SN: "HSDM69-15-014" 
   DM_num: 0  # Flag for choosing the working DM, 0-Alpao, 1-Boston
-  vol_min: -0.05  # V  -0.06
-  vol_max: 0.05  # V  0.06
+  vol_min: -0.2  # V  -0.05
+  vol_max: 0.2  # V  0.05
   vol_bias: 0
   vol_step: 1
   settling_time: 0.01
@@ -67,7 +67,7 @@ search_block:
   filter_thres: 10  # Cutoff value for low pass filter within each search block after Fourier transform
   sharp_thres: 0.002  # Minimum sharpness threshold within search block below which S-H spot will be considered as obscured
   outline_int: 255  # uint8
-  pupil_diam_0: 1.92  # mm  # Alpao 7.216 (500) / 4.5 (300) / 2.2 (1.92) (150)
+  pupil_diam_0: 2.2  # mm  # Alpao 7.216 (500) / 4.5 (300) / 2.2 (1.92, 2) (150)
   pupil_diam_1: 10.1  # mm  # Boston 10.1 (500) / 6.3 (300) / 3.1 (150)
 
 image:
@@ -80,13 +80,13 @@ image:
   rescale: 1  # 0-rescale off, 1-rescale on
 
 AO:
-  zern_gen: 0  # Flag for whether to generate Zernike modes on DM before correction in AO_zernikes.py and AO_slopes.py
+  zern_gen: 1  # Flag for whether to generate Zernike modes on DM before correction in AO_zernikes.py and AO_slopes.py
   scan_flag: 0  # Flag for whether to perform scanning during AO correction
   scan_num_x: 20  # Number of scan points along x direction
   recon_coeff_num: 80  # 80
   control_coeff_num: 69  # Alpao 46  # Boston 55  # 3rd - 14, 4th - 20, 5th - 27, 6th - 35, 7th - 44, 8th - 54, 9th - 65, 10th - 77
   loop_gain: 0.2  # Fixed loop gain for closed-loop control, 0.6
-  loop_max: 20  # Maximum number of loops for closed-loop control
+  loop_max: 10  # Maximum number of loops for closed-loop control
   suppress_gain: 1000  # Gain factor used to suppress certain zernike modes
   lambda: 0.83  # um 0.63 / 0.83
   tolerance_fact_zern: 0  # RMS error tolerance factor via zernikes, 0.045 = lambda / 14
