@@ -42,7 +42,7 @@ class Calibration_Zern(QObject):
         self.mirror_info = {}
 
         # Initialise influence function matrix
-        self.inf_matrix_zern = np.zeros([config['AO']['control_coeff_num'], self.actuator_num])
+        self.inf_matrix_zern = np.zeros([config['AO']['recon_coeff_num'], self.actuator_num])
         
         super().__init__()
 
@@ -77,7 +77,7 @@ class Calibration_Zern(QObject):
                 for i in range(self.actuator_num):
 
                     self.inf_matrix_zern[:, i] = \
-                        np.dot(self.conv_matrix, (self.slope[:, 2 * i] - self.slope[:, 2 * i + 1]))[:config['AO']['control_coeff_num']] \
+                        np.dot(self.conv_matrix, (self.slope[:, 2 * i] - self.slope[:, 2 * i + 1])) \
                             / (config['DM']['vol_max'] - config['DM']['vol_min'])
             
                 # Get singular value decomposition of influence function matrix

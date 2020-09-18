@@ -232,7 +232,7 @@ class Main(QMainWindow):
                 self.app.handle_message_disp('\nPlease enter zernike coefficients.')
 
             if btn.isChecked():
-                if not len(zernike_array) > config['AO']['recon_coeff_num']:
+                if not len(zernike_array) > config['AO']['control_coeff_num']:
                     settings = {}
                     settings['zernike_array_test'] = zernike_array
                     self.app.handle_SB_info(settings)

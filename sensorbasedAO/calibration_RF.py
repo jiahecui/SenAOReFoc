@@ -114,8 +114,8 @@ class Calibration_RF(QObject):
                             elif l > 0 and i == 0:
                                 voltages = self.calib_array[:, l - 1].copy()
                             elif i > 0:
-                                voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
-                                    zern_err_part[:config['AO']['control_coeff_num']]))
+                                voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                    [:,:config['AO']['control_coeff_num']], zern_err_part[:config['AO']['control_coeff_num']]))
 
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
@@ -199,8 +199,8 @@ class Calibration_RF(QObject):
                             elif l > 0 and i == 0:
                                 voltages = self.calib_array[:, l + config['RF_calib']['step_num'] - 1].copy()
                             elif i > 0:
-                                voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
-                                    zern_err_part[:config['AO']['control_coeff_num']]))
+                                voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                    [:,:config['AO']['control_coeff_num']], zern_err_part[:config['AO']['control_coeff_num']]))
 
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 

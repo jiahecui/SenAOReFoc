@@ -197,14 +197,15 @@ class AO_Zernikes(QObject):
                                 zern_array[:len(zern_array_temp)] = zern_array_temp
 
                                 # Retrieve actuator voltages from zernike coefficient array
-                                voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], zern_array))
+                                voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                    [:,:config['AO']['control_coeff_num']], zern_array))
                             else:
 
                                 voltages[:] = config['DM']['vol_bias']
                         else:
 
-                            voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
-                                zern_err[:config['AO']['control_coeff_num']]))
+                            voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                [:,:config['AO']['control_coeff_num']], zern_err[:config['AO']['control_coeff_num']]))
 
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
@@ -230,7 +231,8 @@ class AO_Zernikes(QObject):
                                     zern_array[:len(zern_array_temp)] = zern_array_temp
 
                                     # Retrieve actuator voltages from zernike coefficient array
-                                    voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], zern_array))
+                                    voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                        [:,:config['AO']['control_coeff_num']], zern_array))
                                     
                                     # Generate zernike phase profile from DM
                                     phase_init = self.phase_calc(voltages)
@@ -446,14 +448,15 @@ class AO_Zernikes(QObject):
                                 zern_array[:len(zern_array_temp)] = zern_array_temp
 
                                 # Retrieve actuator voltages from zernike coefficient array
-                                voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], zern_array))
+                                voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                    [:,:config['AO']['control_coeff_num']], zern_array))
                             else:
 
                                 voltages[:] = config['DM']['vol_bias']
                         else:
 
-                            voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
-                                zern_err[:config['AO']['control_coeff_num']]))
+                            voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                [:,:config['AO']['control_coeff_num']], zern_err[:config['AO']['control_coeff_num']]))
 
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
@@ -479,7 +482,8 @@ class AO_Zernikes(QObject):
                                     zern_array[:len(zern_array_temp)] = zern_array_temp
 
                                     # Retrieve actuator voltages from zernike coefficient array
-                                    voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], zern_array))
+                                    voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                        [:,:config['AO']['control_coeff_num']], zern_array))
                                     
                                     # Generate zernike phase profile from DM
                                     phase_init = self.phase_calc(voltages)
@@ -756,14 +760,15 @@ class AO_Zernikes(QObject):
                                     zern_array[:len(zern_array_temp)] = zern_array_temp
 
                                     # Retrieve actuator voltages from zernike coefficient array
-                                    voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], zern_array)) + voltages_defoc
+                                    voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                        [:,:config['AO']['control_coeff_num']], zern_array)) + voltages_defoc
                                 else:
 
                                     voltages[:] = config['DM']['vol_bias'] + voltages_defoc
                             else:
                                 
-                                voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
-                                    zern_err_part[:config['AO']['control_coeff_num']])) 
+                                voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                [:,:config['AO']['control_coeff_num']], zern_err_part[:config['AO']['control_coeff_num']])) 
 
                                 print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
                             
@@ -795,7 +800,8 @@ class AO_Zernikes(QObject):
                                         zern_array[:len(zern_array_temp)] = zern_array_temp
 
                                         # Retrieve actuator voltages from zernike coefficient array + defocus component 
-                                        voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], zern_array)) + voltages_defoc
+                                        voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                            [:,:config['AO']['control_coeff_num']], zern_array)) + voltages_defoc
                                         
                                         # Generate zernike + defocus phase profile from DM
                                         phase_init = self.phase_calc(voltages)
@@ -1051,14 +1057,15 @@ class AO_Zernikes(QObject):
                                     zern_array[:len(zern_array_temp)] = zern_array_temp
 
                                     # Retrieve actuator voltages from zernike coefficient array
-                                    voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], zern_array)) + voltages_defoc
+                                    voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                        [:,:config['AO']['control_coeff_num']], zern_array)) + voltages_defoc
                                 else:
 
                                     voltages[:] = config['DM']['vol_bias'] + voltages_defoc
                             else:
 
-                                voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], \
-                                    zern_err_part[:config['AO']['control_coeff_num']])) 
+                                voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                [:,:config['AO']['control_coeff_num']], zern_err_part[:config['AO']['control_coeff_num']]))
 
                                 print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
@@ -1090,7 +1097,8 @@ class AO_Zernikes(QObject):
                                         zern_array[:len(zern_array_temp)] = zern_array_temp
 
                                         # Retrieve actuator voltages from zernike coefficient array + defocus component 
-                                        voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], zern_array)) + voltages_defoc
+                                        voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                            [:,:config['AO']['control_coeff_num']], zern_array)) + voltages_defoc
                                         
                                         # Generate zernike + defocus phase profile from DM
                                         phase_init = self.phase_calc(voltages)
@@ -1369,7 +1377,8 @@ class AO_Zernikes(QObject):
                             zern_array[:len(zern_array_temp)] = zern_array_temp
 
                             # Retrieve actuator voltages from zernike coefficient array
-                            voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], zern_array)) + voltages_defoc
+                            voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                [:,:config['AO']['control_coeff_num']], zern_array)) + voltages_defoc
                         else:
 
                             voltages[:] = config['DM']['vol_bias'] + voltages_defoc
@@ -1399,7 +1408,8 @@ class AO_Zernikes(QObject):
                                 zern_array[:len(zern_array_temp)] = zern_array_temp
 
                                 # Retrieve actuator voltages from zernike coefficient array + defocus component 
-                                voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern'], zern_array)) + voltages_defoc
+                                voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                    [:,:config['AO']['control_coeff_num']], zern_array)) + voltages_defoc
                                 
                                 # Generate zernike + defocus phase profile from DM
                                 phase = self.phase_calc(voltages)
