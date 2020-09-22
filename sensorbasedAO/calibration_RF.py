@@ -186,6 +186,8 @@ class Calibration_RF(QObject):
                     else:
                         self.message.emit('\nInvalid input. Please try again.')
 
+                    c = click.getchar()
+
                 if self.loop:
 
                     # Run closed-loop control until tolerance value or maximum loop iteration is reached
