@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Tue Aug 25 23:39:07 2020
+# Created: Tue Sep 22 23:12:33 2020
 #      by: pyside2-uic  running on PySide2 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,15 +13,13 @@ from PySide2 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        # MainWindow.resize(1580, 1180)
-        MainWindow.resize(1960, 1960)
+        MainWindow.resize(1580, 1180)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
-        # MainWindow.setMinimumSize(QtCore.QSize(1580, 1180))
-        MainWindow.setMinimumSize(QtCore.QSize(1960, 1960))
+        MainWindow.setMinimumSize(QtCore.QSize(1580, 1180))
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("../resources/icons/AO.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
@@ -436,6 +434,7 @@ class Ui_MainWindow(object):
         font.setPointSize(10)
         self.focusDepthSpin.setFont(font)
         self.focusDepthSpin.setDecimals(2)
+        self.focusDepthSpin.setMinimum(-80.0)
         self.focusDepthSpin.setMaximum(80.0)
         self.focusDepthSpin.setSingleStep(0.5)
         self.focusDepthSpin.setObjectName("focusDepthSpin")
@@ -483,6 +482,7 @@ class Ui_MainWindow(object):
         font.setPointSize(10)
         self.startDepthSpin.setFont(font)
         self.startDepthSpin.setDecimals(2)
+        self.startDepthSpin.setMinimum(-80.0)
         self.startDepthSpin.setMaximum(80.0)
         self.startDepthSpin.setSingleStep(0.5)
         self.startDepthSpin.setObjectName("startDepthSpin")

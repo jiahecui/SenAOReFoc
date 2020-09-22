@@ -163,7 +163,7 @@ class Calibration_RF(QObject):
                             print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
 
                             if strehl >= config['AO']['tolerance_fact_strehl'] or i == config['AO']['loop_max']:
-                                self.calib_array[:,l] = voltages
+                                self.calib_array[:, config['RF_calib']['step_num'] - 1 - l] = voltages
                                 break
 
                         except Exception as e:
@@ -248,7 +248,7 @@ class Calibration_RF(QObject):
                             print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
 
                             if strehl >= config['AO']['tolerance_fact_strehl'] or i == config['AO']['loop_max']:
-                                self.calib_array[:, l + config['RF_calib']['step_num']] = voltages
+                                self.calib_array[:, config['RF_calib']['step_num'] + l] = voltages
                                 break
 
                         except Exception as e:

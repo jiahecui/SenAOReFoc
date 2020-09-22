@@ -868,6 +868,9 @@
               <property name="decimals">
                <number>2</number>
               </property>
+              <property name="minimum">
+               <double>-80.000000000000000</double>
+              </property>
               <property name="maximum">
                <double>80.000000000000000</double>
               </property>
@@ -972,6 +975,9 @@
               </property>
               <property name="decimals">
                <number>2</number>
+              </property>
+              <property name="minimum">
+               <double>-80.000000000000000</double>
               </property>
               <property name="maximum">
                <double>80.000000000000000</double>
