@@ -15,7 +15,6 @@ from config import config
 from HDF5_dset import dset_append, get_dset
 from image_acquisition import acq_image
 from centroid_acquisition import acq_centroid
-from spot_sim import SpotSim
 from gaussian_inf import inf_diff
 
 logger = log.get_logger(__name__)
@@ -232,9 +231,10 @@ class Calibration(QObject):
                 get_dset(self.SB_settings, 'calibration_img', flag = 4)
                 data_file = h5py.File('data_info.h5', 'a')
                 data_set = data_file['calibration_img']
+
+                self.message.emit('\nDM calibration process started...')
                 
                 # Poke each actuator first in to vol_max, then to vol_min
-                self.message.emit('\nDM calibration process started...')
                 for i in range(self.actuator_num):
 
                     if self.calibrate:                    

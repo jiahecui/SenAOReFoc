@@ -117,7 +117,7 @@
              </font>
             </property>
             <property name="text">
-             <string>Centroid Spots</string>
+             <string>Calibrate-Sys</string>
             </property>
             <property name="checkable">
              <bool>true</bool>

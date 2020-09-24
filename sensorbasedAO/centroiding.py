@@ -16,36 +16,28 @@ from sensor import SENSOR
 from HDF5_dset import dset_append, get_dset
 from image_acquisition import acq_image
 from centroid_acquisition import acq_centroid
-from spot_sim import SpotSim
 
 logger = log.get_logger(__name__)
 
 class Centroiding(QObject):
     """
-    Calculates centroids of S-H spots on camera sensor
+    Calculates centroids of S-H spots on camera sensor for system aberration calibration
     """
     start = Signal()
     write = Signal()
     done = Signal()
     error = Signal(object)
-    image = Signal(object)
     layer = Signal(object)
     message = Signal(object)
-    info = Signal(object)
+    SB_info = Signal(object)
     
-    def __init__(self, device, settings):
+    def __init__(self, sensor, settings):
 
         # Get search block settings
         self.SB_settings = settings
 
         # Get sensor instance
-        self.sensor = device
-
-        # Initialise actual S-H spot centroid coords array
-        self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y = (np.zeros(self.SB_settings['act_ref_cent_num']) for i in range(3))
-
-        # Initialise dictionary for centroid information
-        self.cent_info = {}
+        self.sensor = sensor
 
         super().__init__()
 
@@ -60,53 +52,46 @@ class Centroiding(QObject):
             self.start.emit()
 
             """
-            Calculate actual S-H spot centroid coordinates
+            Calculate actual S-H spot centroid coordinates for system aberrations
             """
             # Create new datasets in HDF5 file to store centroiding data
             get_dset(self.SB_settings, 'centroiding_img', flag = 3)
             data_file = h5py.File('data_info.h5', 'a')
             data_set = data_file['centroiding_img']
 
+            self.message.emit('\nSystem aberration calibration process started...')
+
             # Initialise search block layer and display search blocks
-            self.SB_layer_2D = np.zeros([self.SB_settings['sensor_height'], self.SB_settings['sensor_width']])
-            self.SB_layer_2D_temp = self.SB_layer_2D.copy()
-            self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = config['search_block']['outline_int']
-            self.layer.emit(self.SB_layer_2D_temp)
+            SB_layer_2D = np.zeros([self.SB_settings['sensor_height'], self.SB_settings['sensor_width']])
+            SB_layer_2D_temp = SB_layer_2D.copy()
+            SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = config['search_block']['outline_int']
 
-            # Acquire image using sensor or simulate Gaussian profile S-H spots
-            if config['dummy']:
-                spot_img = SpotSim(self.SB_settings)
-                self._image, self.spot_cent_x, self.spot_cent_y = spot_img.SH_spot_sim(centred = 1)
-            else:
-                self._image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
-
+            # Acquire S-H spot image and display
+            cent_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+            cent_image = np.mean(cent_image_stack, axis = 2)
+            
             # Image thresholding to remove background
-            self._image = self._image - config['image']['threshold'] * np.amax(self._image)
-            self._image[self._image < 0] = 0
-            self.SB_layer_2D_temp += self._image
-            self.layer.emit(self.SB_layer_2D_temp)
+            cent_image = cent_image - config['image']['threshold'] * np.amax(cent_image)
+            cent_image[cent_image < 0] = 0
+            SB_layer_2D_temp += cent_image
+
+            self.layer.emit(SB_layer_2D_temp)
 
             # Append image to list
-            if config['dummy']:
-                dset_append(data_set, 'dummy_cent_img', self._image)
-                dset_append(data_set, 'dummy_spot_cent_x', self.spot_cent_x)
-                dset_append(data_set, 'dummy_spot_cent_y', self.spot_cent_y)
-            else:
-                dset_append(data_set, 'real_cent_img', self._image)
+            dset_append(data_set, 'real_cent_img', cent_image)
 
             # Calculate centroids for S-H spots
             if self.calc_cent:
                 
                 # Acquire centroid information
-                self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y, self.slope_x, self.slope_y = \
-                    acq_centroid(self.SB_settings, flag = 0)
-                self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y = \
-                    map(np.asarray, [self.act_cent_coord, self.act_cent_coord_x, self.act_cent_coord_y])
+                act_ref_cent_coord, act_ref_cent_coord_x, act_ref_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 0)
+                act_ref_cent_coord, act_ref_cent_coord_x, act_ref_cent_coord_y = map(np.asarray, [act_ref_cent_coord, act_ref_cent_coord_x, act_ref_cent_coord_y])
 
-                # Draw actual S-H spot centroids on image layer
-                self.SB_layer_2D_temp.ravel()[self.act_cent_coord.astype(int)] = 0
-                self.layer.emit(self.SB_layer_2D_temp)
-                self.message.emit('\nS-H spot centroid positions confirmed.')
+                # Draw actual S-H spot centroids
+                SB_layer_2D_temp.ravel()[act_ref_cent_coord.astype(int)] = 0
+                self.layer.emit(SB_layer_2D_temp)
+
+                self.message.emit('\nSystem aberration calibration process finished.')
             else:
 
                 self.done.emit()
@@ -116,13 +101,11 @@ class Centroiding(QObject):
             """ 
             if self.log:
 
-                self.cent_info['act_cent_coord_x'] = self.act_cent_coord_x
-                self.cent_info['act_cent_coord_y'] = self.act_cent_coord_y
-                self.cent_info['act_cent_coord'] = self.act_cent_coord
-                self.cent_info['slope_x'] = self.slope_x
-                self.cent_info['slope_y'] = self.slope_y
+                self.SB_settings['act_ref_cent_coord_x'] = act_ref_cent_coord_x
+                self.SB_settings['act_ref_cent_coord_y'] = act_ref_cent_coord_y
+                self.SB_settings['act_ref_cent_coord'] = act_ref_cent_coord
 
-                self.info.emit(self.cent_info)
+                self.SB_info.emit(self.SB_settings)
                 self.write.emit()
             else:
 

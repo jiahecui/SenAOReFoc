@@ -28,7 +28,6 @@ class Positioning(QObject):
     write = Signal()
     done = Signal()
     error = Signal(object)
-    image = Signal(object)
     layer = Signal(object)
     message = Signal(object)
     SB_info = Signal(object)
@@ -52,9 +51,6 @@ class Positioning(QObject):
         # Get information of search blocks
         self.SB_diam = self.SB_settings['SB_diam']
         self.SB_rad = self.SB_settings['SB_rad']
-
-        # Initialise dictionary for position information
-        self.pos_info = {}
 
         super().__init__()
 

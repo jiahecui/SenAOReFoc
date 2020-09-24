@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Tue Sep 22 23:12:33 2020
+# Created: Thu Sep 24 22:13:15 2020
 #      by: pyside2-uic  running on PySide2 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -639,7 +639,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QtWidgets.QApplication.translate("MainWindow", "SensorbasedAO", None, -1))
         self.initialiseBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Initialise SB", None, -1))
         self.positionBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Position SB", None, -1))
-        self.centroidBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Centroid Spots", None, -1))
+        self.centroidBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Calibrate-Sys", None, -1))
         self.calibrateBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Calibrate-S", None, -1))
         self.conversionBtn.setText(QtWidgets.QApplication.translate("MainWindow", "S-Z Conv", None, -1))
         self.calibrateBtn_2.setText(QtWidgets.QApplication.translate("MainWindow", "Calibrate-Z", None, -1))
