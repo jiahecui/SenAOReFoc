@@ -60,9 +60,9 @@ class AO_Slopes(QObject):
             self.correct_num = int(self.focus_settings['step_num'])
         else:
             self.correct_num = 1
-        self.loop_rms_slopes = np.zeros([config['AO']['loop_max'] + 1, self.correct_num])
-        self.loop_rms_zern, self.loop_rms_zern_part = (np.zeros([config['AO']['loop_max'] + 1, self.correct_num]) for i in range(2))
-        self.strehl, self.strehl_2 = (np.zeros([config['AO']['loop_max'] + 1, self.correct_num]) for i in range(2))
+        self.loop_rms_slopes = np.zeros([self.AO_settings['loop_max'] + 1, self.correct_num])
+        self.loop_rms_zern, self.loop_rms_zern_part = (np.zeros([self.AO_settings['loop_max'] + 1, self.correct_num]) for i in range(2))
+        self.strehl, self.strehl_2 = (np.zeros([self.AO_settings['loop_max'] + 1, self.correct_num]) for i in range(2))
 
         # Choose working DM along with its parameters
         if config['DM']['DM_num'] == 0:
@@ -180,7 +180,7 @@ class AO_Slopes(QObject):
             prev1 = time.perf_counter()
 
             # Run closed-loop control until tolerance value or maximum loop iteration is reached
-            for i in range(config['AO']['loop_max'] + 1):
+            for i in range(self.AO_settings['loop_max'] + 1):
                 
                 if self.loop:
 
@@ -439,7 +439,7 @@ class AO_Slopes(QObject):
             prev1 = time.perf_counter()
 
             # Run closed-loop control until tolerance value or maximum loop iteration is reached
-            for i in range(config['AO']['loop_max'] + 1):
+            for i in range(self.AO_settings['loop_max'] + 1):
                 
                 if self.loop:
 
@@ -751,7 +751,7 @@ class AO_Slopes(QObject):
                     voltages_defoc = 0
 
                 # Run closed-loop control until tolerance value or maximum loop iteration is reached
-                for i in range(config['AO']['loop_max'] + 1):
+                for i in range(self.AO_settings['loop_max'] + 1):
                     
                     if self.loop:
 
@@ -1060,7 +1060,7 @@ class AO_Slopes(QObject):
                     voltages_defoc = 0
 
                 # Run closed-loop control until tolerance value or maximum loop iteration is reached
-                for i in range(config['AO']['loop_max'] + 1):
+                for i in range(self.AO_settings['loop_max'] + 1):
                     
                     if self.loop:
 

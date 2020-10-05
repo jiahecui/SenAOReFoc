@@ -857,6 +857,16 @@ class App(QApplication):
         except Exception as e:
             logger.warning("Error on scanner reset: {}".format(e))
 
+    def handle_camera_expo(self, camera_expo):
+        """
+        Handle update of camera exposure
+        """
+        try:
+            self.devices['sensor'].set_exposure(camera_expo)
+            print('Camera exposure set success.')
+        except Exception as e:
+            logger.warning("Error on setting camera exposure: {}".format(e))
+
     def handle_calib_RF_start(self):
         """
         Handle calibration of remote focusing
