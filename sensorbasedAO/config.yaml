@@ -26,7 +26,7 @@ camera:
   sensor_diam: 11.26  # mm Ximea - 11.26; IDS - 4.762
   bin_factor: 2  # Ximea - 2; IDS - 1
   pixel_size: 5.5  # um Ximea - 5.5; IDS - 4.65
-  frame_num: 5  # Number of frames to acquire in burst acquisition mode 
+  frame_num: 10  # Number of frames to acquire in burst acquisition mode 
   sleep_time: 0.1  # Interval time between frames during live acquisition
     
 DM:

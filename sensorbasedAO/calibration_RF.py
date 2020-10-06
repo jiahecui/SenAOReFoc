@@ -126,7 +126,8 @@ class Calibration_RF(QObject):
                             time.sleep(config['DM']['settling_time'])
                         
                             # Acquire S-H spots using camera and append to list
-                            AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                            AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                            AO_image = np.mean(AO_image_stack, axis = 2)
                             dset_append(data_set, 'real_calib_RF_img', AO_image)
 
                             # Image thresholding to remove background
@@ -213,7 +214,8 @@ class Calibration_RF(QObject):
                             time.sleep(config['DM']['settling_time'])
                         
                             # Acquire S-H spots using camera and append to list
-                            AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                            AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                            AO_image = np.mean(AO_image_stack, axis = 2)
                             dset_append(data_set, 'real_calib_RF_img', AO_image)
 
                             # Image thresholding to remove background
