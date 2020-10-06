@@ -163,7 +163,7 @@ class AO_Zernikes_Test(QObject):
             # Initialise arrays for storing Strehl ratios, rms wavefront errors and loop numbers
             self.zern_num = config['AO']['control_coeff_num'] - 2
             self.strehl = np.zeros([2, self.zern_num])
-            self.loop_rms_zern, self.loop_rms_zern_part = (np.zeros([config['AO']['loop_max'] + 1, self.zern_num]) for i in range(2))
+            self.loop_rms_zern, self.loop_rms_zern_part = (np.zeros([self.AO_settings['loop_max'] + 1, self.zern_num]) for i in range(2))
             self.loop_num = np.zeros(self.zern_num)
 
             self.message.emit('\nProcess started for closed-loop AO via Zernikes...')
@@ -178,7 +178,7 @@ class AO_Zernikes_Test(QObject):
 
                 print('On Zernike mode', j + 3)
 
-                for i in range(config['AO']['loop_max'] + 1):
+                for i in range(self.AO_settings['loop_max'] + 1):
                     
                     if self.loop:
                         
@@ -333,7 +333,7 @@ class AO_Zernikes_Test(QObject):
                                 dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                             # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                            if strehl >= config['AO']['tolerance_fact_strehl'] or i == config['AO']['loop_max']:
+                            if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
                                 self.strehl[0,j] = strehl
                                 if config['dummy']:
                                     self.strehl[1,j] = strehl_2
@@ -404,7 +404,7 @@ class AO_Zernikes_Test(QObject):
             # Initialise arrays for storing Strehl ratios, rms wavefront errors and loop numbers
             self.zern_num = config['AO']['control_coeff_num'] - 2
             self.strehl = np.zeros([2, self.zern_num])
-            self.loop_rms_zern, self.loop_rms_zern_part = (np.zeros([config['AO']['loop_max'] + 1, self.zern_num]) for i in range(2))
+            self.loop_rms_zern, self.loop_rms_zern_part = (np.zeros([self.AO_settings['loop_max'] + 1, self.zern_num]) for i in range(2))
             self.loop_num = np.zeros(self.zern_num)
 
             self.message.emit('\nProcess started for closed-loop AO via slopes...')
@@ -416,7 +416,7 @@ class AO_Zernikes_Test(QObject):
 
                 print('On Zernike mode', j + 3)
 
-                for i in range(config['AO']['loop_max'] + 1):
+                for i in range(self.AO_settings['loop_max'] + 1):
                     
                     if self.loop:
                         
@@ -573,7 +573,7 @@ class AO_Zernikes_Test(QObject):
                                 dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                             # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                            if strehl >= config['AO']['tolerance_fact_strehl'] or i == config['AO']['loop_max']:
+                            if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
                                 self.strehl[0,j] = strehl
                                 if config['dummy']:
                                     self.strehl[1,j] = strehl_2

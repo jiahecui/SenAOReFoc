@@ -104,7 +104,7 @@ class Calibration_RF(QObject):
                 if self.loop:
 
                     # Run closed-loop control until tolerance value or maximum loop iteration is reached
-                    for i in range(config['AO']['loop_max'] + 1):
+                    for i in range(self.AO_settings['loop_max'] + 1):
                     
                         try:
 
@@ -162,7 +162,7 @@ class Calibration_RF(QObject):
 
                             print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
 
-                            if strehl >= config['AO']['tolerance_fact_strehl'] or i == config['AO']['loop_max']:
+                            if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
                                 self.calib_array[:, config['RF_calib']['step_num'] - 1 - l] = voltages
                                 break
 
@@ -191,7 +191,7 @@ class Calibration_RF(QObject):
                 if self.loop:
 
                     # Run closed-loop control until tolerance value or maximum loop iteration is reached
-                    for i in range(config['AO']['loop_max'] + 1):
+                    for i in range(self.AO_settings['loop_max'] + 1):
                     
                         try:
 
@@ -249,7 +249,7 @@ class Calibration_RF(QObject):
 
                             print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
 
-                            if strehl >= config['AO']['tolerance_fact_strehl'] or i == config['AO']['loop_max']:
+                            if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
                                 self.calib_array[:, config['RF_calib']['step_num'] + l] = voltages
                                 break
 

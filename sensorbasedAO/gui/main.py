@@ -47,6 +47,7 @@ class Main(QMainWindow):
         self.ui.singleAcqBtn.clicked.connect(self.on_single_acq)
         self.ui.DMRstBtn.clicked.connect(self.on_DM_reset)
         self.ui.scannerRstBtn.clicked.connect(self.on_scanner_reset)
+        self.ui.cameraExpoSpin.valueChanged.connect(self.on_camera_expo)
         self.ui.scanFocusCheck.stateChanged.connect(self.on_focussettings)
         self.ui.focusDepthSpin.valueChanged.connect(self.on_focussettings)
         self.ui.stepIncreSpin.valueChanged.connect(self.on_focussettings)
@@ -253,6 +254,12 @@ class Main(QMainWindow):
         if not btn.isChecked():
             btn.setChecked(False)
         else:
+            # Update AO_info
+            AO_settings = {}
+            AO_settings['loop_max'] = self.ui.loopMaxSpin.value()
+            self.app.handle_AO_info(AO_settings)
+            self.app.write_AO_info()
+
             # Start zern_test
             self.app.handle_zern_test_start(mode = config['zern_test']['zern_test_mode'])
             btn.setChecked(True)
@@ -267,10 +274,11 @@ class Main(QMainWindow):
         if not btn.isChecked():
             btn.setChecked(False)
         else:
-            # Set remote focusing flag to 0 and update AO_info
-            remote_focusing = {}
-            remote_focusing['focus_enable'] = 0
-            self.app.handle_AO_info(remote_focusing)
+            # Update AO_info
+            AO_settings = {}
+            AO_settings['loop_max'] = self.ui.loopMaxSpin.value()
+            AO_settings['focus_enable'] = 0
+            self.app.handle_AO_info(AO_settings)
             self.app.write_AO_info()
             
             # Start zern_AO_1
@@ -288,9 +296,10 @@ class Main(QMainWindow):
             btn.setChecked(False)
         else:
             # Set remote focusing flag to 0 and update AO_info
-            remote_focusing = {}
-            remote_focusing['focus_enable'] = 0
-            self.app.handle_AO_info(remote_focusing)
+            AO_settings = {}
+            AO_settings['loop_max'] = self.ui.loopMaxSpin.value()
+            AO_settings['focus_enable'] = 0
+            self.app.handle_AO_info(AO_settings)
             self.app.write_AO_info()
             
             # Start zern_AO_2
@@ -308,9 +317,10 @@ class Main(QMainWindow):
             btn.setChecked(False)
         else:
             # Set remote focusing flag to 0 and update AO_info
-            remote_focusing = {}
-            remote_focusing['focus_enable'] = 0
-            self.app.handle_AO_info(remote_focusing)
+            AO_settings = {}
+            AO_settings['loop_max'] = self.ui.loopMaxSpin.value()
+            AO_settings['focus_enable'] = 0
+            self.app.handle_AO_info(AO_settings)
             self.app.write_AO_info()
             
             # Start zern_AO_3
@@ -328,9 +338,10 @@ class Main(QMainWindow):
             btn.setChecked(False)
         else:
             # Set remote focusing flag to 0 and update AO_info
-            remote_focusing = {}
-            remote_focusing['focus_enable'] = 0
-            self.app.handle_AO_info(remote_focusing)
+            AO_settings = {}
+            AO_settings['loop_max'] = self.ui.loopMaxSpin.value()
+            AO_settings['focus_enable'] = 0
+            self.app.handle_AO_info(AO_settings)
             self.app.write_AO_info()
             
             # Start slope_AO_1
@@ -348,9 +359,10 @@ class Main(QMainWindow):
             btn.setChecked(False)
         else:
             # Set remote focusing flag to 0 and update AO_info
-            remote_focusing = {}
-            remote_focusing['focus_enable'] = 0
-            self.app.handle_AO_info(remote_focusing)
+            AO_settings = {}
+            AO_settings['loop_max'] = self.ui.loopMaxSpin.value()
+            AO_settings['focus_enable'] = 0
+            self.app.handle_AO_info(AO_settings)
             self.app.write_AO_info()
             
             # Start slope_AO_2
@@ -368,9 +380,10 @@ class Main(QMainWindow):
             btn.setChecked(False)
         else:
             # Set remote focusing flag to 0 and update AO_info
-            remote_focusing = {}
-            remote_focusing['focus_enable'] = 0
-            self.app.handle_AO_info(remote_focusing)
+            AO_settings = {}
+            AO_settings['loop_max'] = self.ui.loopMaxSpin.value()
+            AO_settings['focus_enable'] = 0
+            self.app.handle_AO_info(AO_settings)
             self.app.write_AO_info()
             
             # Start slope_AO_3
@@ -388,9 +401,10 @@ class Main(QMainWindow):
             btn.setChecked(False)
         else:
             # Set remote focusing flag to 0 and update AO_info
-            remote_focusing = {}
-            remote_focusing['focus_enable'] = 0
-            self.app.handle_AO_info(remote_focusing)
+            AO_settings = {}
+            AO_settings['loop_max'] = self.ui.loopMaxSpin.value()
+            AO_settings['focus_enable'] = 0
+            self.app.handle_AO_info(AO_settings)
             self.app.write_AO_info()
             
             # Start zern_AO_full
@@ -408,9 +422,10 @@ class Main(QMainWindow):
             btn.setChecked(False)
         else:
             # Set remote focusing flag to 0 and update AO_info
-            remote_focusing = {}
-            remote_focusing['focus_enable'] = 0
-            self.app.handle_AO_info(remote_focusing)
+            AO_settings = {}
+            AO_settings['loop_max'] = self.ui.loopMaxSpin.value()
+            AO_settings['focus_enable'] = 0
+            self.app.handle_AO_info(AO_settings)
             self.app.write_AO_info()
             
             # Start slope_AO_full
@@ -495,6 +510,16 @@ class Main(QMainWindow):
         else:
             self.app.handle_scanner_reset()
 
+    def on_camera_expo(self):
+        """
+        Camera exposure update handler
+        """
+        # Retrieve camera exposure on GUI
+        camera_expo = self.ui.cameraExpoSpin.value()
+
+        # Update camera exposure if pressed
+        self.app.handle_camera_expo(camera_expo)
+
     def on_focussettings(self):
         """
         Remote focusing settings update handler
@@ -522,10 +547,17 @@ class Main(QMainWindow):
         """
         btn = self.sender()
         
-        # Reset scanner if pressed
+        # Start RF calibration if pressed
         if not btn.isChecked():
             btn.setChecked(False)
         else:
+            # Update AO_info
+            AO_settings = {}
+            AO_settings['loop_max'] = self.ui.loopMaxSpin.value()
+            self.app.handle_AO_info(AO_settings)
+            self.app.write_AO_info()
+
+            # Start calibrate_RF
             self.app.handle_calib_RF_start()
             btn.setChecked(True)
 
@@ -549,9 +581,10 @@ class Main(QMainWindow):
             settings['focus_mode_flag'] = 0
 
             # Set remote focusing flag to 1 and update AO_info
-            remote_focusing = {}
-            remote_focusing['focus_enable'] = 1
-            self.app.handle_AO_info(remote_focusing)
+            AO_settings = {}
+            AO_settings['loop_max'] = self.ui.loopMaxSpin.value()
+            AO_settings['focus_enable'] = 1
+            self.app.handle_AO_info(AO_settings)
             self.app.write_AO_info()
             
             # Start focus move
@@ -579,9 +612,10 @@ class Main(QMainWindow):
             settings['focus_mode_flag'] = 1
 
             # Set remote focusing flag to 1 and update AO_info
-            remote_focusing = {}
-            remote_focusing['focus_enable'] = 1
-            self.app.handle_AO_info(remote_focusing)
+            AO_settings = {}
+            AO_settings['loop_max'] = self.ui.loopMaxSpin.value()
+            AO_settings['focus_enable'] = 1
+            self.app.handle_AO_info(AO_settings)
             self.app.write_AO_info()
 
             # Start focus move
