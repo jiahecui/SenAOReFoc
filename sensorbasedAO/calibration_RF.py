@@ -101,6 +101,8 @@ class Calibration_RF(QObject):
                     else:
                         self.message.emit('\nInvalid input. Please try again.')
 
+                    c = click.getchar()
+
                 if self.loop:
 
                     # Run closed-loop control until tolerance value or maximum loop iteration is reached
@@ -114,8 +116,9 @@ class Calibration_RF(QObject):
                             elif l > 0 and i == 0:
                                 voltages = self.calib_array[:, l - 1].copy()
                             elif i > 0:
-                                voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                     [:,:config['AO']['control_coeff_num']], zern_err_part[:config['AO']['control_coeff_num']]))
+                                # voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(control_matrix_slopes, slope_err))
 
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
@@ -148,6 +151,13 @@ class Calibration_RF(QObject):
 
                             # Concatenate slopes into one slope matrix
                             slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+
+                            # Get phase residual (slope residual error) and calculate root mean square (rms) error
+                            # slope_err = slope.copy()
+                            # rms_slope = np.sqrt((slope_err ** 2).mean())
+                            # self.loop_rms_slopes[i] = rms_slope
+
+                            # print('Slope root mean square error {} is {} pixels'.format(i, rms_slope))
 
                             # Get detected zernike coefficients from slope matrix
                             self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
@@ -202,8 +212,9 @@ class Calibration_RF(QObject):
                             elif l > 0 and i == 0:
                                 voltages = self.calib_array[:, l + config['RF_calib']['step_num'] - 1].copy()
                             elif i > 0:
-                                voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                     [:,:config['AO']['control_coeff_num']], zern_err_part[:config['AO']['control_coeff_num']]))
+                                # voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(control_matrix_slopes, slope_err))
 
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
@@ -236,6 +247,13 @@ class Calibration_RF(QObject):
 
                             # Concatenate slopes into one slope matrix
                             slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+
+                            # Get phase residual (slope residual error) and calculate root mean square (rms) error
+                            # slope_err = slope.copy()
+                            # rms_slope = np.sqrt((slope_err ** 2).mean())
+                            # self.loop_rms_slopes[i] = rms_slope
+
+                            # print('Slope root mean square error {} is {} pixels'.format(i, rms_slope))
 
                             # Get detected zernike coefficients from slope matrix
                             self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
