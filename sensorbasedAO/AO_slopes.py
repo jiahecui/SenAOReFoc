@@ -6,6 +6,7 @@ import sys
 import os
 import argparse
 import time
+import click
 import h5py
 import numpy as np
 
@@ -776,7 +777,7 @@ class AO_Slopes(QObject):
                                     self.mirror.Send(voltages)
                                     
                                     # Ask for permission to proceed with AO correction
-                                    self.message.emit('\nPress [y] to proceed with correction.'.format(l))
+                                    self.message.emit('\nPress [y] to proceed with correction.')
                                     c = click.getchar()
 
                                     while True:
