@@ -74,16 +74,11 @@ class Main(QMainWindow):
             dict: dict of settings
         """
         # Retrieve GUI remote focusing depth scan settings
-        focus_depth = self.ui.focusDepthSpin.value()
-        step_incre = self.ui.stepIncreSpin.value()
+        focus_depth_defoc = self.ui.focusDepthSpin.value()
+        step_incre_defoc = self.ui.stepIncreSpin.value()
         step_num = self.ui.stepNumSpin.value()
-        start_depth = self.ui.startDepthSpin.value()
+        start_depth_defoc = self.ui.startDepthSpin.value()
         pause_time = self.ui.pauseTimeSpin.value()
-
-        # Convert depth parameters to amounts of defocus to apply on DM
-        focus_depth_defoc = focus_depth / 2
-        step_incre_defoc = step_incre / 2
-        start_depth_defoc = start_depth / 2
 
         # Retrieve GUI remote focusing AO correction settings
         AO_type = self.ui.AOTypeCombo.currentIndex()

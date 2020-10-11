@@ -58,7 +58,7 @@ class Calibration_RF(QObject):
         self.mirror_info = {}
 
         # Initialise array to store remote focusing calibration voltages
-        self.calib_array = np.zeros([self.actuator_num, config['RF_calib']['step_num'] * 2 - 1])
+        self.calib_array = np.zeros([self.actuator_num, config['RF_calib']['step_num']])
 
         super().__init__()
 
@@ -88,7 +88,7 @@ class Calibration_RF(QObject):
 
             prev1 = time.perf_counter()
 
-            # Iterate through each position and retrieve voltages to correct for that position for positive defocus
+            # Iterate through each position and retrieve voltages to correct for the defocus at that position
             for l in range(config['RF_calib']['step_num']):
 
                 # Ask user to move mirror sample to different positions along the z-axis
@@ -173,102 +173,7 @@ class Calibration_RF(QObject):
                             print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
 
                             if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
-                                self.calib_array[:, config['RF_calib']['step_num'] - 1 - l] = voltages
-                                break
-
-                        except Exception as e:
-                            print(e)
-
-                else:
-
-                    self.done.emit()
-
-            # Iterate through each position and retrieve voltages to correct for that position for negative defocus
-            for l in range(config['RF_calib']['step_num'] - 1):
-
-                # Ask user to move mirror sample to different positions along the z-axis
-                self.message.emit('\nMove mirror to position {}. Press [y] to confirm.'.format(l + config['RF_calib']['step_num']))
-                c = click.getchar()
-
-                while True:
-                    if c == 'y':
-                        break
-                    else:
-                        self.message.emit('\nInvalid input. Please try again.')
-
-                    c = click.getchar()
-
-                if self.loop:
-
-                    # Run closed-loop control until tolerance value or maximum loop iteration is reached
-                    for i in range(self.AO_settings['loop_max'] + 1):
-                    
-                        try:
-
-                            # Update mirror control voltages
-                            if l == 0 and i == 0:                     
-                                voltages = self.calib_array[:, l].copy()
-                            elif l > 0 and i == 0:
-                                voltages = self.calib_array[:, l + config['RF_calib']['step_num'] - 1].copy()
-                            elif i > 0:
-                                # voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
-                                #     [:,:config['AO']['control_coeff_num']], zern_err_part[:config['AO']['control_coeff_num']]))
-                                voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_slopes'], slope_err))
-
-                            print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
-
-                            # Send values vector to mirror
-                            self.mirror.Send(voltages)
-                            
-                            # Wait for DM to settle
-                            time.sleep(config['DM']['settling_time'])
-                        
-                            # Acquire S-H spots using camera and append to list
-                            AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                            AO_image = np.mean(AO_image_stack, axis = 2)
-                            dset_append(data_set, 'real_calib_RF_img', AO_image)
-
-                            # Image thresholding to remove background
-                            AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
-                            AO_image[AO_image < 0] = 0
-                            self.image.emit(AO_image)
-
-                            # Calculate centroids of S-H spots
-                            act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 11)
-                            act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
-                        
-                            # print('slope_x:', slope_x)
-                            # print('slope_y:', slope_y)
-
-                            # Draw actual S-H spot centroids on image layer
-                            AO_image.ravel()[act_cent_coord.astype(int)] = 0
-                            self.image.emit(AO_image)
-
-                            # Concatenate slopes into one slope matrix
-                            slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
-
-                            # Get phase residual (slope residual error) and calculate root mean square (rms) error
-                            slope_err = slope.copy()
-                            rms_slope = np.sqrt((slope_err ** 2).mean())
-
-                            print('Slope root mean square error {} is {} pixels'.format(i, rms_slope))
-
-                            # Get detected zernike coefficients from slope matrix
-                            self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
-
-                            # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
-                            zern_err = self.zern_coeff_detect.copy()
-                            zern_err_part = self.zern_coeff_detect.copy()
-                            zern_err_part[[0, 1], 0] = 0
-                            rms_zern = np.sqrt((zern_err ** 2).sum())
-                            rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
-
-                            strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
-
-                            print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
-
-                            if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
-                                self.calib_array[:, config['RF_calib']['step_num'] + l] = voltages
+                                self.calib_array[:, l] = voltages
                                 break
 
                         except Exception as e:
