@@ -915,6 +915,12 @@ class AO_Slopes(QObject):
                             AO_image.ravel()[act_cent_coord.astype(int)] = 0
                             self.image.emit(AO_image)
 
+                            # Take tip\tilt off
+                            # slope_x_mean = np.mean(slope_x)
+                            # slope_x = slope_x - slope_x_mean
+                            # slope_y_mean = np.mean(slope_y)
+                            # slope_y = slope_y - slope_y_mean
+
                             # Concatenate slopes into one slope matrix
                             slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
 

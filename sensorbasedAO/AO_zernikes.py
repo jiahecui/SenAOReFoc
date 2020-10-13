@@ -907,6 +907,12 @@ class AO_Zernikes(QObject):
                             AO_image.ravel()[act_cent_coord.astype(int)] = 0
                             self.image.emit(AO_image)
 
+                            # Take tip\tilt off
+                            # slope_x_mean = np.mean(slope_x)
+                            # slope_x = slope_x - slope_x_mean
+                            # slope_y_mean = np.mean(slope_y)
+                            # slope_y = slope_y - slope_y_mean
+
                             # Concatenate slopes into one slope matrix
                             slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
 
@@ -1468,7 +1474,8 @@ class AO_Zernikes(QObject):
                             self._image = np.mean(self._image_stack, axis = 2)
 
                             # Pause for specified amount of time
-                            time.sleep(self.focus_settings['pause_time'])               
+                            # time.sleep(self.focus_settings['pause_time'])  
+                            time.sleep(2)             
                                     
                         # Image thresholding to remove background
                         self._image = self._image - config['image']['threshold'] * np.amax(self._image)
