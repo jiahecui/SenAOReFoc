@@ -51,6 +51,11 @@ class AO_Slopes(QObject):
 
         # Get mirror instance
         self.mirror = mirror
+
+        # Get voltages for remote focusing
+        # self.remote_focus_voltages = self.mirror_settings['remote_focus_voltages']
+        self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_1um_41.mat','r').get('interp_volts')
+        self.remote_focus_voltages = np.array(self.remote_focus_voltages).T
         
         # Initialise Zernike coefficient array
         self.zern_coeff = np.zeros(config['AO']['control_coeff_num'])
@@ -315,6 +320,12 @@ class AO_Slopes(QObject):
                         # Draw actual S-H spot centroids on image layer
                         AO_image.ravel()[act_cent_coord.astype(int)] = 0
                         self.image.emit(AO_image)
+
+                        # Take tip\tilt off
+                        slope_x_mean = np.mean(slope_x)
+                        slope_x = slope_x - slope_x_mean
+                        slope_y_mean = np.mean(slope_y)
+                        slope_y = slope_y - slope_y_mean
 
                         # Concatenate slopes into one slope matrix
                         slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
@@ -743,11 +754,11 @@ class AO_Slopes(QObject):
                 if self.AO_settings['focus_enable'] == 1:
                     if self.focus_settings['focus_mode_flag'] == 0:
                         RF_index = int(self.focus_settings['focus_depth_defoc'] // config['RF_calib']['step_incre'])
-                        voltages_defoc = np.ravel(self.mirror_settings['remote_focus_voltages'][:, RF_index])
+                        voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
                     else:
                         RF_index = int(self.focus_settings['start_depth_defoc'] // config['RF_calib']['step_incre'] \
                             + self.focus_settings['step_incre_defoc'] // config['RF_calib']['step_incre'] * j)
-                        voltages_defoc = np.ravel(self.mirror_settings['remote_focus_voltages'][:, RF_index])
+                        voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
                 else:
                     voltages_defoc = 0
 
@@ -916,10 +927,10 @@ class AO_Slopes(QObject):
                             self.image.emit(AO_image)
 
                             # Take tip\tilt off
-                            # slope_x_mean = np.mean(slope_x)
-                            # slope_x = slope_x - slope_x_mean
-                            # slope_y_mean = np.mean(slope_y)
-                            # slope_y = slope_y - slope_y_mean
+                            slope_x_mean = np.mean(slope_x)
+                            slope_x = slope_x - slope_x_mean
+                            slope_y_mean = np.mean(slope_y)
+                            slope_y = slope_y - slope_y_mean
 
                             # Concatenate slopes into one slope matrix
                             slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
@@ -1073,11 +1084,11 @@ class AO_Slopes(QObject):
                 if self.AO_settings['focus_enable'] == 1:
                     if self.focus_settings['focus_mode_flag'] == 0:
                         RF_index = self.focus_settings['focus_depth_defoc'] // config['RF_calib']['step_incre']
-                        voltages_defoc = np.ravel(self.mirror_settings['remote_focus_voltages'][:, RF_index])
+                        voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
                     else:
                         RF_index = self.focus_settings['start_depth_defoc'] // config['RF_calib']['step_incre'] \
                             + self.focus_settings['step_incre_defoc'] // config['RF_calib']['step_incre'] * j
-                        voltages_defoc = np.ravel(self.mirror_settings['remote_focus_voltages'][:, RF_index])
+                        voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
                 else:
                     voltages_defoc = 0
 
