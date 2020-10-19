@@ -8,7 +8,9 @@ import argparse
 import time
 import click
 import h5py
+from scipy import io
 import numpy as np
+import scipy as sp
 
 import log
 from config import config
@@ -83,6 +85,9 @@ class AO_Zernikes(QObject):
         elif config['AO']['scan_flag'] == 1:
             self.scan_num_x = config['AO']['scan_num_x']
             self.scan_zern_x = np.zeros([config['AO']['recon_coeff_num'], config['AO']['scan_num_x']])
+
+        # Initialise array to store voltages during correction loop
+        self.voltages = np.zeros([self.actuator_num, self.AO_settings['loop_max'] + 1])
 
         super().__init__()
 
@@ -210,10 +215,13 @@ class AO_Zernikes(QObject):
                                 voltages[:] = config['DM']['vol_bias']
                         else:
 
-                            voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                            voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                 [:,:config['AO']['control_coeff_num']], zern_err[:config['AO']['control_coeff_num']]))
 
+                            self.voltages[:, i] = voltages
+
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
+                            print('Sum of voltages {} is: {}'.format(i, voltages.sum()))
 
                         if config['dummy']:
 
@@ -323,10 +331,8 @@ class AO_Zernikes(QObject):
                         self.image.emit(AO_image)
 
                         # Take tip\tilt off
-                        slope_x_mean = np.mean(slope_x)
-                        slope_x = slope_x - slope_x_mean
-                        slope_y_mean = np.mean(slope_y)
-                        slope_y = slope_y - slope_y_mean
+                        slope_x -= np.mean(slope_x)
+                        slope_y -= np.mean(slope_y)
 
                         # Concatenate slopes into one slope matrix
                         slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
@@ -376,6 +382,8 @@ class AO_Zernikes(QObject):
                 else:
 
                     self.done.emit(1)
+
+            sp.io.savemat('correction_voltages/zern_AO_1_voltages.mat', dict(correction_voltages = self.voltages))
 
             # Close HDF5 file
             data_file.close()
@@ -467,7 +475,7 @@ class AO_Zernikes(QObject):
                                 voltages[:] = config['DM']['vol_bias']
                         else:
 
-                            voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                            voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                 [:,:config['AO']['control_coeff_num']], zern_err[:config['AO']['control_coeff_num']]))
 
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
@@ -794,10 +802,13 @@ class AO_Zernikes(QObject):
                                     voltages[:] = config['DM']['vol_bias'] + voltages_defoc
                             else:
                                 
-                                voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                 [:,:config['AO']['control_coeff_num']], zern_err_part[:config['AO']['control_coeff_num']])) 
 
+                                self.voltages[:, i] = voltages
+
                                 print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
+                                print('Sum of voltages {} is: {}'.format(i, voltages.sum()))
                             
                             if config['dummy']:
                                 
@@ -919,10 +930,8 @@ class AO_Zernikes(QObject):
                             self.image.emit(AO_image)
 
                             # Take tip\tilt off
-                            slope_x_mean = np.mean(slope_x)
-                            slope_x = slope_x - slope_x_mean
-                            slope_y_mean = np.mean(slope_y)
-                            slope_y = slope_y - slope_y_mean
+                            slope_x -= np.mean(slope_x)
+                            slope_y -= np.mean(slope_y)
 
                             # Concatenate slopes into one slope matrix
                             slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
@@ -977,6 +986,8 @@ class AO_Zernikes(QObject):
                             self.done2.emit(0)
                         elif self.focus_settings['focus_mode_flag'] == 1:
                             self.done2.emit(1)
+
+                sp.io.savemat('correction_voltages/zern_AO_3_voltages.mat', dict(correction_voltages = self.voltages))
 
                 print('Final root mean square error of detected wavefront is: {} um'.format(rms_zern))
 
@@ -1097,7 +1108,7 @@ class AO_Zernikes(QObject):
                                     voltages[:] = config['DM']['vol_bias'] + voltages_defoc
                             else:
 
-                                voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                 [:,:config['AO']['control_coeff_num']], zern_err_part[:config['AO']['control_coeff_num']]))
 
                                 print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))

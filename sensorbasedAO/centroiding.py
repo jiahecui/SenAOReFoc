@@ -92,12 +92,10 @@ class Centroiding(QObject):
                 self.layer.emit(SB_layer_2D_temp)
 
                 # Take tip\tilt off
-                slope_x_mean = np.mean(slope_x)
-                act_ref_cent_coord_x = act_ref_cent_coord_x - slope_x_mean
-                slope_y_mean = np.mean(slope_y)
-                act_ref_cent_coord_y = act_ref_cent_coord_y - slope_y_mean
+                act_ref_cent_coord_x -= np.mean(slope_x)
+                act_ref_cent_coord_y -= np.mean(slope_y)
 
-                print(slope_x_mean, slope_y_mean)
+                print(np.mean(slope_x), np.mean(slope_y))
 
                 self.message.emit('\nSystem aberration calibration process finished.')
             else:
