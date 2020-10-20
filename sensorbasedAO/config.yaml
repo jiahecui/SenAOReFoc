@@ -26,7 +26,7 @@ camera:
   sensor_diam: 11.26  # mm Ximea - 11.26; IDS - 4.762
   bin_factor: 2  # Ximea - 2; IDS - 1
   pixel_size: 5.5  # um Ximea - 5.5; IDS - 4.65
-  frame_num: 8  # Number of frames to acquire in burst acquisition mode 
+  frame_num: 5  # Number of frames to acquire in burst acquisition mode 
   sleep_time: 0.1  # Interval time between frames during live acquisition
     
 DM:
@@ -67,7 +67,7 @@ search_block:
   filter_thres: 10  # Cutoff value for low pass filter within each search block after Fourier transform
   sharp_thres: 0.0015  # Minimum sharpness threshold within search block below which S-H spot will be considered as obscured
   outline_int: 255  # uint8
-  pupil_diam_0: 2.35  # mm  # Alpao 7.216 (500) / 4.5 (300) / 2.2 (1.92, 2, 2.35, 2.5) (150)
+  pupil_diam_0: 2.5  # mm  # Alpao 7.216 (500) / 4.5 (300) / 2.2 (1.92, 2, 2.35, 2.5) (150)
   pupil_diam_1: 10.1  # mm  # Boston 10.1 (500) / 6.3 (300) / 3.1 (150)
 
 image:
@@ -102,8 +102,8 @@ zern_test:
   y_amp: 0.1  # Normalised voltage range for y scan, max/min +/-1V (600 um)
 
 RF_calib:
-  step_num: 41 # Number of steps used in one direction during calibration of remote focusing
-  step_incre: 1  # Axial increment between each step / um
+  step_num: 4 # Number of steps used in one direction during calibration of remote focusing
+  step_incre: 10  # Axial increment between each step / um
 
 reflect_prof:
   samp_num: 33  # Flag for choosing the working sample

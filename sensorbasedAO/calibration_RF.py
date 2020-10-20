@@ -118,7 +118,7 @@ class Calibration_RF(QObject):
                             elif i > 0:
                                 # voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                 #     [:,:config['AO']['control_coeff_num']], zern_err_part[:config['AO']['control_coeff_num']]))
-                                voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_slopes'], slope_err))
+                                voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_slopes'], slope_err))
 
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
@@ -148,6 +148,10 @@ class Calibration_RF(QObject):
                             # Draw actual S-H spot centroids on image layer
                             AO_image.ravel()[act_cent_coord.astype(int)] = 0
                             self.image.emit(AO_image)
+
+                            # Take tip\tilt off
+                            slope_x -= np.mean(slope_x)
+                            slope_y -= np.mean(slope_y)
 
                             # Concatenate slopes into one slope matrix
                             slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
