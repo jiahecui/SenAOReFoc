@@ -57,7 +57,10 @@ class AO_Zernikes(QObject):
         # Get voltages for remote focusing
         # self.remote_focus_voltages = self.mirror_settings['remote_focus_voltages']
         # self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_1um_41.mat','r').get('interp_volts')
-        self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_2um_21.mat','r').get('interp_volts')
+        # self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_2um_21.mat','r').get('interp_volts')
+        self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_2um_21_2.mat','r').get('interp_volts')
+        # self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_2um_31.mat','r').get('interp_volts')
+        # self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_2um_21_mod.mat','r').get('interp_volts')
         self.remote_focus_voltages = np.array(self.remote_focus_voltages).T
 
         # Initialise Zernike coefficient array

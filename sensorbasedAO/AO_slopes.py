@@ -57,7 +57,10 @@ class AO_Slopes(QObject):
         # Get voltages for remote focusing
         # self.remote_focus_voltages = self.mirror_settings['remote_focus_voltages']
         # self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_1um_41.mat','r').get('interp_volts')
-        self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_2um_21.mat','r').get('interp_volts')
+        # self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_2um_21.mat','r').get('interp_volts')
+        self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_2um_21_2.mat','r').get('interp_volts')
+        # self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_2um_31.mat','r').get('interp_volts')
+        # self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_2um_21_mod.mat','r').get('interp_volts')
         self.remote_focus_voltages = np.array(self.remote_focus_voltages).T
         
         # Initialise Zernike coefficient array
@@ -728,8 +731,12 @@ class AO_Slopes(QObject):
             self.AO_info = {'slope_AO_3': {}}
 
             # Calculate modified influence function with partial correction (suppressing tip, tilt, and defocus)
+            # inf_matrix_slopes = np.concatenate((self.mirror_settings['inf_matrix_slopes'], config['AO']['suppress_gain'] * \
+            #     self.mirror_settings['inf_matrix_zern'][[0, 1, 3], :]), axis = 0)
             inf_matrix_slopes = np.concatenate((self.mirror_settings['inf_matrix_slopes'], config['AO']['suppress_gain'] * \
-                self.mirror_settings['inf_matrix_zern'][[0, 1, 3], :]), axis = 0)
+                self.mirror_settings['inf_matrix_zern'][[3], :]), axis = 0)
+            # inf_matrix_slopes = np.concatenate((self.mirror_settings['inf_matrix_slopes'], config['AO']['suppress_gain'] * \
+            #     self.mirror_settings['inf_matrix_zern'][[0, 1], :]), axis = 0)
 
             # Calculate singular value decomposition of modified influence function matrix
             u, s, vh = np.linalg.svd(inf_matrix_slopes, full_matrices = False)
@@ -939,8 +946,8 @@ class AO_Slopes(QObject):
                             self.image.emit(AO_image)
 
                             # Take tip\tilt off
-                            # slope_x -= np.mean(slope_x)
-                            # slope_y -= np.mean(slope_y)
+                            slope_x -= np.mean(slope_x)
+                            slope_y -= np.mean(slope_y)
 
                             # Concatenate slopes into one slope matrix
                             slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
@@ -991,7 +998,9 @@ class AO_Slopes(QObject):
                                 dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                             # Append zeros to end of slope error array to ensure dimension is consistent with new control matrix
-                            slope_err = np.append(slope_err, np.zeros([3, 1]), axis = 0)
+                            # slope_err = np.append(slope_err, np.zeros([3, 1]), axis = 0)
+                            slope_err = np.append(slope_err, np.zeros([1, 1]), axis = 0)
+                            # slope_err = np.append(slope_err, np.zeros([2, 1]), axis = 0)
 
                             # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
                             if strehl >= config['AO']['tolerance_fact_strehl']:
