@@ -307,8 +307,8 @@ class Calibration(QObject):
 
                     self.message.emit('\nCentroid calculation process started...')
                     self.slope_x, self.slope_y = acq_centroid(self.SB_settings, flag = 1)
-                    # self.slope_x -= np.mean(self.slope_x)
-                    # self.slope_y -= np.mean(self.slope_y)
+                    self.slope_x -= np.mean(self.slope_x)
+                    self.slope_y -= np.mean(self.slope_y)
                     self.message.emit('\nCentroid calculation process finished.')
                 else:
 

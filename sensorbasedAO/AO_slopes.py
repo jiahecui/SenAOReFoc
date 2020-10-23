@@ -329,6 +329,9 @@ class AO_Slopes(QObject):
                         # print('slope_x:', slope_x)
                         # print('slope_y:', slope_y)
 
+                        sp.io.savemat('centroid_values/slope_AO_1/x_loop_' + str(i) + '.mat', dict(centroid_value_x = act_cent_coord_x))
+                        sp.io.savemat('centroid_values/slope_AO_1/y_loop_' + str(i) + '.mat', dict(centroid_value_y = act_cent_coord_y))
+
                         # Draw actual S-H spot centroids on image layer
                         AO_image.ravel()[act_cent_coord.astype(int)] = 0
                         self.image.emit(AO_image)
@@ -736,7 +739,7 @@ class AO_Slopes(QObject):
             inf_matrix_slopes = np.concatenate((self.mirror_settings['inf_matrix_slopes'], config['AO']['suppress_gain'] * \
                 self.mirror_settings['inf_matrix_zern'][[3], :]), axis = 0)
             # inf_matrix_slopes = np.concatenate((self.mirror_settings['inf_matrix_slopes'], config['AO']['suppress_gain'] * \
-            #     self.mirror_settings['inf_matrix_zern'][[0, 1], :]), axis = 0)
+                # self.mirror_settings['inf_matrix_zern'][[0, 1], :]), axis = 0)
 
             # Calculate singular value decomposition of modified influence function matrix
             u, s, vh = np.linalg.svd(inf_matrix_slopes, full_matrices = False)
@@ -940,6 +943,9 @@ class AO_Slopes(QObject):
 
                             # print('slope_x:', slope_x)
                             # print('slope_y:', slope_y)
+
+                            sp.io.savemat('centroid_values/slope_AO_3/x_loop_' + str(i) + '.mat', dict(centroid_value_x = act_cent_coord_x))
+                            sp.io.savemat('centroid_values/slope_AO_3/y_loop_' + str(i) + '.mat', dict(centroid_value_y = act_cent_coord_y))
 
                             # Draw actual S-H spot centroids on image layer
                             AO_image.ravel()[act_cent_coord.astype(int)] = 0
