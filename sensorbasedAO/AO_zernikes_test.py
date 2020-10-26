@@ -644,6 +644,10 @@ class AO_Zernikes_Test(QObject):
             self.zern_x = np.zeros([config['AO']['recon_coeff_num'], config['zern_test']['scan_num_x'], config['zern_test']['loop_num']])
             self.zern_y = np.zeros([config['AO']['recon_coeff_num'], config['zern_test']['scan_num_y'], config['zern_test']['loop_num']])
 
+            # Initialise array for storing retrieved slope values
+            self.slope_x = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, config['zern_test']['scan_num_x'], config['zern_test']['loop_num']])
+            self.slope_y = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, config['zern_test']['scan_num_y'], config['zern_test']['loop_num']])
+
             self.message.emit('\nProcess started for Zernike coefficient retrieval from different points along line scan...')
 
             # Reset deformable mirror
@@ -695,6 +699,7 @@ class AO_Zernikes_Test(QObject):
 
                             # Concatenate slopes into one slope matrix
                             slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+                            self.slope_x[:,m,l] = slope[:,0]
 
                             # Get detected zernike coefficients from slope matrix
                             self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
@@ -751,6 +756,7 @@ class AO_Zernikes_Test(QObject):
 
                             # Concatenate slopes into one slope matrix
                             slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+                            self.slope_y[:,m,l] = slope[:,0]
 
                             # Get detected zernike coefficients from slope matrix
                             self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
@@ -783,12 +789,16 @@ class AO_Zernikes_Test(QObject):
 
                 self.AO_info['zern_test']['x_scan_zern_coeff'] = self.zern_x
                 self.AO_info['zern_test']['y_scan_zern_coeff'] = self.zern_y
+                self.AO_info['zern_test']['x_scan_slope_val'] = self.slope_x
+                self.AO_info['zern_test']['y_scan_slope_val'] = self.slope_y
 
                 self.info.emit(self.AO_info)
                 self.write.emit()
 
-                sp.io.savemat('x_scan_zern_coeff.mat', dict(x_scan_zern_coeff = self.zern_x))
-                sp.io.savemat('y_scan_zern_coeff.mat', dict(y_scan_zern_coeff = self.zern_y))
+                sp.io.savemat('x_scan_zern_coeff_2.mat', dict(x_scan_zern_coeff_2 = self.zern_x))
+                sp.io.savemat('y_scan_zern_coeff_2.mat', dict(y_scan_zern_coeff_2 = self.zern_y))
+                sp.io.savemat('x_scan_slope_val_2.mat', dict(x_scan_slope_val_2 = self.slope_x))
+                sp.io.savemat('y_scan_slope_val_2.mat', dict(y_scan_slope_val_2 = self.slope_y))
             else:
 
                 self.done.emit()

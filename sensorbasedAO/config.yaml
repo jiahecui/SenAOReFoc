@@ -98,8 +98,8 @@ zern_test:
   loop_num: 2  # Number of line scans to loop over in mode 2
   scan_num_x: 512  # Number of scan points along x direction in mode 2
   scan_num_y: 512  # Number of scan points along y direction in mode 2
-  x_amp: 1  # Normalised voltage range for x scan, max/min +/-1V (600 um)
-  y_amp: 1  # Normalised voltage range for y scan, max/min +/-1V (600 um)
+  x_amp: 1  # Normalised voltage range for x scan, max/min +/-1V (600 um), +/-0.166V (100um)
+  y_amp: 1  # Normalised voltage range for y scan, max/min +/-1V (600 um), +/-0.166V (100um)
 
 RF_calib:
   step_num: 21 # Number of steps used in one direction during calibration of remote focusing
