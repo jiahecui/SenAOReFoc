@@ -389,7 +389,7 @@ class AO_Zernikes_Test(QObject):
             self.start.emit()
 
             """
-            Iterate through each zernike mode aberration with the same amplitude and perform closed-loop AO via zernikes for a fixed
+            Iterate through each zernike mode aberration with the same amplitude and perform closed-loop AO via slopes for a fixed
             number of loops 
             """
             # Initialise AO information parameter
@@ -689,6 +689,10 @@ class AO_Zernikes_Test(QObject):
                             AO_image.ravel()[act_cent_coord.astype(int)] = 0
                             self.image.emit(AO_image)
 
+                            # Take tip\tilt off
+                            slope_x -= np.mean(slope_x)
+                            slope_y -= np.mean(slope_y)
+
                             # Concatenate slopes into one slope matrix
                             slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
 
@@ -740,6 +744,10 @@ class AO_Zernikes_Test(QObject):
                             # Draw actual S-H spot centroids on image layer
                             AO_image.ravel()[act_cent_coord.astype(int)] = 0
                             self.image.emit(AO_image)
+
+                            # Take tip\tilt off
+                            slope_x -= np.mean(slope_x)
+                            slope_y -= np.mean(slope_y)
 
                             # Concatenate slopes into one slope matrix
                             slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
