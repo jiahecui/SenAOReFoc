@@ -99,6 +99,8 @@ zern_test:
   loop_num: 2  # Number of line scans to loop over in mode 2
   scan_num_x: 512  # Number of scan points along x direction in mode 2
   scan_num_y: 512  # Number of scan points along y direction in mode 2
+  large_flag: 1  # Flag for whether to scan large FOV
+  small_flag: 1  # Flag for whether to scan small FOV
   x_amp_large: 1  # Normalised voltage range for x scan, max/min +/-1V (600 um)
   y_amp_large: 1  # Normalised voltage range for y scan, max/min +/-1V (600 um)
   x_amp_small: 0.166  # Normalised voltage range for x scan, max/min +/-0.166V (100um)
