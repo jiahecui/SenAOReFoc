@@ -215,6 +215,21 @@ class AO_Slopes(QObject):
                                 # Retrieve actuator voltages from zernike coefficient array
                                 voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                     [:,:config['AO']['control_coeff_num']], zern_array))
+
+                                # Send values vector to mirror
+                                self.mirror.Send(voltages)
+                                
+                                # Ask for permission to proceed with AO correction
+                                self.message.emit('\nPress [y] to proceed with correction.')
+                                c = click.getchar()
+
+                                while True:
+                                    if c == 'y':
+                                        break
+                                    else:
+                                        self.message.emit('\nInvalid input. Please try again.')
+
+                                    c = click.getchar()                                  
                             else:
 
                                 voltages[:] = config['DM']['vol_bias']
