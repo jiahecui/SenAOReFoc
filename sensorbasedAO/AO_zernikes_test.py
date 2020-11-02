@@ -631,15 +631,6 @@ class AO_Zernikes_Test(QObject):
             """
             Perform a number of line scans across specimen and retrieve Zernike coefficients from each scan point
             """
-            # Initialise AO information parameter
-            self.AO_info = {'zern_test': {}}
-
-            # Create new datasets in HDF5 file to store closed-loop AO data and open file
-            get_dset(self.SB_settings, 'zern_test', flag = 0)
-            data_file = h5py.File('data_info.h5', 'a')
-            data_set_1 = data_file['AO_img']['zern_test']
-            data_set_2 = data_file['AO_info']['zern_test']
-
             # Initialise array for storing retrieved zernike coefficients
             self.zern_x = np.zeros([config['AO']['recon_coeff_num'], config['zern_test']['scan_num_x'], config['zern_test']['loop_num']])
             self.zern_y = np.zeros([config['AO']['recon_coeff_num'], config['zern_test']['scan_num_y'], config['zern_test']['loop_num']])
@@ -650,132 +641,292 @@ class AO_Zernikes_Test(QObject):
 
             self.message.emit('\nProcess started for Zernike coefficient retrieval from different points along line scan...')
 
-            # Reset deformable mirror
-            self.mirror.Reset()
-
             # Generate relevant amounts of x/y scan voltages (normalised) for scanning across sample
-            x_array = np.linspace(-config['zern_test']['x_amp'], config['zern_test']['x_amp'], config['zern_test']['scan_num_x'])
-            y_array = np.linspace(-config['zern_test']['y_amp'], config['zern_test']['y_amp'], config['zern_test']['scan_num_y'])
+            x_array_large = np.linspace(-config['zern_test']['x_amp_large'], config['zern_test']['x_amp_large'], config['zern_test']['scan_num_x'])
+            y_array_large = np.linspace(-config['zern_test']['y_amp_large'], config['zern_test']['y_amp_large'], config['zern_test']['scan_num_y'])
+
+            x_array_small = np.linspace(-config['zern_test']['x_amp_small'], config['zern_test']['x_amp_small'], config['zern_test']['scan_num_x'])
+            y_array_small = np.linspace(-config['zern_test']['y_amp_small'], config['zern_test']['y_amp_small'], config['zern_test']['scan_num_y'])
 
             prev1 = time.perf_counter()
 
-            # Scan multiple points across a line in both x and y directions for a given number of loops
-            for l in range(config['zern_test']['loop_num']):
+            # Scan multiple points across a line in both x and y directions for a given number of loops over a large FOV (600um)
+            if config['zern_test']['large_flag']:
 
-                # Reset scanner
-                self.scanner.ResetDevicePosition()
+                for n in range(config['zern_test']['run_num']):
 
-                print('x-scan loop', l + 1)
+                    # Initialise AO information parameter
+                    self.AO_info = {'zern_test': {}}
 
-                for m in range(config['zern_test']['scan_num_x']):
-                
-                    if self.loop:
+                    # Create new datasets in HDF5 file to store closed-loop AO data and open file
+                    get_dset(self.SB_settings, 'zern_test', flag = 0)
+                    data_file = h5py.File('data_info.h5', 'a')
+                    data_set_1 = data_file['AO_img']['zern_test']
+                    data_set_2 = data_file['AO_info']['zern_test']
+                    
+                    # Reset deformable mirror
+                    self.mirror.Reset()
+
+                    for l in range(config['zern_test']['loop_num']):
+
+                        # Reset scanner
+                        self.scanner.ResetDevicePosition()
+
+                        print('Large FOV run {} x-scan loop {}'.format(n + 1, l + 1))
+
+                        for m in range(config['zern_test']['scan_num_x']):
                         
-                        try:
-                            
-                            # Send voltages to scanner
-                            self.scanner.GoToDevicePosition(x_array[m], 0, 255, 5)
+                            if self.loop:
+                                
+                                try:
+                                    
+                                    # Send voltages to scanner
+                                    self.scanner.GoToDevicePosition(x_array_large[m], 0, 255, 10)
+                                
+                                    # Acquire S-H spots using camera and append to list
+                                    AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                                    dset_append(data_set_1, 'real_AO_img', AO_image)
+
+                                    # Image thresholding to remove background
+                                    AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                                    AO_image[AO_image < 0] = 0
+                                    self.image.emit(AO_image)
+
+                                    # Calculate centroids of S-H spots
+                                    act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 2) 
+                                    act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+
+                                    # Draw actual S-H spot centroids on image layer
+                                    AO_image.ravel()[act_cent_coord.astype(int)] = 0
+                                    self.image.emit(AO_image)
+
+                                    # Take tip\tilt off
+                                    slope_x -= np.mean(slope_x)
+                                    slope_y -= np.mean(slope_y)
+
+                                    # Concatenate slopes into one slope matrix
+                                    slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+                                    self.slope_x[:,m,l] = slope[:,0]
+
+                                    # Get detected zernike coefficients from slope matrix
+                                    self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
+
+                                    # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
+                                    zern_err = self.zern_coeff_detect.copy()
+                                    rms_zern = np.sqrt((zern_err ** 2).sum())
+                                    self.zern_x[:,m,l] = zern_err[:,0]
+
+                                    print('Full zernike root mean square error {} is {} um'.format(m + 1, rms_zern))                              
+
+                                except Exception as e:
+                                    print(e)
+                            else:
+
+                                self.done.emit()
+
+                    for l in range(config['zern_test']['loop_num']):
+
+                        # Reset scanner
+                        self.scanner.ResetDevicePosition()
+
+                        print('Large FOV run {} y-scan loop {}'.format(n + 1, l + 1))
+
+                        for m in range(config['zern_test']['scan_num_y']):
                         
-                            # Acquire S-H spots using camera and append to list
-                            AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
-                            dset_append(data_set_1, 'real_AO_img', AO_image)
+                            if self.loop:
+                                
+                                try:
 
-                            # Image thresholding to remove background
-                            AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
-                            AO_image[AO_image < 0] = 0
-                            self.image.emit(AO_image)
+                                    # Send voltages to scanner
+                                    self.scanner.GoToDevicePosition(0, y_array_large[m], 255, 10)
+                                
+                                    # Acquire S-H spots using camera and append to list
+                                    AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                                    dset_append(data_set_1, 'real_AO_img', AO_image)
 
-                            # Calculate centroids of S-H spots
-                            act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 2) 
-                            act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+                                    # Image thresholding to remove background
+                                    AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                                    AO_image[AO_image < 0] = 0
+                                    self.image.emit(AO_image)
 
-                            # Draw actual S-H spot centroids on image layer
-                            AO_image.ravel()[act_cent_coord.astype(int)] = 0
-                            self.image.emit(AO_image)
+                                    # Calculate centroids of S-H spots
+                                    act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 2) 
+                                    act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
 
-                            # Take tip\tilt off
-                            slope_x -= np.mean(slope_x)
-                            slope_y -= np.mean(slope_y)
+                                    # Draw actual S-H spot centroids on image layer
+                                    AO_image.ravel()[act_cent_coord.astype(int)] = 0
+                                    self.image.emit(AO_image)
 
-                            # Concatenate slopes into one slope matrix
-                            slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
-                            self.slope_x[:,m,l] = slope[:,0]
+                                    # Take tip\tilt off
+                                    slope_x -= np.mean(slope_x)
+                                    slope_y -= np.mean(slope_y)
 
-                            # Get detected zernike coefficients from slope matrix
-                            self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
+                                    # Concatenate slopes into one slope matrix
+                                    slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+                                    self.slope_y[:,m,l] = slope[:,0]
 
-                            # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
-                            zern_err = self.zern_coeff_detect.copy()
-                            rms_zern = np.sqrt((zern_err ** 2).sum())
-                            self.zern_x[:,m,l] = zern_err[:,0]
+                                    # Get detected zernike coefficients from slope matrix
+                                    self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                            print('Full zernike root mean square error {} is {} um'.format(m + 1, rms_zern))                              
+                                    # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
+                                    zern_err = self.zern_coeff_detect.copy()
+                                    rms_zern = np.sqrt((zern_err ** 2).sum())
+                                    self.zern_y[:,m,l] = zern_err[:,0]
 
-                        except Exception as e:
-                            print(e)
-                    else:
+                                    print('Full zernike root mean square error {} is {} um'.format(m + 1, rms_zern))                              
 
-                        self.done.emit()
+                                except Exception as e:
+                                    print(e)
+                            else:
 
-            for l in range(config['zern_test']['loop_num']):
+                                self.done.emit()
 
-                # Reset scanner
-                self.scanner.ResetDevicePosition()
+                    sp.io.savemat('xy_scan_aberr_meas/600um/x_scan_zern_coeff_' + str(n) + '.mat', dict(x_scan_zern_coeff = self.zern_x))
+                    sp.io.savemat('xy_scan_aberr_meas/600um/y_scan_zern_coeff_' + str(n) + '.mat', dict(y_scan_zern_coeff = self.zern_y))
+                    sp.io.savemat('xy_scan_aberr_meas/600um/x_scan_slope_val_' + str(n) + '.mat', dict(x_scan_slope_val = self.slope_x))
+                    sp.io.savemat('xy_scan_aberr_meas/600um/y_scan_slope_val_' + str(n) + '.mat', dict(y_scan_slope_val = self.slope_y))
 
-                print('y-scan loop', l + 1)
+                    # Close HDF5 file
+                    data_file.close()
 
-                for m in range(config['zern_test']['scan_num_y']):
-                
-                    if self.loop:
+            # Scan multiple points across a line in both x and y directions for a given number of loops over a small FOV (100um)
+            if config['zern_test']['small_flag']:
+
+                for n in range(config['zern_test']['run_num']):
+
+                    # Initialise AO information parameter
+                    self.AO_info = {'zern_test': {}}
+
+                    # Create new datasets in HDF5 file to store closed-loop AO data and open file
+                    get_dset(self.SB_settings, 'zern_test', flag = 0)
+                    data_file = h5py.File('data_info.h5', 'a')
+                    data_set_1 = data_file['AO_img']['zern_test']
+                    data_set_2 = data_file['AO_info']['zern_test']
+                    
+                    # Reset deformable mirror
+                    self.mirror.Reset()
+
+                    for l in range(config['zern_test']['loop_num']):
+
+                        # Reset scanner
+                        self.scanner.ResetDevicePosition()
+
+                        print('Small FOV run {} x-scan loop {}'.format(n + 1, l + 1))
+
+                        for m in range(config['zern_test']['scan_num_x']):
                         
-                        try:
+                            if self.loop:
+                                
+                                try:
+                                    
+                                    # Send voltages to scanner
+                                    self.scanner.GoToDevicePosition(x_array_small[m], 0, 255, 10)
+                                
+                                    # Acquire S-H spots using camera and append to list
+                                    AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                                    dset_append(data_set_1, 'real_AO_img', AO_image)
 
-                            # Send voltages to scanner
-                            self.scanner.GoToDevicePosition(0, y_array[m], 255, 5)
+                                    # Image thresholding to remove background
+                                    AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                                    AO_image[AO_image < 0] = 0
+                                    self.image.emit(AO_image)
+
+                                    # Calculate centroids of S-H spots
+                                    act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 2) 
+                                    act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+
+                                    # Draw actual S-H spot centroids on image layer
+                                    AO_image.ravel()[act_cent_coord.astype(int)] = 0
+                                    self.image.emit(AO_image)
+
+                                    # Take tip\tilt off
+                                    slope_x -= np.mean(slope_x)
+                                    slope_y -= np.mean(slope_y)
+
+                                    # Concatenate slopes into one slope matrix
+                                    slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+                                    self.slope_x[:,m,l] = slope[:,0]
+
+                                    # Get detected zernike coefficients from slope matrix
+                                    self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
+
+                                    # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
+                                    zern_err = self.zern_coeff_detect.copy()
+                                    rms_zern = np.sqrt((zern_err ** 2).sum())
+                                    self.zern_x[:,m,l] = zern_err[:,0]
+
+                                    print('Full zernike root mean square error {} is {} um'.format(m + 1, rms_zern))                              
+
+                                except Exception as e:
+                                    print(e)
+                            else:
+
+                                self.done.emit()
+
+                    for l in range(config['zern_test']['loop_num']):
+
+                        # Reset scanner
+                        self.scanner.ResetDevicePosition()
+
+                        print('Small FOV run {} y-scan loop {}'.format(n + 1, l + 1))
+
+                        for m in range(config['zern_test']['scan_num_y']):
                         
-                            # Acquire S-H spots using camera and append to list
-                            AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
-                            dset_append(data_set_1, 'real_AO_img', AO_image)
+                            if self.loop:
+                                
+                                try:
 
-                            # Image thresholding to remove background
-                            AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
-                            AO_image[AO_image < 0] = 0
-                            self.image.emit(AO_image)
+                                    # Send voltages to scanner
+                                    self.scanner.GoToDevicePosition(0, y_array_small[m], 255, 10)
+                                
+                                    # Acquire S-H spots using camera and append to list
+                                    AO_image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                                    dset_append(data_set_1, 'real_AO_img', AO_image)
 
-                            # Calculate centroids of S-H spots
-                            act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 2) 
-                            act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+                                    # Image thresholding to remove background
+                                    AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                                    AO_image[AO_image < 0] = 0
+                                    self.image.emit(AO_image)
 
-                            # Draw actual S-H spot centroids on image layer
-                            AO_image.ravel()[act_cent_coord.astype(int)] = 0
-                            self.image.emit(AO_image)
+                                    # Calculate centroids of S-H spots
+                                    act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 2) 
+                                    act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
 
-                            # Take tip\tilt off
-                            slope_x -= np.mean(slope_x)
-                            slope_y -= np.mean(slope_y)
+                                    # Draw actual S-H spot centroids on image layer
+                                    AO_image.ravel()[act_cent_coord.astype(int)] = 0
+                                    self.image.emit(AO_image)
 
-                            # Concatenate slopes into one slope matrix
-                            slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
-                            self.slope_y[:,m,l] = slope[:,0]
+                                    # Take tip\tilt off
+                                    slope_x -= np.mean(slope_x)
+                                    slope_y -= np.mean(slope_y)
 
-                            # Get detected zernike coefficients from slope matrix
-                            self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
+                                    # Concatenate slopes into one slope matrix
+                                    slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+                                    self.slope_y[:,m,l] = slope[:,0]
 
-                            # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
-                            zern_err = self.zern_coeff_detect.copy()
-                            rms_zern = np.sqrt((zern_err ** 2).sum())
-                            self.zern_y[:,m,l] = zern_err[:,0]
+                                    # Get detected zernike coefficients from slope matrix
+                                    self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                            print('Full zernike root mean square error {} is {} um'.format(m + 1, rms_zern))                              
+                                    # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
+                                    zern_err = self.zern_coeff_detect.copy()
+                                    rms_zern = np.sqrt((zern_err ** 2).sum())
+                                    self.zern_y[:,m,l] = zern_err[:,0]
 
-                        except Exception as e:
-                            print(e)
-                    else:
+                                    print('Full zernike root mean square error {} is {} um'.format(m + 1, rms_zern))                              
 
-                        self.done.emit()
+                                except Exception as e:
+                                    print(e)
+                            else:
 
-            # Close HDF5 file
-            data_file.close()
+                                self.done.emit()
+
+                    sp.io.savemat('xy_scan_aberr_meas/100um/x_scan_zern_coeff_' + str(n) + '.mat', dict(x_scan_zern_coeff = self.zern_x))
+                    sp.io.savemat('xy_scan_aberr_meas/100um/y_scan_zern_coeff_' + str(n) + '.mat', dict(y_scan_zern_coeff = self.zern_y))
+                    sp.io.savemat('xy_scan_aberr_meas/100um/x_scan_slope_val_' + str(n) + '.mat', dict(x_scan_slope_val = self.slope_x))
+                    sp.io.savemat('xy_scan_aberr_meas/100um/y_scan_slope_val_' + str(n) + '.mat', dict(y_scan_slope_val = self.slope_y))
+
+                    # Close HDF5 file
+                    data_file.close()
 
             self.message.emit('\nProcess complete.')
 
@@ -795,10 +946,6 @@ class AO_Zernikes_Test(QObject):
                 self.info.emit(self.AO_info)
                 self.write.emit()
 
-                sp.io.savemat('x_scan_zern_coeff_2.mat', dict(x_scan_zern_coeff_2 = self.zern_x))
-                sp.io.savemat('y_scan_zern_coeff_2.mat', dict(y_scan_zern_coeff_2 = self.zern_y))
-                sp.io.savemat('x_scan_slope_val_2.mat', dict(x_scan_slope_val_2 = self.slope_x))
-                sp.io.savemat('y_scan_slope_val_2.mat', dict(y_scan_slope_val_2 = self.slope_y))
             else:
 
                 self.done.emit()

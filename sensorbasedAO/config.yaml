@@ -95,11 +95,16 @@ AO:
 zern_test:
   zern_test_mode: 2  # Flag for Zernike Test button operation mode, 0 - AO via Zernikes, 1 - AO via slopes, 2 - line scan + retrieve Zernike coefficients
   zern_amp: 0.1  # Amplitude of all zernike modes for comparison
+  run_num: 5  # Number of times to run mode 2
   loop_num: 2  # Number of line scans to loop over in mode 2
   scan_num_x: 512  # Number of scan points along x direction in mode 2
   scan_num_y: 512  # Number of scan points along y direction in mode 2
-  x_amp: 1  # Normalised voltage range for x scan, max/min +/-1V (600 um), +/-0.166V (100um)
-  y_amp: 1  # Normalised voltage range for y scan, max/min +/-1V (600 um), +/-0.166V (100um)
+  large_flag: 1  # Flag for whether to scan large FOV
+  small_flag: 1  # Flag for whether to scan small FOV
+  x_amp_large: 1  # Normalised voltage range for x scan, max/min +/-1V (600 um)
+  y_amp_large: 1  # Normalised voltage range for y scan, max/min +/-1V (600 um)
+  x_amp_small: 0.166  # Normalised voltage range for x scan, max/min +/-0.166V (100um)
+  y_amp_small: 0.166  # Normalised voltage range for y scan, max/min +/-0.166V (100um)
 
 RF_calib:
   step_num: 21 # Number of steps used in one direction during calibration of remote focusing
