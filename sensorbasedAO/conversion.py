@@ -78,6 +78,9 @@ class Conversion(QObject):
                 self.norm_ref_cent_coord_y = (self.SB_settings['act_ref_cent_coord_y'] - \
                     self.SB_settings['sensor_height'] // 2 - self.SB_settings['act_SB_offset_y']) * self.rescale
 
+                # print('self.norm_ref_cent_coord_x:', self.norm_ref_cent_coord_x)
+                # print('self.norm_ref_cent_coord_y:', self.norm_ref_cent_coord_y)
+
                 # Take account of odd number of relays and mirrors between DM and lenslet
                 # If an odd no of lens relays the y slopes will have the wrong sign, otherwise the x slopes will be the wrong sign?
                 # If an odd no of mirrors the x slopes will have the wrong sign in the case of odd lens relays, but the right sign for even relays?
@@ -128,7 +131,7 @@ class Conversion(QObject):
                 # print(self.rescale)
                 
                 # Take rescale factor, pixel size and lenslet focal length into account
-                self.diff_matrix = self.diff_matrix / self.SB_settings['pixel_size'] * config['lenslet']['lenslet_focal_length'] * self.rescale
+                self.diff_matrix = self.diff_matrix / self.SB_settings['pixel_size'] * (config['lenslet']['lenslet_focal_length'] * self.rescale)
                 
                 # print(np.amax(self.diff_matrix))
                 # print(np.amin(self.diff_matrix))

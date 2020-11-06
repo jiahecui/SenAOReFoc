@@ -13,7 +13,7 @@ camera:
   dataformat: "XI_MONO8"
   data_min: 0  # Minimum image output value
   data_max: 255  # Maximum image output value for dataformat 1023 for actual camera
-  exposure: 8000  # us
+  exposure: 10000  # us
   auto_gain: 0  # Flag for whether to use automatic exposure / gain mode, 0-auto_gain off, 1-auto_gain on
   exp_priority: 0.8  # exposure n, gain (1 - n)
   ae_max_limit: 100000  # maximum time (us) used for exposure in AEAG procedure
@@ -32,8 +32,8 @@ camera:
 DM:
   SN: "HSDM69-15-014" 
   DM_num: 0  # Flag for choosing the working DM, 0-Alpao, 1-Boston
-  vol_min: -0.2  # V  -0.05
-  vol_max: 0.2  # V  0.05
+  vol_min: -0.1  # V  -0.05
+  vol_max: 0.1  # V  0.05
   vol_bias: 0
   vol_step: 1
   settling_time: 0.01
@@ -67,7 +67,7 @@ search_block:
   filter_thres: 10  # Cutoff value for low pass filter within each search block after Fourier transform
   sharp_thres: 0.002  # Minimum sharpness threshold within search block below which S-H spot will be considered as obscured
   outline_int: 255  # uint8
-  pupil_diam_0: 2.2  # mm  # Alpao 7.216 (500) / 4.5 (300) / 2.2 (1.92, 2, 2.35, 2.5) (150)
+  pupil_diam_0: 2.35  # mm  # Alpao 7.216 (500) / 4.5 (300) / 2.2 (1.92, 2, 2.35, 2.5) (150)
   pupil_diam_1: 10.1  # mm  # Boston 10.1 (500) / 6.3 (300) / 3.1 (150)
 
 image:

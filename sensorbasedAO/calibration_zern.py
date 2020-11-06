@@ -87,7 +87,7 @@ class Calibration_Zern(QObject):
                 # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
                 
                 # Calculate pseudo inverse of influence function matrix to get final control matrix
-                self.control_matrix_zern = np.linalg.pinv(self.inf_matrix_zern, rcond = 0.001)
+                self.control_matrix_zern = np.linalg.pinv(self.inf_matrix_zern, rcond = 0.01)
 
                 # u1, s1, vh1 = np.linalg.svd(self.control_matrix_zern, full_matrices = False)
                 # print('u1: {}, s1: {}, vh1: {}'.format(u1, s1, vh1))
