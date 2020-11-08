@@ -124,19 +124,9 @@ class Conversion(QObject):
                         self.diff_matrix[i, j] = zern_diff(elem_ref_cent_coord_xx, elem_ref_cent_coord_yy, j + 1, True)
                         self.diff_matrix[i + self.SB_settings['act_ref_cent_num'], j] = zern_diff(elem_ref_cent_coord_xx, elem_ref_cent_coord_yy, j + 1, False)
                 
-                # print(np.amax(self.diff_matrix))
-                # print(np.amin(self.diff_matrix))
-                # print(np.mean(self.diff_matrix))
-                # print(np.std(self.diff_matrix))
-                # print(self.rescale)
-                
-                # Take rescale factor, pixel size and lenslet focal length into account
-                self.diff_matrix = self.diff_matrix / self.SB_settings['pixel_size'] * (config['lenslet']['lenslet_focal_length'] * self.rescale)
-                
-                # print(np.amax(self.diff_matrix))
-                # print(np.amin(self.diff_matrix))
-                # print(np.mean(self.diff_matrix))
-                # print(np.std(self.diff_matrix))
+                # Take beam diameter on lenslet, pixel size, and lenslet focal length into account
+                # self.diff_matrix = self.diff_matrix / self.SB_settings['pixel_size'] * (config['lenslet']['lenslet_focal_length'] * self.rescale)
+                self.diff_matrix = self.diff_matrix * 2 * config['lenslet']['lenslet_focal_length'] / (self.pupil_diam * 1e3 * self.SB_settings['pixel_size'])
                 
                 # Get singular value decomposition of zernike derivative matrix
                 u, s, vh = np.linalg.svd(self.diff_matrix, full_matrices = False)

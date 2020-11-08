@@ -299,6 +299,10 @@ class AO_Zernikes_Test(QObject):
                                 AO_image.ravel()[act_cent_coord.astype(int)] = 0
                                 self.image.emit(AO_image)
 
+                                # Take tip\tilt off
+                                slope_x -= np.mean(slope_x)
+                                slope_y -= np.mean(slope_y)
+
                                 # Concatenate slopes into one slope matrix
                                 slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
 
@@ -547,6 +551,10 @@ class AO_Zernikes_Test(QObject):
                                 AO_image.ravel()[act_cent_coord.astype(int)] = 0
                                 self.image.emit(AO_image)
 
+                                # Take tip\tilt off
+                                slope_x -= np.mean(slope_x)
+                                slope_y -= np.mean(slope_y)
+
                                 # Concatenate slopes into one slope matrix
                                 slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
 
@@ -562,7 +570,7 @@ class AO_Zernikes_Test(QObject):
                                 # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                                 zern_err = self.zern_coeff_detect.copy()
                                 zern_err_part = self.zern_coeff_detect.copy()
-                                zern_err_part[[0, 1, 3], 0] = 0
+                                zern_err_part[[0, 1], 0] = 0
                                 rms_zern = np.sqrt((zern_err ** 2).sum())
                                 rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
                                 self.loop_rms_zern[i,j] = rms_zern
@@ -653,27 +661,24 @@ class AO_Zernikes_Test(QObject):
             """
             Perform a number of line scans across specimen and retrieve Zernike coefficients from each scan point
             """
-            # Initialise array for storing retrieved zernike coefficients
-            self.zern_x = np.zeros([config['AO']['recon_coeff_num'], config['zern_test']['scan_num_x'], config['zern_test']['loop_num']])
-            self.zern_y = np.zeros([config['AO']['recon_coeff_num'], config['zern_test']['scan_num_y'], config['zern_test']['loop_num']])
-
-            # Initialise array for storing retrieved slope values
-            self.slope_x = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, config['zern_test']['scan_num_x'], config['zern_test']['loop_num']])
-            self.slope_y = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, config['zern_test']['scan_num_y'], config['zern_test']['loop_num']])
-
             self.message.emit('\nProcess started for Zernike coefficient retrieval from different points along line scan...')
-
-            # Generate relevant amounts of x/y scan voltages (normalised) for scanning across sample
-            x_array_large = np.linspace(-config['zern_test']['x_amp_large'], config['zern_test']['x_amp_large'], config['zern_test']['scan_num_x'])
-            y_array_large = np.linspace(-config['zern_test']['y_amp_large'], config['zern_test']['y_amp_large'], config['zern_test']['scan_num_y'])
-
-            x_array_small = np.linspace(-config['zern_test']['x_amp_small'], config['zern_test']['x_amp_small'], config['zern_test']['scan_num_x'])
-            y_array_small = np.linspace(-config['zern_test']['y_amp_small'], config['zern_test']['y_amp_small'], config['zern_test']['scan_num_y'])
 
             prev1 = time.perf_counter()
 
             # Scan multiple points across a line in both x and y directions for a given number of loops over a large FOV (600um)
             if config['zern_test']['large_flag']:
+
+                # Initialise array for storing retrieved zernike coefficients
+                self.zern_x = np.zeros([config['AO']['recon_coeff_num'], config['zern_test']['scan_num_x_large'], config['zern_test']['loop_num']])
+                self.zern_y = np.zeros([config['AO']['recon_coeff_num'], config['zern_test']['scan_num_y_large'], config['zern_test']['loop_num']])
+
+                # Initialise array for storing retrieved slope values
+                self.slope_x = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, config['zern_test']['scan_num_x_large'], config['zern_test']['loop_num']])
+                self.slope_y = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, config['zern_test']['scan_num_y_large'], config['zern_test']['loop_num']])
+
+                # Generate relevant amounts of x/y scan voltages (normalised) for scanning across sample
+                x_array_large = np.linspace(-config['zern_test']['x_amp_large'], config['zern_test']['x_amp_large'], config['zern_test']['scan_num_x_large'])
+                y_array_large = np.linspace(-config['zern_test']['y_amp_large'], config['zern_test']['y_amp_large'], config['zern_test']['scan_num_y_large'])
 
                 for n in range(config['zern_test']['run_num']):
 
@@ -696,7 +701,7 @@ class AO_Zernikes_Test(QObject):
 
                         print('Large FOV run {} x-scan loop {}'.format(n + 1, l + 1))
 
-                        for m in range(config['zern_test']['scan_num_x']):
+                        for m in range(config['zern_test']['scan_num_x_large']):
                         
                             if self.loop:
                                 
@@ -753,7 +758,7 @@ class AO_Zernikes_Test(QObject):
 
                         print('Large FOV run {} y-scan loop {}'.format(n + 1, l + 1))
 
-                        for m in range(config['zern_test']['scan_num_y']):
+                        for m in range(config['zern_test']['scan_num_y_large']):
                         
                             if self.loop:
                                 
@@ -814,6 +819,18 @@ class AO_Zernikes_Test(QObject):
             # Scan multiple points across a line in both x and y directions for a given number of loops over a small FOV (100um)
             if config['zern_test']['small_flag']:
 
+                # Initialise array for storing retrieved zernike coefficients
+                self.zern_x = np.zeros([config['AO']['recon_coeff_num'], config['zern_test']['scan_num_x_small'], config['zern_test']['loop_num']])
+                self.zern_y = np.zeros([config['AO']['recon_coeff_num'], config['zern_test']['scan_num_y_small'], config['zern_test']['loop_num']])
+
+                # Initialise array for storing retrieved slope values
+                self.slope_x = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, config['zern_test']['scan_num_x_small'], config['zern_test']['loop_num']])
+                self.slope_y = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, config['zern_test']['scan_num_y_small'], config['zern_test']['loop_num']])
+
+                # Generate relevant amounts of x/y scan voltages (normalised) for scanning across sample
+                x_array_small = np.linspace(-config['zern_test']['x_amp_small'], config['zern_test']['x_amp_small'], config['zern_test']['scan_num_x_small'])
+                y_array_small = np.linspace(-config['zern_test']['y_amp_small'], config['zern_test']['y_amp_small'], config['zern_test']['scan_num_y_small'])
+
                 for n in range(config['zern_test']['run_num']):
 
                     # Initialise AO information parameter
@@ -835,7 +852,7 @@ class AO_Zernikes_Test(QObject):
 
                         print('Small FOV run {} x-scan loop {}'.format(n + 1, l + 1))
 
-                        for m in range(config['zern_test']['scan_num_x']):
+                        for m in range(config['zern_test']['scan_num_x_small']):
                         
                             if self.loop:
                                 
@@ -892,7 +909,7 @@ class AO_Zernikes_Test(QObject):
 
                         print('Small FOV run {} y-scan loop {}'.format(n + 1, l + 1))
 
-                        for m in range(config['zern_test']['scan_num_y']):
+                        for m in range(config['zern_test']['scan_num_y_small']):
                         
                             if self.loop:
                                 

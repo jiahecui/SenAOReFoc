@@ -54,14 +54,9 @@ def acq_image(sensor, height, width, acq_mode = 0):
         # Acquire a sequence of images and append to data list
         for i in range(config['camera']['frame_num']):
 
-            prev1 = time.perf_counter()
-
             try:
                 # Get data and pass them from camera to img
                 sensor.get_image(img, timeout = 25)
-
-                prev2 = time.perf_counter()
-                # print('Time for acquisition of frame {} is: {} s'.format((i + 1), (prev2 - prev1)))
 
                 # Create numpy array with data from camera, dimensions are determined by imgdataformats
                 dataimage = img.get_image_data_numpy()
@@ -79,9 +74,6 @@ def acq_image(sensor, height, width, acq_mode = 0):
                     print('Timeout error occurred.')
                 else:
                     raise
-
-            prev3 = time.perf_counter()
-            # print('Time for acquisition of loop {} is: {} s'.format((i + 1), (prev3 - prev1)))
 
         # print('Length of data list is:', np.shape(data)[2])
 
