@@ -804,7 +804,7 @@
              <number>10</number>
             </property>
             <property name="value">
-             <number>30</number>
+             <number>10000</number>
             </property>
            </widget>
           </item>

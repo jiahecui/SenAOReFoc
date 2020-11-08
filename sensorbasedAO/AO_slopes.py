@@ -219,7 +219,16 @@ class AO_Slopes(QObject):
                                 # Send values vector to mirror
                                 self.mirror.Send(voltages)
                                 
-                                # Ask for permission to proceed with AO correction
+                                # Acquire S-H spots using camera
+                                AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                                AO_image = np.mean(AO_image_stack, axis = 2)
+
+                                # Image thresholding to remove background
+                                AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                                AO_image[AO_image < 0] = 0
+                                self.image.emit(AO_image)
+                                
+                                # Ask user whether to proceed with correction
                                 self.message.emit('\nPress [y] to proceed with correction.')
                                 c = click.getchar()
 
@@ -501,6 +510,30 @@ class AO_Slopes(QObject):
                                 # Retrieve actuator voltages from zernike coefficient array
                                 voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                     [:,:config['AO']['control_coeff_num']], zern_array))
+
+                                # Send values vector to mirror
+                                self.mirror.Send(voltages)
+                                
+                                # Acquire S-H spots using camera
+                                AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                                AO_image = np.mean(AO_image_stack, axis = 2)
+
+                                # Image thresholding to remove background
+                                AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                                AO_image[AO_image < 0] = 0
+                                self.image.emit(AO_image)
+                                
+                                # Ask user whether to proceed with correction
+                                self.message.emit('\nPress [y] to proceed with correction.')
+                                c = click.getchar()
+
+                                while True:
+                                    if c == 'y':
+                                        break
+                                    else:
+                                        self.message.emit('\nInvalid input. Please try again.')
+
+                                    c = click.getchar() 
                             else:
 
                                 voltages[:] = config['DM']['vol_bias']
@@ -645,6 +678,10 @@ class AO_Slopes(QObject):
                         # Recalculate pseudo-inverse of modified influence function matrix to get new control matrix
                         control_matrix_slopes = np.linalg.pinv(inf_matrix_slopes)
                         # print('Shape of new control matrix is:', np.shape(control_matrix_slopes))
+
+                        # Take tip\tilt off
+                        slope_x -= np.mean(slope_x)
+                        slope_y -= np.mean(slope_y)
 
                         # Concatenate slopes into one slope matrix
                         slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
@@ -821,7 +858,16 @@ class AO_Slopes(QObject):
                                     # Send values vector to mirror
                                     self.mirror.Send(voltages)
                                     
-                                    # Ask for permission to proceed with AO correction
+                                    # Acquire S-H spots using camera
+                                    AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                                    AO_image = np.mean(AO_image_stack, axis = 2)
+
+                                    # Image thresholding to remove background
+                                    AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                                    AO_image[AO_image < 0] = 0
+                                    self.image.emit(AO_image)
+                                    
+                                    # Ask user whether to proceed with correction
                                     self.message.emit('\nPress [y] to proceed with correction.')
                                     c = click.getchar()
 
@@ -1155,6 +1201,30 @@ class AO_Slopes(QObject):
                                     # Retrieve actuator voltages from zernike coefficient array
                                     voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                         [:,:config['AO']['control_coeff_num']], zern_array)) + voltages_defoc
+
+                                    # Send values vector to mirror
+                                    self.mirror.Send(voltages)
+                                    
+                                    # Acquire S-H spots using camera
+                                    AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                                    AO_image = np.mean(AO_image_stack, axis = 2)
+
+                                    # Image thresholding to remove background
+                                    AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                                    AO_image[AO_image < 0] = 0
+                                    self.image.emit(AO_image)
+                                    
+                                    # Ask user whether to proceed with correction
+                                    self.message.emit('\nPress [y] to proceed with correction.')
+                                    c = click.getchar()
+
+                                    while True:
+                                        if c == 'y':
+                                            break
+                                        else:
+                                            self.message.emit('\nInvalid input. Please try again.')
+
+                                        c = click.getchar()
                                 else:
 
                                     voltages[:] = config['DM']['vol_bias'] + voltages_defoc
@@ -1316,6 +1386,10 @@ class AO_Slopes(QObject):
                             # Recalculate pseudo-inverse of modified influence function matrix to get new control matrix
                             control_matrix_slopes = np.linalg.pinv(inf_matrix_slopes)
                             # print('Shape of new control matrix is:', np.shape(control_matrix_slopes))
+
+                            # Take tip\tilt off
+                            slope_x -= np.mean(slope_x)
+                            slope_y -= np.mean(slope_y)
 
                             # Concatenate slopes into one slope matrix
                             slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
