@@ -35,7 +35,8 @@ class AO_Zernikes_Test(QObject):
     message = Signal(object)
     info = Signal(object)
 
-    def __init__(self, sensor, mirror, scanner, settings):
+    # def __init__(self, sensor, mirror, scanner, settings):
+    def __init__(self, sensor, mirror, settings):
 
         # Get search block settings
         self.SB_settings = settings['SB_info']
@@ -53,7 +54,7 @@ class AO_Zernikes_Test(QObject):
         self.mirror = mirror
 
         # Get scanner instance
-        self.scanner = scanner
+        # self.scanner = scanner
 
         # Initialise AO information parameter
         self.AO_info = {'zern_test': {}}
@@ -310,7 +311,7 @@ class AO_Zernikes_Test(QObject):
                                 self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
 
                                 if i == 0:
-                                    self.det_cor_zern_coeff[2 * j, :] = self.zern_coeff_detect[2:, 0]
+                                    self.det_cor_zern_coeff[2 * j, :] = self.zern_coeff_detect[2:config['AO']['control_coeff_num'], 0].T
 
                                 # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                                 zern_err = self.zern_coeff_detect.copy()
@@ -326,8 +327,8 @@ class AO_Zernikes_Test(QObject):
                                     strehl_2 = self.strehl_calc(phase)
 
                                 print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
-                                print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
-                                print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
+                                # print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
+                                # print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
                                 if config['dummy']:
                                     print('Strehl ratio {} from phase profile is: {} \n'.format(i, strehl_2))                        
 
@@ -350,7 +351,7 @@ class AO_Zernikes_Test(QObject):
                                         self.strehl[1,j] = strehl_2
                                     self.loop_num[j] = i
                                     self.zern_coeff[j + 2] = 0
-                                    self.det_cor_zern_coeff[2 * j + 1, :] = self.zern_coeff_detect[2:, 0].T
+                                    self.det_cor_zern_coeff[2 * j + 1, :] = self.zern_coeff_detect[2:config['AO']['control_coeff_num'], 0].T
                                     break                 
 
                             except Exception as e:
@@ -565,7 +566,7 @@ class AO_Zernikes_Test(QObject):
                                 self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
 
                                 if i == 0:
-                                    self.det_cor_zern_coeff[2 * j, :] = self.zern_coeff_detect[2:, 0].T
+                                    self.det_cor_zern_coeff[2 * j, :] = self.zern_coeff_detect[2:config['AO']['control_coeff_num'], 0].T
 
                                 # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                                 zern_err = self.zern_coeff_detect.copy()
@@ -581,8 +582,8 @@ class AO_Zernikes_Test(QObject):
                                     strehl_2 = self.strehl_calc(phase)
 
                                 print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
-                                print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
-                                print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
+                                # print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
+                                # print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
                                 if config['dummy']:
                                     print('Strehl ratio {} from phase profile is: {} \n'.format(i, strehl_2))                        
 
@@ -605,7 +606,7 @@ class AO_Zernikes_Test(QObject):
                                         self.strehl[1,j] = strehl_2
                                     self.loop_num[j] = i
                                     self.zern_coeff[j + 2] = 0
-                                    self.det_cor_zern_coeff[2 * j + 1, :] = self.zern_coeff_detect[2:, 0].T
+                                    self.det_cor_zern_coeff[2 * j + 1, :] = self.zern_coeff_detect[2:config['AO']['control_coeff_num'], 0].T
                                     break                 
 
                             except Exception as e:
