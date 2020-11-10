@@ -13,7 +13,7 @@ camera:
   dataformat: "XI_MONO8"
   data_min: 0  # Minimum image output value
   data_max: 255  # Maximum image output value for dataformat 1023 for actual camera
-  exposure: 10000  # us
+  exposure: 18000  # us
   auto_gain: 0  # Flag for whether to use automatic exposure / gain mode, 0-auto_gain off, 1-auto_gain on
   exp_priority: 0.8  # exposure n, gain (1 - n)
   ae_max_limit: 100000  # maximum time (us) used for exposure in AEAG procedure
@@ -26,14 +26,14 @@ camera:
   sensor_diam: 11.26  # mm Ximea - 11.26; IDS - 4.762
   bin_factor: 2  # Ximea - 2; IDS - 1
   pixel_size: 5.5  # um Ximea - 5.5; IDS - 4.65
-  frame_num: 5  # Number of frames to acquire in burst acquisition mode 
+  frame_num: 2  # Number of frames to acquire in burst acquisition mode 
   sleep_time: 0.1  # Interval time between frames during live acquisition
     
 DM:
   SN: "HSDM69-15-014" 
   DM_num: 0  # Flag for choosing the working DM, 0-Alpao, 1-Boston
-  vol_min: -0.05  # V  -0.05
-  vol_max: 0.05  # V  0.05
+  vol_min: -0.1  # V
+  vol_max: 0.1  # V
   vol_bias: 0
   vol_step: 1
   settling_time: 0.01

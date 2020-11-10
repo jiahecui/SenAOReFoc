@@ -83,6 +83,9 @@ class AO_Zernikes(QObject):
             self.actuator_num = config['DM1']['actuator_num']
             self.pupil_diam = config['search_block']['pupil_diam_1']
 
+        # Calculate the magnification factor needed for conversion between direct slope values and unit circle
+        self.mag_fac = 2 * config['lenslet']['lenslet_focal_length'] / (self.pupil_diam * 1e3 * self.SB_settings['pixel_size'])
+
         # Initialise array to store voltages during correction loop
         self.voltages = np.zeros([self.actuator_num, self.AO_settings['loop_max'] + 1])
 
@@ -200,7 +203,7 @@ class AO_Zernikes(QObject):
                             if not config['dummy'] and config['AO']['zern_gen']:
 
                                 # Retrieve input zernike coefficient array
-                                zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
+                                zern_array_temp = np.array(self.SB_settings['zernike_array_test']) * self.mag_fac
                                 zern_array = np.zeros(config['AO']['control_coeff_num'])
                                 zern_array[:len(zern_array_temp)] = zern_array_temp
 
@@ -484,7 +487,7 @@ class AO_Zernikes(QObject):
                             if not config['dummy'] and config['AO']['zern_gen']:
 
                                 # Retrieve input zernike coefficient array
-                                zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
+                                zern_array_temp = np.array(self.SB_settings['zernike_array_test']) * self.mag_fac
                                 zern_array = np.zeros(config['AO']['control_coeff_num'])
                                 zern_array[:len(zern_array_temp)] = zern_array_temp
 
@@ -824,7 +827,7 @@ class AO_Zernikes(QObject):
                                 if not config['dummy'] and config['AO']['zern_gen']:
 
                                     # Retrieve input zernike coefficient array
-                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
+                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test']) * self.mag_fac
                                     zern_array = np.zeros(config['AO']['control_coeff_num'])
                                     zern_array[:len(zern_array_temp)] = zern_array_temp
 
@@ -1154,7 +1157,7 @@ class AO_Zernikes(QObject):
                                 if not config['dummy'] and config['AO']['zern_gen']:
 
                                     # Retrieve input zernike coefficient array
-                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
+                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test']) * self.mag_fac
                                     zern_array = np.zeros(config['AO']['control_coeff_num'])
                                     zern_array[:len(zern_array_temp)] = zern_array_temp
 
@@ -1502,41 +1505,7 @@ class AO_Zernikes(QObject):
                     try:
 
                         # Determine whether to generate Zernike modes using DM
-                        if not config['dummy'] and config['AO']['zern_gen']:
-
-                            # Retrieve input zernike coefficient array
-                            zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
-                            zern_array = np.zeros(config['AO']['control_coeff_num'])
-                            zern_array[:len(zern_array_temp)] = zern_array_temp
-
-                            # Retrieve actuator voltages from zernike coefficient array
-                            voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
-                                [:,:config['AO']['control_coeff_num']], zern_array)) + voltages_defoc
-
-                            # Send values vector to mirror
-                            self.mirror.Send(voltages)
-                            
-                            # Acquire S-H spots using camera
-                            AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                            AO_image = np.mean(AO_image_stack, axis = 2)
-
-                            # Image thresholding to remove background
-                            AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
-                            AO_image[AO_image < 0] = 0
-                            self.image.emit(AO_image)
-                            
-                            # Ask user whether to proceed with correction
-                            self.message.emit('\nPress [y] to proceed with correction.')
-                            c = click.getchar()
-
-                            while True:
-                                if c == 'y':
-                                    break
-                                else:
-                                    self.message.emit('\nInvalid input. Please try again.')
-
-                                c = click.getchar()
-                        else:
+                        if not config['dummy']:
 
                             voltages[:] = config['DM']['vol_bias'] + voltages_defoc
 

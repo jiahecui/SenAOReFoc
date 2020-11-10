@@ -69,6 +69,9 @@ class AO_Zernikes_Test(QObject):
         elif config['DM']['DM_num'] == 1:
             self.actuator_num = config['DM1']['actuator_num']
             self.pupil_diam = config['search_block']['pupil_diam_1']
+
+        # Calculate the magnification factor needed for conversion between direct slope values and unit circle
+        self.mag_fac = 2 * config['lenslet']['lenslet_focal_length'] / (self.pupil_diam * 1e3 * self.SB_settings['pixel_size'])
         
         super().__init__()
 
@@ -195,7 +198,7 @@ class AO_Zernikes_Test(QObject):
                                     if not config['dummy']:
 
                                         # Generate one Zernike mode on DM for correction each time
-                                        self.zern_coeff[j + 2] = config['zern_test']['incre_amp'] * (k + 1)
+                                        self.zern_coeff[j + 2] = config['zern_test']['incre_amp'] * (k + 1) * self.mag_fac
                                         voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                             [:,:config['AO']['control_coeff_num']], self.zern_coeff))
                                     else:
@@ -448,7 +451,7 @@ class AO_Zernikes_Test(QObject):
                                     if not config['dummy']:
 
                                         # Generate one Zernike mode on DM for correction each time
-                                        self.zern_coeff[j + 2] = config['zern_test']['incre_amp'] * (k + 1)
+                                        self.zern_coeff[j + 2] = config['zern_test']['incre_amp'] * (k + 1) * self.mag_fac
                                         voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                             [:,:config['AO']['control_coeff_num']], self.zern_coeff))
                                     else:
