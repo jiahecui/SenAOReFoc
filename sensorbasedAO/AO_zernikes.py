@@ -83,9 +83,6 @@ class AO_Zernikes(QObject):
             self.actuator_num = config['DM1']['actuator_num']
             self.pupil_diam = config['search_block']['pupil_diam_1']
 
-        # Calculate the magnification factor needed for conversion between direct slope values and unit circle
-        self.mag_fac = 2 * config['lenslet']['lenslet_focal_length'] / (self.pupil_diam * 1e3 * self.SB_settings['pixel_size'])
-
         # Initialise array to store voltages during correction loop
         self.voltages = np.zeros([self.actuator_num, self.AO_settings['loop_max'] + 1])
 
@@ -203,7 +200,7 @@ class AO_Zernikes(QObject):
                             if not config['dummy'] and config['AO']['zern_gen']:
 
                                 # Retrieve input zernike coefficient array
-                                zern_array_temp = np.array(self.SB_settings['zernike_array_test']) * self.mag_fac
+                                zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
                                 zern_array = np.zeros(config['AO']['control_coeff_num'])
                                 zern_array[:len(zern_array_temp)] = zern_array_temp
 
@@ -487,7 +484,7 @@ class AO_Zernikes(QObject):
                             if not config['dummy'] and config['AO']['zern_gen']:
 
                                 # Retrieve input zernike coefficient array
-                                zern_array_temp = np.array(self.SB_settings['zernike_array_test']) * self.mag_fac
+                                zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
                                 zern_array = np.zeros(config['AO']['control_coeff_num'])
                                 zern_array[:len(zern_array_temp)] = zern_array_temp
 
@@ -827,7 +824,7 @@ class AO_Zernikes(QObject):
                                 if not config['dummy'] and config['AO']['zern_gen']:
 
                                     # Retrieve input zernike coefficient array
-                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test']) * self.mag_fac
+                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
                                     zern_array = np.zeros(config['AO']['control_coeff_num'])
                                     zern_array[:len(zern_array_temp)] = zern_array_temp
 
@@ -1157,7 +1154,7 @@ class AO_Zernikes(QObject):
                                 if not config['dummy'] and config['AO']['zern_gen']:
 
                                     # Retrieve input zernike coefficient array
-                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test']) * self.mag_fac
+                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
                                     zern_array = np.zeros(config['AO']['control_coeff_num'])
                                     zern_array[:len(zern_array_temp)] = zern_array_temp
 

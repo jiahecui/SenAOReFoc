@@ -204,7 +204,7 @@ class AO_Slopes(QObject):
                             if not config['dummy'] and config['AO']['zern_gen']:
 
                                 # Retrieve input zernike coefficient array
-                                zern_array_temp = np.array(self.SB_settings['zernike_array_test']) * self.mag_fac
+                                zern_array_temp = np.array(self.SB_settings['zernike_array_test']) / self.mag_fac
                                 zern_array = np.zeros(config['AO']['control_coeff_num'])
                                 zern_array[:len(zern_array_temp)] = zern_array_temp
 
@@ -499,7 +499,7 @@ class AO_Slopes(QObject):
                             if not config['dummy'] and config['AO']['zern_gen']:
 
                                 # Retrieve input zernike coefficient array
-                                zern_array_temp = np.array(self.SB_settings['zernike_array_test']) * self.mag_fac
+                                zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
                                 zern_array = np.zeros(config['AO']['control_coeff_num'])
                                 zern_array[:len(zern_array_temp)] = zern_array_temp
 
@@ -843,7 +843,7 @@ class AO_Slopes(QObject):
                                 if not config['dummy'] and config['AO']['zern_gen']:
 
                                     # Retrieve input zernike coefficient array
-                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test']) * self.mag_fac
+                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
                                     zern_array = np.zeros(config['AO']['control_coeff_num'])
                                     zern_array[:len(zern_array_temp)] = zern_array_temp
 
@@ -1190,7 +1190,7 @@ class AO_Slopes(QObject):
                                 if not config['dummy'] and config['AO']['zern_gen']:
 
                                     # Retrieve input zernike coefficient array
-                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test']) * self.mag_fac
+                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
                                     zern_array = np.zeros(config['AO']['control_coeff_num'])
                                     zern_array[:len(zern_array_temp)] = zern_array_temp
 

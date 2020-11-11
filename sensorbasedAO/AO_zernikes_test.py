@@ -198,7 +198,7 @@ class AO_Zernikes_Test(QObject):
                                     if not config['dummy']:
 
                                         # Generate one Zernike mode on DM for correction each time
-                                        self.zern_coeff[j + 2] = config['zern_test']['incre_amp'] * (k + 1) * self.mag_fac
+                                        self.zern_coeff[j + 2] = config['zern_test']['incre_amp'] * (k + 1)
                                         voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                             [:,:config['AO']['control_coeff_num']], self.zern_coeff))
                                     else:
@@ -451,7 +451,7 @@ class AO_Zernikes_Test(QObject):
                                     if not config['dummy']:
 
                                         # Generate one Zernike mode on DM for correction each time
-                                        self.zern_coeff[j + 2] = config['zern_test']['incre_amp'] * (k + 1) * self.mag_fac
+                                        self.zern_coeff[j + 2] = config['zern_test']['incre_amp'] * (k + 1)
                                         voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                             [:,:config['AO']['control_coeff_num']], self.zern_coeff))
                                     else:
