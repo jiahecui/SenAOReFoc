@@ -60,7 +60,7 @@ class AO_Zernikes_Test(QObject):
         self.AO_info = {'zern_test': {}}
 
         # Initialise zernike coefficient array
-        self.zern_coeff = np.zeros(config['AO']['control_coeff_num'])
+        self.zern_coeff = np.zeros([config['AO']['control_coeff_num'], 1])
 
         # Choose working DM along with its parameters
         if config['DM']['DM_num'] == 0:
@@ -195,12 +195,12 @@ class AO_Zernikes_Test(QObject):
                                     if not config['dummy']:
 
                                         # Generate one Zernike mode on DM for correction each time
-                                        self.zern_coeff[j + 2] = config['zern_test']['incre_amp'] * (k + 1)
+                                        self.zern_coeff[j + 2, 0] = config['zern_test']['incre_amp'] * (k + 1)
 
                                         # Run closed-loop to generate a precise amount of Zernike modes using DM
-                                        for j in range(config['AO']['loop_max_gen']):
+                                        for m in range(config['AO']['loop_max_gen']):
 
-                                            if j == 0:
+                                            if m == 0:
 
                                                 voltages[:] = config['DM']['vol_bias']
 
@@ -246,7 +246,7 @@ class AO_Zernikes_Test(QObject):
                                             # Get detected zernike coefficients from slope matrix
                                             zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                            # print('Detected amplitude of mode {} is {} um'.format(j + 3, zern_array_det[j + 2]))
+                                            # print('Detected amplitude of mode {} is {} um'.format(m + 3, zern_array_det[m + 2]))
                                     else:
 
                                         voltages[:] = config['DM']['vol_bias']                              
@@ -496,12 +496,12 @@ class AO_Zernikes_Test(QObject):
                                     if not config['dummy']:
 
                                         # Generate one Zernike mode on DM for correction each time
-                                        self.zern_coeff[j + 2] = config['zern_test']['incre_amp'] * (k + 1)
+                                        self.zern_coeff[j + 2, 0] = config['zern_test']['incre_amp'] * (k + 1)
 
                                         # Run closed-loop to generate a precise amount of Zernike modes using DM
-                                        for j in range(config['AO']['loop_max_gen']):
+                                        for m in range(config['AO']['loop_max_gen']):
 
-                                            if j == 0:
+                                            if m == 0:
 
                                                 voltages[:] = config['DM']['vol_bias']
 
@@ -547,7 +547,7 @@ class AO_Zernikes_Test(QObject):
                                             # Get detected zernike coefficients from slope matrix
                                             zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                            # print('Detected amplitude of mode {} is {} um'.format(j + 3, zern_array_det[j + 2]))
+                                            # print('Detected amplitude of mode {} is {} um'.format(m + 3, zern_array_det[m + 2]))
                                     else:
 
                                         voltages[:] = config['DM']['vol_bias']

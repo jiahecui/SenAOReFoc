@@ -201,9 +201,9 @@ class AO_Zernikes(QObject):
 
                                 # Retrieve input zernike coefficient array
                                 zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
-                                zern_array = np.zeros(config['AO']['control_coeff_num'])
-                                zern_array[:len(zern_array_temp)] = zern_array_temp
-                                mode_index = np.where(zern_array != 0)[1]
+                                zern_array = np.zeros([config['AO']['control_coeff_num'], 1])
+                                zern_array[:len(zern_array_temp), 0] = zern_array_temp
+                                mode_index = np.nonzero(zern_array)[0][0]
 
                                 # Run closed-loop to generate a precise amount of Zernike modes using DM
                                 for j in range(config['AO']['loop_max_gen']):
@@ -254,7 +254,7 @@ class AO_Zernikes(QObject):
                                     # Get detected zernike coefficients from slope matrix
                                     zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                    print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index]))
+                                    print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
                                 
                                 # Ask user whether to proceed with correction
                                 self.message.emit('\nPress [y] to proceed with correction.')
@@ -523,9 +523,9 @@ class AO_Zernikes(QObject):
 
                                 # Retrieve input zernike coefficient array
                                 zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
-                                zern_array = np.zeros(config['AO']['control_coeff_num'])
-                                zern_array[:len(zern_array_temp)] = zern_array_temp
-                                mode_index = np.where(zern_array != 0)[1]
+                                zern_array = np.zeros([config['AO']['control_coeff_num'], 1])
+                                zern_array[:len(zern_array_temp), 0] = zern_array_temp
+                                mode_index = np.nonzero(zern_array)[0][0]
 
                                 # Run closed-loop to generate a precise amount of Zernike modes using DM
                                 for j in range(config['AO']['loop_max_gen']):
@@ -576,7 +576,7 @@ class AO_Zernikes(QObject):
                                     # Get detected zernike coefficients from slope matrix
                                     zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                    print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index]))
+                                    print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
                                 
                                 # Ask user whether to proceed with correction
                                 self.message.emit('\nPress [y] to proceed with correction.')
@@ -901,16 +901,16 @@ class AO_Zernikes(QObject):
 
                                     # Retrieve input zernike coefficient array
                                     zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
-                                    zern_array = np.zeros(config['AO']['control_coeff_num'])
-                                    zern_array[:len(zern_array_temp)] = zern_array_temp
-                                    mode_index = np.where(zern_array != 0)[1]
+                                    zern_array = np.zeros([config['AO']['control_coeff_num'], 1])
+                                    zern_array[:len(zern_array_temp), 0] = zern_array_temp
+                                    mode_index = np.nonzero(zern_array)[0][0]
 
                                     # Run closed-loop to generate a precise amount of Zernike modes using DM
                                     for j in range(config['AO']['loop_max_gen']):
 
                                         if j == 0:
 
-                                            voltages[:] = config['DM']['vol_bias'] + 
+                                            voltages[:] = config['DM']['vol_bias']
 
                                         else:
 
@@ -954,7 +954,7 @@ class AO_Zernikes(QObject):
                                         # Get detected zernike coefficients from slope matrix
                                         zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                        print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index]))
+                                        print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
                                     
                                     # Ask user whether to proceed with correction
                                     self.message.emit('\nPress [y] to proceed with correction.')
@@ -1269,9 +1269,9 @@ class AO_Zernikes(QObject):
 
                                     # Retrieve input zernike coefficient array
                                     zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
-                                    zern_array = np.zeros(config['AO']['control_coeff_num'])
-                                    zern_array[:len(zern_array_temp)] = zern_array_temp
-                                    mode_index = np.where(zern_array != 0)[1]
+                                    zern_array = np.zeros([config['AO']['control_coeff_num'], 1])
+                                    zern_array[:len(zern_array_temp), 0] = zern_array_temp
+                                    mode_index = np.nonzero(zern_array)[0][0]
 
                                     # Run closed-loop to generate a precise amount of Zernike modes using DM
                                     for j in range(config['AO']['loop_max_gen']):
@@ -1322,7 +1322,7 @@ class AO_Zernikes(QObject):
                                         # Get detected zernike coefficients from slope matrix
                                         zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                        print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index]))
+                                        print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
                                     
                                     # Ask user whether to proceed with correction
                                     self.message.emit('\nPress [y] to proceed with correction.')
