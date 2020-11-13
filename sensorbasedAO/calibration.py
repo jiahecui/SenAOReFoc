@@ -251,7 +251,7 @@ class Calibration(QObject):
                             # Wait for DM to settle
                             time.sleep(config['DM']['settling_time'])
                             
-                            # Acquire S-H spot image and display
+                            # Acquire S-H spot image
                             image_max_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
                             image_max = np.mean(image_max_stack, axis = 2)
 
@@ -272,7 +272,7 @@ class Calibration(QObject):
                             # Wait for DM to settle
                             time.sleep(config['DM']['settling_time'])
 
-                            # Acquire S-H spot image and display
+                            # Acquire S-H spot image
                             image_min_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
                             image_min = np.mean(image_min_stack, axis = 2)
 

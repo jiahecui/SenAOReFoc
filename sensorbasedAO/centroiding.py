@@ -66,7 +66,7 @@ class Centroiding(QObject):
             SB_layer_2D_temp = SB_layer_2D.copy()
             SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = config['search_block']['outline_int']
 
-            # Acquire S-H spot image and display
+            # Acquire S-H spot image
             cent_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
             cent_image = np.mean(cent_image_stack, axis = 2)
             

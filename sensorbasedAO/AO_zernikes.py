@@ -203,22 +203,58 @@ class AO_Zernikes(QObject):
                                 zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
                                 zern_array = np.zeros(config['AO']['control_coeff_num'])
                                 zern_array[:len(zern_array_temp)] = zern_array_temp
+                                mode_index = np.where(zern_array != 0)[1]
 
-                                # Retrieve actuator voltages from zernike coefficient array
-                                voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
-                                    [:,:config['AO']['control_coeff_num']], zern_array))
+                                # Run closed-loop to generate a precise amount of Zernike modes using DM
+                                for j in range(config['AO']['loop_max_gen']):
 
-                                # Send values vector to mirror
-                                self.mirror.Send(voltages)
+                                    if j == 0:
 
-                                # Acquire S-H spots using camera
-                                AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                                AO_image = np.mean(AO_image_stack, axis = 2)
+                                        voltages[:] = config['DM']['vol_bias']
 
-                                # Image thresholding to remove background
-                                AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
-                                AO_image[AO_image < 0] = 0
-                                self.image.emit(AO_image)
+                                    else:
+
+                                        # Update control voltages
+                                        voltages -= config['AO']['loop_gain_gen'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                            [:,:config['AO']['control_coeff_num']], (zern_array_det[:config['AO']['control_coeff_num']] - zern_array)))
+
+                                    # Send values vector to mirror
+                                    self.mirror.Send(voltages)
+
+                                    # Wait for DM to settle
+                                    time.sleep(config['DM']['settling_time'])
+                                
+                                    # Acquire S-H spots using camera
+                                    AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                                    AO_image = np.mean(AO_image_stack, axis = 2)
+
+                                    # Image thresholding to remove background
+                                    AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                                    AO_image[AO_image < 0] = 0
+                                    self.image.emit(AO_image)
+
+                                    # Append image to list
+                                    dset_append(data_set_1, 'real_AO_img', AO_image)
+
+                                    # Calculate centroids of S-H spots
+                                    act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 3)
+                                    act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+
+                                    # Draw actual S-H spot centroids on image layer
+                                    AO_image.ravel()[act_cent_coord.astype(int)] = 0
+                                    self.image.emit(AO_image)
+
+                                    # Take tip\tilt off
+                                    slope_x -= np.mean(slope_x)
+                                    slope_y -= np.mean(slope_y)
+
+                                    # Concatenate slopes into one slope matrix
+                                    slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+
+                                    # Get detected zernike coefficients from slope matrix
+                                    zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
+
+                                    print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index]))
                                 
                                 # Ask user whether to proceed with correction
                                 self.message.emit('\nPress [y] to proceed with correction.')
@@ -330,15 +366,17 @@ class AO_Zernikes(QObject):
                             # Wait for DM to settle
                             time.sleep(config['DM']['settling_time'])
                         
-                            # Acquire S-H spots using camera and append to list
+                            # Acquire S-H spots using camera
                             AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
                             AO_image = np.mean(AO_image_stack, axis = 2)
-                            dset_append(data_set_1, 'real_AO_img', AO_image)
 
                         # Image thresholding to remove background
                         AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
                         AO_image[AO_image < 0] = 0
                         self.image.emit(AO_image)
+
+                        # Append image to list
+                        dset_append(data_set_1, 'real_AO_img', AO_image)
 
                         # Calculate centroids of S-H spots
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 3)
@@ -487,22 +525,58 @@ class AO_Zernikes(QObject):
                                 zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
                                 zern_array = np.zeros(config['AO']['control_coeff_num'])
                                 zern_array[:len(zern_array_temp)] = zern_array_temp
+                                mode_index = np.where(zern_array != 0)[1]
 
-                                # Retrieve actuator voltages from zernike coefficient array
-                                voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
-                                    [:,:config['AO']['control_coeff_num']], zern_array))
+                                # Run closed-loop to generate a precise amount of Zernike modes using DM
+                                for j in range(config['AO']['loop_max_gen']):
 
-                                # Send values vector to mirror
-                                self.mirror.Send(voltages)
+                                    if j == 0:
+
+                                        voltages[:] = config['DM']['vol_bias']
+
+                                    else:
+
+                                        # Update control voltages
+                                        voltages -= config['AO']['loop_gain_gen'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                            [:,:config['AO']['control_coeff_num']], (zern_array_det[:config['AO']['control_coeff_num']] - zern_array)))
+
+                                    # Send values vector to mirror
+                                    self.mirror.Send(voltages)
+
+                                    # Wait for DM to settle
+                                    time.sleep(config['DM']['settling_time'])
                                 
-                                # Acquire S-H spots using camera
-                                AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                                AO_image = np.mean(AO_image_stack, axis = 2)
+                                    # Acquire S-H spots using camera
+                                    AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                                    AO_image = np.mean(AO_image_stack, axis = 2)
 
-                                # Image thresholding to remove background
-                                AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
-                                AO_image[AO_image < 0] = 0
-                                self.image.emit(AO_image)
+                                    # Image thresholding to remove background
+                                    AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                                    AO_image[AO_image < 0] = 0
+                                    self.image.emit(AO_image)
+
+                                    # Append image to list
+                                    dset_append(data_set_1, 'real_AO_img', AO_image)
+
+                                    # Calculate centroids of S-H spots
+                                    act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 5)
+                                    act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+
+                                    # Draw actual S-H spot centroids on image layer
+                                    AO_image.ravel()[act_cent_coord.astype(int)] = 0
+                                    self.image.emit(AO_image)
+
+                                    # Take tip\tilt off
+                                    slope_x -= np.mean(slope_x)
+                                    slope_y -= np.mean(slope_y)
+
+                                    # Concatenate slopes into one slope matrix
+                                    slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+
+                                    # Get detected zernike coefficients from slope matrix
+                                    zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
+
+                                    print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index]))
                                 
                                 # Ask user whether to proceed with correction
                                 self.message.emit('\nPress [y] to proceed with correction.')
@@ -610,15 +684,17 @@ class AO_Zernikes(QObject):
                             # Wait for DM to settle
                             time.sleep(config['DM']['settling_time'])
                         
-                            # Acquire S-H spots using camera and append to list
+                            # Acquire S-H spots using camera
                             AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
                             AO_image = np.mean(AO_image_stack, axis = 2)
-                            dset_append(data_set_1, 'real_AO_img', AO_image)
 
                         # Image thresholding to remove background
                         AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
                         AO_image[AO_image < 0] = 0
                         self.image.emit(AO_image)
+
+                        # Append image to list
+                        dset_append(data_set_1, 'real_AO_img', AO_image)
 
                         # Calculate centroids of S-H spots
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 5)
@@ -827,22 +903,58 @@ class AO_Zernikes(QObject):
                                     zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
                                     zern_array = np.zeros(config['AO']['control_coeff_num'])
                                     zern_array[:len(zern_array_temp)] = zern_array_temp
+                                    mode_index = np.where(zern_array != 0)[1]
 
-                                    # Retrieve actuator voltages from zernike coefficient array
-                                    voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
-                                        [:,:config['AO']['control_coeff_num']], zern_array)) + voltages_defoc
+                                    # Run closed-loop to generate a precise amount of Zernike modes using DM
+                                    for j in range(config['AO']['loop_max_gen']):
 
-                                    # Send values vector to mirror
-                                    self.mirror.Send(voltages)
+                                        if j == 0:
+
+                                            voltages[:] = config['DM']['vol_bias'] + 
+
+                                        else:
+
+                                            # Update control voltages
+                                            voltages -= config['AO']['loop_gain_gen'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                                [:,:config['AO']['control_coeff_num']], (zern_array_det[:config['AO']['control_coeff_num']] - zern_array)))
+
+                                        # Send values vector to mirror
+                                        self.mirror.Send(voltages)
+
+                                        # Wait for DM to settle
+                                        time.sleep(config['DM']['settling_time'])
                                     
-                                    # Acquire S-H spots using camera
-                                    AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                                    AO_image = np.mean(AO_image_stack, axis = 2)
+                                        # Acquire S-H spots using camera
+                                        AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                                        AO_image = np.mean(AO_image_stack, axis = 2)
 
-                                    # Image thresholding to remove background
-                                    AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
-                                    AO_image[AO_image < 0] = 0
-                                    self.image.emit(AO_image)
+                                        # Image thresholding to remove background
+                                        AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                                        AO_image[AO_image < 0] = 0
+                                        self.image.emit(AO_image)
+
+                                        # Append image to list
+                                        dset_append(data_set_1, 'real_AO_img', AO_image)
+
+                                        # Calculate centroids of S-H spots
+                                        act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 7)
+                                        act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+
+                                        # Draw actual S-H spot centroids on image layer
+                                        AO_image.ravel()[act_cent_coord.astype(int)] = 0
+                                        self.image.emit(AO_image)
+
+                                        # Take tip\tilt off
+                                        slope_x -= np.mean(slope_x)
+                                        slope_y -= np.mean(slope_y)
+
+                                        # Concatenate slopes into one slope matrix
+                                        slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+
+                                        # Get detected zernike coefficients from slope matrix
+                                        zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
+
+                                        print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index]))
                                     
                                     # Ask user whether to proceed with correction
                                     self.message.emit('\nPress [y] to proceed with correction.')
@@ -966,15 +1078,17 @@ class AO_Zernikes(QObject):
                                 # Wait for DM to settle
                                 time.sleep(config['DM']['settling_time'])
                             
-                                # Acquire S-H spots using camera and append to list
+                                # Acquire S-H spots using camera
                                 AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
                                 AO_image = np.mean(AO_image_stack, axis = 2)
-                                dset_append(data_set_1, 'real_AO_img', AO_image)
 
                             # Image thresholding to remove background
                             AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
                             AO_image[AO_image < 0] = 0
                             self.image.emit(AO_image)
+
+                            # Append image to list
+                            dset_append(data_set_1, 'real_AO_img', AO_image)
 
                             # Calculate centroids of S-H spots
                             act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 7)
@@ -1157,22 +1271,58 @@ class AO_Zernikes(QObject):
                                     zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
                                     zern_array = np.zeros(config['AO']['control_coeff_num'])
                                     zern_array[:len(zern_array_temp)] = zern_array_temp
+                                    mode_index = np.where(zern_array != 0)[1]
 
-                                    # Retrieve actuator voltages from zernike coefficient array
-                                    voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
-                                        [:,:config['AO']['control_coeff_num']], zern_array)) + voltages_defoc
+                                    # Run closed-loop to generate a precise amount of Zernike modes using DM
+                                    for j in range(config['AO']['loop_max_gen']):
 
-                                    # Send values vector to mirror
-                                    self.mirror.Send(voltages)
+                                        if j == 0:
+
+                                            voltages[:] = config['DM']['vol_bias']
+
+                                        else:
+
+                                            # Update control voltages
+                                            voltages -= config['AO']['loop_gain_gen'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                                [:,:config['AO']['control_coeff_num']], (zern_array_det[:config['AO']['control_coeff_num']] - zern_array)))
+
+                                        # Send values vector to mirror
+                                        self.mirror.Send(voltages)
+
+                                        # Wait for DM to settle
+                                        time.sleep(config['DM']['settling_time'])
                                     
-                                    # Acquire S-H spots using camera
-                                    AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                                    AO_image = np.mean(AO_image_stack, axis = 2)
+                                        # Acquire S-H spots using camera
+                                        AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                                        AO_image = np.mean(AO_image_stack, axis = 2)
 
-                                    # Image thresholding to remove background
-                                    AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
-                                    AO_image[AO_image < 0] = 0
-                                    self.image.emit(AO_image)
+                                        # Image thresholding to remove background
+                                        AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                                        AO_image[AO_image < 0] = 0
+                                        self.image.emit(AO_image)
+
+                                        # Append image to list
+                                        dset_append(data_set_1, 'real_AO_img', AO_image)
+
+                                        # Calculate centroids of S-H spots
+                                        act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 9)
+                                        act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+
+                                        # Draw actual S-H spot centroids on image layer
+                                        AO_image.ravel()[act_cent_coord.astype(int)] = 0
+                                        self.image.emit(AO_image)
+
+                                        # Take tip\tilt off
+                                        slope_x -= np.mean(slope_x)
+                                        slope_y -= np.mean(slope_y)
+
+                                        # Concatenate slopes into one slope matrix
+                                        slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+
+                                        # Get detected zernike coefficients from slope matrix
+                                        zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
+
+                                        print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index]))
                                     
                                     # Ask user whether to proceed with correction
                                     self.message.emit('\nPress [y] to proceed with correction.')
@@ -1293,15 +1443,17 @@ class AO_Zernikes(QObject):
                                 # Wait for DM to settle
                                 time.sleep(config['DM']['settling_time'])
                             
-                                # Acquire S-H spots using camera and append to list
+                                # Acquire S-H spots using camera
                                 AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
                                 AO_image = np.mean(AO_image_stack, axis = 2)
-                                dset_append(data_set_1, 'real_AO_img', AO_image)
 
                             # Image thresholding to remove background
                             AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
                             AO_image[AO_image < 0] = 0
                             self.image.emit(AO_image)
+
+                            # Append image to list
+                            dset_append(data_set_1, 'real_AO_img', AO_image)
 
                             # Calculate centroids of S-H spots
                             act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 9)
@@ -1501,84 +1653,50 @@ class AO_Zernikes(QObject):
 
                     try:
 
-                        # Determine whether to generate Zernike modes using DM
-                        if not config['dummy']:
+                        # Apply remote focusing voltages
+                        voltages[:] = config['DM']['vol_bias'] + voltages_defoc
 
-                            voltages[:] = config['DM']['vol_bias'] + voltages_defoc
+                        # Send voltages to mirror
+                        self.mirror.Send(voltages)
 
-                        if config['dummy']:
+                        # Wait for DM to settle
+                        time.sleep(config['DM']['settling_time'])
 
-                            # Option 1: Load real phase profile from .mat file
-                            if config['real_phase']:
+                        # Acquire S-H spot image 
+                        self._image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                        self._image = np.mean(self._image_stack, axis = 2)
 
-                                # Retrieve real phase profile
-                                phase = get_mat_dset(self.SB_settings, flag = 1)
-
-                                # Generate defocus phase profile
-                                phase_defoc = self.phase_calc(voltages_defoc)
-
-                                # Apply defocus to real phase profile
-                                phase += phase_defoc
-
-                            # Option 2: Generate real zernike phase profile using DM control matrix
-                            elif config['real_zernike']:
-                                
-                                # Retrieve input zernike coefficient array
-                                zern_array_temp = self.SB_settings['zernike_array_test']
-
-                                # Pad zernike coefficient array to length of control_coeff_num
-                                zern_array = np.zeros(config['AO']['control_coeff_num'])
-                                zern_array[:len(zern_array_temp)] = zern_array_temp
-
-                                # Retrieve actuator voltages from zernike coefficient array + defocus component 
-                                voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
-                                    [:,:config['AO']['control_coeff_num']], zern_array)) + voltages_defoc
-                                
-                                # Generate zernike + defocus phase profile from DM
-                                phase = self.phase_calc(voltages)
-
-                            # Option 3: Generate ideal zernike phase profile
-                            else:
-                                
-                                # Retrieve input zernike coefficient array + defocus component
-                                zern_array_temp =  self.SB_settings['zernike_array_test']
-                                if len(zern_array_temp) >= 4:
-                                    zern_array_temp[3] += self.zern_coeff[3]
-                                    zern_array = zern_array_temp
-                                else:
-                                    zern_array = np.zeros(4)
-                                    zern_array[:len(zern_array_temp)] = zern_array_temp
-                                    zern_array[3] = self.zern_coeff[3]
-                                
-                                # Generate ideal zernike phase profile
-                                phase = zern_phase(self.SB_settings, zern_array) 
-
-                            # Get simulated S-H spots
-                            self._image, self.spot_cent_x, self.spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
-
-                            # Pause for specified amount of time
-                            time.sleep(self.focus_settings['pause_time'])
-
-                        else:
-
-                            # Send voltages to mirror
-                            self.mirror.Send(voltages)
-
-                            # Wait for DM to settle
-                            time.sleep(config['DM']['settling_time'])
-
-                            # Acquire S-H spot image 
-                            self._image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                            self._image = np.mean(self._image_stack, axis = 2)
-
-                            # Pause for specified amount of time
-                            # time.sleep(self.focus_settings['pause_time'])  
-                            time.sleep(2)             
-                                    
                         # Image thresholding to remove background
                         self._image = self._image - config['image']['threshold'] * np.amax(self._image)
                         self._image[self._image < 0] = 0
                         self.image.emit(self._image)
+
+                        # Pause for specified amount of time
+                        # time.sleep(self.focus_settings['pause_time'])              
+                        
+                        # Ask user whether to move to next depth
+                        if j == (self.correct_num - 1):
+                            self.message.emit('\nPress [y] to end.')
+                            c = click.getchar()
+
+                            while True:
+                                if c == 'y':
+                                    break
+                                else:
+                                    self.message.emit('\nInvalid input. Please try again.')
+
+                                c = click.getchar()
+                        else:
+                            self.message.emit('\nPress [y] to move to next depth.')
+                            c = click.getchar()
+
+                            while True:
+                                if c == 'y':
+                                    break
+                                else:
+                                    self.message.emit('\nInvalid input. Please try again.')
+
+                                c = click.getchar()
 
                     except Exception as e:
                         print(e)
