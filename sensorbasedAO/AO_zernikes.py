@@ -415,8 +415,7 @@ class AO_Zernikes(QObject):
                         self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
 
                         # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
-                        zern_err = self.zern_coeff_detect.copy()
-                        zern_err_part = self.zern_coeff_detect.copy()
+                        zern_err, zern_err_part = (self.zern_coeff_detect.copy() for c in range(2))
                         zern_err_part[[0, 1], 0] = 0
                         rms_zern = np.sqrt((zern_err ** 2).sum())
                         rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
@@ -798,8 +797,7 @@ class AO_Zernikes(QObject):
                         self.zern_coeff_detect = np.dot(conv_matrix, slope)
 
                         # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
-                        zern_err = self.zern_coeff_detect.copy()
-                        zern_err_part = self.zern_coeff_detect.copy()
+                        zern_err, zern_err_part = (self.zern_coeff_detect.copy() for c in range(2))
                         zern_err_part[[0, 1], 0] = 0
                         rms_zern = np.sqrt((zern_err ** 2).sum())
                         rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
@@ -1157,8 +1155,7 @@ class AO_Zernikes(QObject):
                             self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
 
                             # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
-                            zern_err = self.zern_coeff_detect.copy()
-                            zern_err_part = self.zern_coeff_detect.copy()
+                            zern_err, zern_err_part = (self.zern_coeff_detect.copy() for c in range(2))
                             zern_err_part[[0, 1, 3], 0] = 0
                             rms_zern = np.sqrt((zern_err ** 2).sum())
                             rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
@@ -1587,8 +1584,7 @@ class AO_Zernikes(QObject):
                             self.zern_coeff_detect = np.dot(conv_matrix, slope)
 
                             # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
-                            zern_err = self.zern_coeff_detect.copy()
-                            zern_err_part = self.zern_coeff_detect.copy()
+                            zern_err, zern_err_part = (self.zern_coeff_detect.copy() for c in range(2))
                             zern_err_part[[0, 1, 3], 0] = 0
                             rms_zern = np.sqrt((zern_err ** 2).sum())
                             rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
