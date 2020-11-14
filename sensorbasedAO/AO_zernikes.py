@@ -205,6 +205,14 @@ class AO_Zernikes(QObject):
                                 zern_array[:len(zern_array_temp), 0] = zern_array_temp
                                 mode_index = np.nonzero(zern_array)[0][0]
 
+                                # Determine initial loop gain for generation of each Zernike mode
+                                if zern_array[mode_index, 0] <= 0.1:
+                                    loop_gain_gen = 0.1
+                                elif zern_array[mode_index, 0] > 0.1 and zern_array[mode_index, 0] <= 0.2:
+                                    loop_gain_gen = 0.2
+                                elif zern_array[mode_index, 0] > 0.2:
+                                    loop_gain_gen = 0.3
+
                                 # Run closed-loop to generate a precise amount of Zernike modes using DM
                                 for j in range(config['AO']['loop_max_gen']):
 
@@ -214,8 +222,12 @@ class AO_Zernikes(QObject):
 
                                     else:
 
+                                        # Use smaller loop gain towards latter half of iteration
+                                        if j >= config['AO']['loop_max_gen'] // 2:
+                                            loop_gain_gen = 0.1
+
                                         # Update control voltages
-                                        voltages -= config['AO']['loop_gain_gen'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                        voltages -= loop_gain_gen * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                             [:,:config['AO']['control_coeff_num']], (zern_array_det[:config['AO']['control_coeff_num']] - zern_array)))
 
                                     # Send values vector to mirror
@@ -527,6 +539,14 @@ class AO_Zernikes(QObject):
                                 zern_array[:len(zern_array_temp), 0] = zern_array_temp
                                 mode_index = np.nonzero(zern_array)[0][0]
 
+                                # Determine initial loop gain for generation of each Zernike mode
+                                if zern_array[mode_index, 0] <= 0.1:
+                                    loop_gain_gen = 0.1
+                                elif zern_array[mode_index, 0] > 0.1 and zern_array[mode_index, 0] <= 0.2:
+                                    loop_gain_gen = 0.2
+                                elif zern_array[mode_index, 0] > 0.2:
+                                    loop_gain_gen = 0.3
+
                                 # Run closed-loop to generate a precise amount of Zernike modes using DM
                                 for j in range(config['AO']['loop_max_gen']):
 
@@ -536,8 +556,12 @@ class AO_Zernikes(QObject):
 
                                     else:
 
+                                        # Use smaller loop gain towards latter half of iteration
+                                        if j >= config['AO']['loop_max_gen'] // 2:
+                                            loop_gain_gen = 0.1
+
                                         # Update control voltages
-                                        voltages -= config['AO']['loop_gain_gen'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                        voltages -= loop_gain_gen * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                             [:,:config['AO']['control_coeff_num']], (zern_array_det[:config['AO']['control_coeff_num']] - zern_array)))
 
                                     # Send values vector to mirror
@@ -905,6 +929,14 @@ class AO_Zernikes(QObject):
                                     zern_array[:len(zern_array_temp), 0] = zern_array_temp
                                     mode_index = np.nonzero(zern_array)[0][0]
 
+                                    # Determine initial loop gain for generation of each Zernike mode
+                                    if zern_array[mode_index, 0] <= 0.1:
+                                        loop_gain_gen = 0.1
+                                    elif zern_array[mode_index, 0] > 0.1 and zern_array[mode_index, 0] <= 0.2:
+                                        loop_gain_gen = 0.2
+                                    elif zern_array[mode_index, 0] > 0.2:
+                                        loop_gain_gen = 0.3
+
                                     # Run closed-loop to generate a precise amount of Zernike modes using DM
                                     for j in range(config['AO']['loop_max_gen']):
 
@@ -914,8 +946,12 @@ class AO_Zernikes(QObject):
 
                                         else:
 
+                                            # Use smaller loop gain towards latter half of iteration
+                                            if j >= config['AO']['loop_max_gen'] // 2:
+                                                loop_gain_gen = 0.1
+
                                             # Update control voltages
-                                            voltages -= config['AO']['loop_gain_gen'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                            voltages -= loop_gain_gen * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                                 [:,:config['AO']['control_coeff_num']], (zern_array_det[:config['AO']['control_coeff_num']] - zern_array)))
 
                                         # Send values vector to mirror
@@ -1273,6 +1309,14 @@ class AO_Zernikes(QObject):
                                     zern_array[:len(zern_array_temp), 0] = zern_array_temp
                                     mode_index = np.nonzero(zern_array)[0][0]
 
+                                    # Determine initial loop gain for generation of each Zernike mode
+                                    if zern_array[mode_index, 0] <= 0.1:
+                                        loop_gain_gen = 0.1
+                                    elif zern_array[mode_index, 0] > 0.1 and zern_array[mode_index, 0] <= 0.2:
+                                        loop_gain_gen = 0.2
+                                    elif zern_array[mode_index, 0] > 0.2:
+                                        loop_gain_gen = 0.3
+
                                     # Run closed-loop to generate a precise amount of Zernike modes using DM
                                     for j in range(config['AO']['loop_max_gen']):
 
@@ -1282,8 +1326,12 @@ class AO_Zernikes(QObject):
 
                                         else:
 
+                                            # Use smaller loop gain towards latter half of iteration
+                                            if j >= config['AO']['loop_max_gen'] // 2:
+                                                loop_gain_gen = 0.1
+
                                             # Update control voltages
-                                            voltages -= config['AO']['loop_gain_gen'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                            voltages -= loop_gain_gen * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                                 [:,:config['AO']['control_coeff_num']], (zern_array_det[:config['AO']['control_coeff_num']] - zern_array)))
 
                                         # Send values vector to mirror

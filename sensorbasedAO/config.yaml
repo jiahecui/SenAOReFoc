@@ -81,8 +81,7 @@ image:
 
 AO:
   zern_gen: 0  # Flag for whether to generate Zernike modes on DM before correction in AO_zernikes.py and AO_slopes.py
-  loop_gain_gen: 1  # Fixed loop gain for closed-loop control during generation of Zernike modes
-  loop_max_gen: 2  # Maximum number of loops for closed-loop control during generation of Zernike modes
+  loop_max_gen: 20  # Maximum number of loops for closed-loop control during generation of Zernike modes
   recon_coeff_num: 69
   control_coeff_num: 20  # Alpao 46  # Boston 55  # 3rd - 14, 4th - 20, 5th - 27, 6th - 35, 7th - 44, 8th - 54, 9th - 65, 10th - 77
   loop_gain: 0.2  # Fixed loop gain for closed-loop control during AO correction
@@ -93,9 +92,10 @@ AO:
 
 zern_test:
   zern_test_mode: 0  # Flag for Zernike Test button operation mode, 0 - AO via Zernikes, 1 - AO via slopes, 2 - line scan + retrieve Zernike coefficients
+  loop_max_gen: 20  # Maximum number of loops for closed-loop control during generation of Zernike modes
   incre_num: 6  # Number of increments of each Zernike mode to generate 
   incre_amp: 0.05  # Increment amplitude of all zernike modes for comparison
-  run_num: 5  # Number of times to run mode 2
+  run_num: 5  # Number of times to run mode 0/1/2
   loop_num: 2  # Number of line scans to loop over in mode 2 for one run
   large_flag: 1  # Flag for whether to scan large FOV
   small_flag: 1  # Flag for whether to scan small FOV
