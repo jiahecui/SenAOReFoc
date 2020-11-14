@@ -179,8 +179,11 @@ class AO_Zernikes_Test(QObject):
                     data_set_1 = data_file['AO_img']['zern_test']
                     data_set_2 = data_file['AO_info']['zern_test']
 
-                    # Initialise array to store initial and final detected value of each generated Zernike mode
+                    # Initialise array to store initial and final detected value of each generated Zernike mode 
+                    # and RMS Zernike value / Strehl ratio considering recon_coeff_num
                     self.det_cor_zern_coeff = np.zeros([self.zern_num * 2, self.zern_num])
+                    self.det_cor_rms_zern = np.zeros([self.zern_num * 2, 1])
+                    self.det_cor_strehl = np.zeros([self.zern_num * 2, 1])
 
                     # Determine the amplitude to be generated for each Zernike mode
                     zern_amp_gen = config['zern_test']['incre_amp'] * (k + 1)
@@ -383,9 +386,6 @@ class AO_Zernikes_Test(QObject):
                                     # Get detected zernike coefficients from slope matrix
                                     self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                    if i == 0:
-                                        self.det_cor_zern_coeff[2 * j, :] = self.zern_coeff_detect[2:config['AO']['control_coeff_num'], 0].T
-
                                     # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                                     zern_err = self.zern_coeff_detect.copy()
                                     zern_err_part = self.zern_coeff_detect.copy()
@@ -398,6 +398,11 @@ class AO_Zernikes_Test(QObject):
                                     strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
                                     if config['dummy']:
                                         strehl_2 = self.strehl_calc(phase)
+
+                                    if i == 0:
+                                        self.det_cor_zern_coeff[2 * j, :] = self.zern_coeff_detect[2:config['AO']['control_coeff_num'], 0].T
+                                        self.det_cor_rms_zern[2 * j, 0] = rms_zern_part
+                                        self.det_cor_strehl[2 * j, 0] = strehl
 
                                     print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
 
@@ -421,6 +426,8 @@ class AO_Zernikes_Test(QObject):
                                         self.loop_num[j] = i
                                         self.zern_coeff[j + 2] = 0
                                         self.det_cor_zern_coeff[2 * j + 1, :] = self.zern_coeff_detect[2:config['AO']['control_coeff_num'], 0].T
+                                        self.det_cor_rms_zern[2 * j + 1, 0] = rms_zern_part
+                                        self.det_cor_strehl[2 * j + 1, 0] = strehl
                                         break                 
 
                                 except Exception as e:
@@ -429,9 +436,13 @@ class AO_Zernikes_Test(QObject):
 
                                 self.done.emit()
 
-                    # Save detected aberrations to file
-                    sp.io.savemat('zern_gen_det_cor/zernike_correction/amp_' + str(config['zern_test']['incre_amp'] * (k + 1)) + 'run_' + str(n) + '.mat',\
+                    # Save data to file
+                    sp.io.savemat('zern_gen_det_cor/zernike_correction/amp_' + str(config['zern_test']['incre_amp'] * (k + 1)) + 'zern_amp_run_' + str(n) + '.mat',\
                         dict(zern_det_cor_zern_amp = self.det_cor_zern_coeff))
+                    sp.io.savemat('zern_gen_det_cor/zernike_correction/amp_' + str(config['zern_test']['incre_amp'] * (k + 1)) + 'rms_zern_run_' + str(n) + '.mat',\
+                        dict(zern_det_cor_rms_zern = self.det_cor_rms_zern))
+                    sp.io.savemat('zern_gen_det_cor/zernike_correction/amp_' + str(config['zern_test']['incre_amp'] * (k + 1)) + 'strehl_run_' + str(n) + '.mat',\
+                        dict(zern_det_cor_strehl = self.det_cor_strehl))
 
                     # Close HDF5 file
                     data_file.close()
@@ -502,8 +513,11 @@ class AO_Zernikes_Test(QObject):
                     data_set_1 = data_file['AO_img']['zern_test']
                     data_set_2 = data_file['AO_info']['zern_test']
 
-                    # Initialise array to store initial and final detected value of each generated Zernike mode
+                    # Initialise array to store initial and final detected value of each generated Zernike mode 
+                    # and RMS Zernike value / Strehl ratio considering recon_coeff_num
                     self.det_cor_zern_coeff = np.zeros([self.zern_num * 2, self.zern_num])
+                    self.det_cor_rms_zern = np.zeros([self.zern_num * 2, 1])
+                    self.det_cor_strehl = np.zeros([self.zern_num * 2, 1])
 
                     # Determine the amplitude to be generated for each Zernike mode
                     zern_amp_gen = config['zern_test']['incre_amp'] * (k + 1)
@@ -708,9 +722,6 @@ class AO_Zernikes_Test(QObject):
                                     # Get detected zernike coefficients from slope matrix
                                     self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                    if i == 0:
-                                        self.det_cor_zern_coeff[2 * j, :] = self.zern_coeff_detect[2:config['AO']['control_coeff_num'], 0].T
-
                                     # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
                                     zern_err = self.zern_coeff_detect.copy()
                                     zern_err_part = self.zern_coeff_detect.copy()
@@ -723,6 +734,11 @@ class AO_Zernikes_Test(QObject):
                                     strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
                                     if config['dummy']:
                                         strehl_2 = self.strehl_calc(phase)
+
+                                    if i == 0:
+                                        self.det_cor_zern_coeff[2 * j, :] = self.zern_coeff_detect[2:config['AO']['control_coeff_num'], 0].T
+                                        self.det_cor_rms_zern[2 * j, 0] = rms_zern_part
+                                        self.det_cor_strehl[2 * j, 0] = strehl
 
                                     print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))                      
 
@@ -746,6 +762,8 @@ class AO_Zernikes_Test(QObject):
                                         self.loop_num[j] = i
                                         self.zern_coeff[j + 2] = 0
                                         self.det_cor_zern_coeff[2 * j + 1, :] = self.zern_coeff_detect[2:config['AO']['control_coeff_num'], 0].T
+                                        self.det_cor_rms_zern[2 * j + 1, 0] = rms_zern_part
+                                        self.det_cor_strehl[2 * j + 1, 0] = strehl
                                         break                 
 
                                 except Exception as e:
@@ -754,9 +772,13 @@ class AO_Zernikes_Test(QObject):
 
                                 self.done.emit()
 
-                    # Save detected aberrations to file
-                    sp.io.savemat('zern_gen_det_cor/slope_correction/amp_' + str(config['zern_test']['incre_amp'] * (k + 1)) + 'run_' + str(n) + '.mat',\
-                        dict(slope_det_cor_zern_amp = self.det_cor_zern_coeff))
+                    # Save data to file
+                    sp.io.savemat('zern_gen_det_cor/zernike_correction/amp_' + str(config['zern_test']['incre_amp'] * (k + 1)) + 'zern_amp_run_' + str(n) + '.mat',\
+                        dict(zern_det_cor_zern_amp = self.det_cor_zern_coeff))
+                    sp.io.savemat('zern_gen_det_cor/zernike_correction/amp_' + str(config['zern_test']['incre_amp'] * (k + 1)) + 'rms_zern_run_' + str(n) + '.mat',\
+                        dict(zern_det_cor_rms_zern = self.det_cor_rms_zern))
+                    sp.io.savemat('zern_gen_det_cor/zernike_correction/amp_' + str(config['zern_test']['incre_amp'] * (k + 1)) + 'strehl_run_' + str(n) + '.mat',\
+                        dict(zern_det_cor_strehl = self.det_cor_strehl))
 
                     # Close HDF5 file
                     data_file.close()
