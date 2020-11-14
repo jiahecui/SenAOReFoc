@@ -268,6 +268,9 @@ class AO_Slopes(QObject):
                                     zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
                                     print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
+
+                                    if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.05:
+                                        break
                                 
                                 # Ask user whether to proceed with correction
                                 self.message.emit('\nPress [y] to proceed with correction.')
@@ -613,6 +616,9 @@ class AO_Slopes(QObject):
                                     zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
                                     print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
+
+                                    if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.05:
+                                        break
                                 
                                 # Ask user whether to proceed with correction
                                 self.message.emit('\nPress [y] to proceed with correction.')
@@ -1003,6 +1009,9 @@ class AO_Slopes(QObject):
                                         zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
                                         print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
+
+                                        if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.05:
+                                            break
                                     
                                     # Ask user whether to proceed with correction
                                     self.message.emit('\nPress [y] to proceed with correction.')
@@ -1398,6 +1407,9 @@ class AO_Slopes(QObject):
                                         zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
                                         print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
+
+                                        if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.05:
+                                            break
                                     
                                     # Ask user whether to proceed with correction
                                     self.message.emit('\nPress [y] to proceed with correction.')

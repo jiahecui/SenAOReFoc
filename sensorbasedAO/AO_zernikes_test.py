@@ -264,7 +264,10 @@ class AO_Zernikes_Test(QObject):
                                                 # Get detected zernike coefficients from slope matrix
                                                 zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                                # print('Detected amplitude of mode {} is {} um'.format(m + 3, zern_array_det[m + 2]))
+                                                # print('Detected amplitude of mode {} is {} um'.format(m + 3, zern_array_det[j + 2, 0]))
+
+                                                if abs(zern_array_det[j + 2, 0] - zern_amp_gen) / zern_amp_gen <= 0.05:
+                                                    break
                                         else:
 
                                             voltages[:] = config['DM']['vol_bias']                              
@@ -584,7 +587,10 @@ class AO_Zernikes_Test(QObject):
                                                 # Get detected zernike coefficients from slope matrix
                                                 zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                                # print('Detected amplitude of mode {} is {} um'.format(m + 3, zern_array_det[m + 2]))
+                                                # print('Detected amplitude of mode {} is {} um'.format(m + 3, zern_array_det[j + 2, 0]))
+
+                                                if abs(zern_array_det[j + 2, 0] - zern_amp_gen) / zern_amp_gen <= 0.05:
+                                                    break
                                         else:
 
                                             voltages[:] = config['DM']['vol_bias']
