@@ -8,6 +8,7 @@ import argparse
 import time
 import h5py
 from scipy import io
+from tifffile import imsave
 import numpy as np
 import scipy as sp
 
@@ -127,6 +128,11 @@ class AO_Zernikes_Test(QObject):
             Run closed-loop AO correction for each generated zernike mode aberration via Zernike control for all 'control_coeff_num' modes 
             and multiple amplitudes of incremental steps 
             """
+            # Save calibration slope values and zernike influence function to file
+            sp.io.savemat('zern_gen_det_cor/calib_slope_x.mat', dict(calib_slope_x = self.mirror_settings['calib_slope_x']))
+            sp.io.savemat('zern_gen_det_cor/calib_slope_y.mat', dict(calib_slope_y = self.mirror_settings['calib_slope_y']))
+            sp.io.savemat('zern_gen_det_cor/inf_matrix_zern.mat', dict(inf_matrix_zern = self.mirror_settings['inf_matrix_zern']))
+
             # Get number of Zernike modes to generate
             zern_num = config['AO']['control_coeff_num'] - 2
 
@@ -438,6 +444,11 @@ class AO_Zernikes_Test(QObject):
             Run closed-loop AO correction for each generated zernike mode aberration via slopes control for all 'control_coeff_num' modes 
             and multiple amplitudes of incremental steps 
             """
+            # Save calibration slope values and zernike influence function to file
+            sp.io.savemat('zern_gen_det_cor/calib_slope_x.mat', dict(calib_slope_x = self.mirror_settings['calib_slope_x']))
+            sp.io.savemat('zern_gen_det_cor/calib_slope_y.mat', dict(calib_slope_y = self.mirror_settings['calib_slope_y']))
+            sp.io.savemat('zern_gen_det_cor/inf_matrix_zern.mat', dict(inf_matrix_zern = self.mirror_settings['inf_matrix_zern']))
+
             # Get number of Zernike modes to generate
             zern_num = config['AO']['control_coeff_num'] - 2
 
@@ -750,6 +761,11 @@ class AO_Zernikes_Test(QObject):
             """
             Run closed-loop AO correction for some specific zernike mode aberrations via Zernike control with a fixed amplitude 
             """
+            # Save calibration slope values and zernike influence function to file
+            sp.io.savemat('zern_gen_det_cor/calib_slope_x.mat', dict(calib_slope_x = self.mirror_settings['calib_slope_x']))
+            sp.io.savemat('zern_gen_det_cor/calib_slope_y.mat', dict(calib_slope_y = self.mirror_settings['calib_slope_y']))
+            sp.io.savemat('zern_gen_det_cor/inf_matrix_zern.mat', dict(inf_matrix_zern = self.mirror_settings['inf_matrix_zern']))
+
             # Initialise AO information parameter
             self.AO_info = {'zern_test': {}}
 
@@ -958,6 +974,10 @@ class AO_Zernikes_Test(QObject):
                                 # Append image to list
                                 dset_append(data_set_1, 'real_AO_img', AO_image)
 
+                                if i == 0:
+                                    imsave('zern_gen_det_cor_full/zernike_correction/mode' + str(zern_mode_array[j] + 1) + '_SH_spots_before_run' + str(n) + '.tif',\
+                                        AO_image.astype(np.float32))
+
                                 # Calculate centroids of S-H spots
                                 act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 2) 
                                 act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
@@ -969,6 +989,12 @@ class AO_Zernikes_Test(QObject):
                                 # Take tip\tilt off
                                 slope_x -= np.mean(slope_x)
                                 slope_y -= np.mean(slope_y)
+
+                                if i == 0:
+                                    sp.io.savemat('zern_gen_det_cor_full/zernike_correction/mode' + str(zern_mode_array[j] + 1) + '_slope_x_before_run' + str(n) + '.mat',\
+                                        dict(zern_det_cor_slope_x_before = slope_x))
+                                    sp.io.savemat('zern_gen_det_cor_full/zernike_correction/mode' + str(zern_mode_array[j] + 1) + '_slope_y_before_run' + str(n) + '.mat',\
+                                        dict(zern_det_cor_slope_y_before = slope_y))
 
                                 # Concatenate slopes into one slope matrix
                                 slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
@@ -992,6 +1018,12 @@ class AO_Zernikes_Test(QObject):
                                 # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
                                 if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
                                     self.zern_coeff[zern_mode_array[j], 0] = 0
+                                    sp.io.savemat('zern_gen_det_cor_full/zernike_correction/mode' + str(zern_mode_array[j] + 1) + '_slope_x_after_run' + str(n) + '.mat',\
+                                        dict(zern_det_cor_slope_x_after = slope_x))
+                                    sp.io.savemat('zern_gen_det_cor_full/zernike_correction/mode' + str(zern_mode_array[j] + 1) + '_slope_y_after_run' + str(n) + '.mat',\
+                                        dict(zern_det_cor_slope_y_after = slope_y))
+                                    imsave('zern_gen_det_cor_full/zernike_correction/mode' + str(zern_mode_array[j] + 1) + '_SH_spots_after_run' + str(n) + '.tif',\
+                                        AO_image.astype(np.float32))
                                     break                 
 
                             except Exception as e:
@@ -1051,6 +1083,11 @@ class AO_Zernikes_Test(QObject):
             """
             Run closed-loop AO correction for some specific zernike mode aberrations via slopes control with a fixed amplitude 
             """
+            # Save calibration slope values and zernike influence function to file
+            sp.io.savemat('zern_gen_det_cor/calib_slope_x.mat', dict(calib_slope_x = self.mirror_settings['calib_slope_x']))
+            sp.io.savemat('zern_gen_det_cor/calib_slope_y.mat', dict(calib_slope_y = self.mirror_settings['calib_slope_y']))
+            sp.io.savemat('zern_gen_det_cor/inf_matrix_zern.mat', dict(inf_matrix_zern = self.mirror_settings['inf_matrix_zern']))
+
             # Initialise AO information parameter
             self.AO_info = {'zern_test': {}}
 
@@ -1258,6 +1295,10 @@ class AO_Zernikes_Test(QObject):
                                 # Append image to list
                                 dset_append(data_set_1, 'real_AO_img', AO_image)
 
+                                if i == 0:
+                                    imsave('zern_gen_det_cor_full/zernike_correction/mode' + str(zern_mode_array[j] + 1) + '_SH_spots_before_run' + str(n) + '.tif',\
+                                        AO_image.astype(np.float32))
+
                                 # Calculate centroids of S-H spots
                                 act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 2) 
                                 act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
@@ -1269,6 +1310,12 @@ class AO_Zernikes_Test(QObject):
                                 # Take tip\tilt off
                                 slope_x -= np.mean(slope_x)
                                 slope_y -= np.mean(slope_y)
+
+                                if i == 0:
+                                    sp.io.savemat('zern_gen_det_cor_full/zernike_correction/mode' + str(zern_mode_array[j] + 1) + '_slope_x_before_run' + str(n) + '.mat',\
+                                        dict(zern_det_cor_slope_x_before = slope_x))
+                                    sp.io.savemat('zern_gen_det_cor_full/zernike_correction/mode' + str(zern_mode_array[j] + 1) + '_slope_y_before_run' + str(n) + '.mat',\
+                                        dict(zern_det_cor_slope_y_before = slope_y))
 
                                 # Concatenate slopes into one slope matrix
                                 slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
@@ -1295,6 +1342,12 @@ class AO_Zernikes_Test(QObject):
                                 # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
                                 if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
                                     self.zern_coeff[zern_mode_array[j], 0] = 0
+                                    sp.io.savemat('zern_gen_det_cor_full/zernike_correction/mode' + str(zern_mode_array[j] + 1) + '_slope_x_after_run' + str(n) + '.mat',\
+                                        dict(zern_det_cor_slope_x_after = slope_x))
+                                    sp.io.savemat('zern_gen_det_cor_full/zernike_correction/mode' + str(zern_mode_array[j] + 1) + '_slope_y_after_run' + str(n) + '.mat',\
+                                        dict(zern_det_cor_slope_y_after = slope_y))
+                                    imsave('zern_gen_det_cor_full/zernike_correction/mode' + str(zern_mode_array[j] + 1) + '_SH_spots_after_run' + str(n) + '.tif',\
+                                        AO_image.astype(np.float32))
                                     break                 
 
                             except Exception as e:
@@ -1354,6 +1407,11 @@ class AO_Zernikes_Test(QObject):
             """
             Perform a number of line scans across specimen and retrieve Zernike coefficients from each scan point
             """
+            # Save calibration slope values and zernike influence function to file
+            sp.io.savemat('zern_gen_det_cor/calib_slope_x.mat', dict(calib_slope_x = self.mirror_settings['calib_slope_x']))
+            sp.io.savemat('zern_gen_det_cor/calib_slope_y.mat', dict(calib_slope_y = self.mirror_settings['calib_slope_y']))
+            sp.io.savemat('zern_gen_det_cor/inf_matrix_zern.mat', dict(inf_matrix_zern = self.mirror_settings['inf_matrix_zern']))
+
             self.message.emit('\nProcess started for Zernike coefficient retrieval from different points along line scan...')
 
             prev1 = time.perf_counter()

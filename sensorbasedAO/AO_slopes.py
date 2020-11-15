@@ -9,6 +9,7 @@ import time
 import click
 import h5py
 from scipy import io
+from tifffile import imsave
 import numpy as np
 import scipy as sp
 
@@ -391,6 +392,9 @@ class AO_Slopes(QObject):
 
                         # Append image to list
                         dset_append(data_set_1, 'real_AO_img', AO_image)
+
+                        if i == 0:
+                            imsave('test_slope.tif', AO_image.astype(np.float32))
 
                         # Calculate centroids of S-H spots
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 4)
