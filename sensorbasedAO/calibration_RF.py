@@ -128,15 +128,17 @@ class Calibration_RF(QObject):
                             # Wait for DM to settle
                             time.sleep(config['DM']['settling_time'])
                         
-                            # Acquire S-H spots using camera and append to list
+                            # Acquire S-H spots using camera
                             AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                            AO_image = np.mean(AO_image_stack, axis = 2)
-                            dset_append(data_set, 'real_calib_RF_img', AO_image)
+                            AO_image = np.mean(AO_image_stack, axis = 2)                            
 
                             # Image thresholding to remove background
                             AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
                             AO_image[AO_image < 0] = 0
                             self.image.emit(AO_image)
+
+                            # Append image to list
+                            dset_append(data_set, 'real_calib_RF_img', AO_image)
 
                             # Calculate centroids of S-H spots
                             act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 11)
@@ -156,18 +158,14 @@ class Calibration_RF(QObject):
                             # Concatenate slopes into one slope matrix
                             slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
 
-                            # Get phase residual (slope residual error) and calculate root mean square (rms) error
+                            # Get residual slope error and calculate root mean square (rms) error
                             slope_err = slope.copy()
-                            rms_slope = np.sqrt((slope_err ** 2).mean())
-
-                            print('Slope root mean square error {} is {} pixels'.format(i, rms_slope))
 
                             # Get detected zernike coefficients from slope matrix
                             self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
 
                             # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
-                            zern_err = self.zern_coeff_detect.copy()
-                            zern_err_part = self.zern_coeff_detect.copy()
+                            zern_err, zern_err_part = (self.zern_coeff_detect.copy() for c in range(2))
                             zern_err_part[[0, 1], 0] = 0
                             rms_zern = np.sqrt((zern_err ** 2).sum())
                             rms_zern_part = np.sqrt((zern_err_part ** 2).sum())

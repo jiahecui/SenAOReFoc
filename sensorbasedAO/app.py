@@ -334,6 +334,10 @@ class App(QApplication):
             zern_thread.started.connect(zern_worker.run1)
         elif mode == 2:
             zern_thread.started.connect(zern_worker.run2)
+        elif mode == 3:
+            zern_thread.started.connect(zern_worker.run3)
+        elif mode == 4:
+            zern_thread.started.connect(zern_worker.run4)
 
         zern_worker.done.connect(self.handle_zern_test_done)
         zern_worker.image.connect(lambda obj: self.handle_image_disp(obj))   
@@ -725,12 +729,18 @@ class App(QApplication):
 
     def handle_zern_test_start(self, mode = 0):
         """
-        Handle start of closed-loop AO control test via Zernikes
+        Handle start of Zernike Test button functions
 
         Args:
-            mode = 0 - Run closed-loop control for each generated zernike mode aberration via Zernikes control
-            mode = 1 - Run closed-loop control for each generated zernike mode aberration via slopes control
-            mode = 2 - Perform a number of line scans on specimen and retrieve Zernike coefficients from each scan point
+            mode = 0 - Run closed-loop AO correction for each generated zernike mode aberration via Zernike control for 
+                       all 'control_coeff_num' modes and multiple amplitudes of incremental steps
+            mode = 1 - Run closed-loop AO correction for each generated zernike mode aberration via slopes control for 
+                       all 'control_coeff_num' modes and multiple amplitudes of incremental steps
+            mode = 2 - Run closed-loop AO correction for some specific zernike mode aberrations via Zernike control with
+                       a fixed amplitude
+            mode = 3 - Run closed-loop AO correction for some specific zernike mode aberrations via slopes control with
+                       a fixed amplitude
+            mode = 4 - Perform a number of line scans on specimen and retrieve Zernike coefficients from each scan point
         """
         # self.control_zern_test(self.devices['sensor'], self.devices['mirror'], self.devices['scanner'], self.data_info, mode)
         self.control_zern_test(self.devices['sensor'], self.devices['mirror'], self.data_info, mode)

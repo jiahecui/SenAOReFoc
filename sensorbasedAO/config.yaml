@@ -91,12 +91,12 @@ AO:
   tolerance_fact_strehl: 1  # Strehl ratio tolerance factor according to Marechel criteria, 0.81
 
 zern_test:
-  zern_test_mode: 0  # Flag for Zernike Test button operation mode, 0 - AO via Zernikes, 1 - AO via slopes, 2 - line scan + retrieve Zernike coefficients
+  zern_test_mode: 0  # Mode flag for Zernike Test button, detailed function descriptions in app.py
   loop_max_gen: 20  # Maximum number of loops for closed-loop control during generation of Zernike modes
-  incre_num: 6  # Number of increments of each Zernike mode to generate 
-  incre_amp: 0.05  # Increment amplitude of all zernike modes for comparison
-  run_num: 5  # Number of times to run mode 0/1/2
-  loop_num: 2  # Number of line scans to loop over in mode 2 for one run
+  incre_num: 15  # Number of increments of each Zernike mode to generate 
+  incre_amp: 0.02  # Increment amplitude of all zernike modes for comparison
+  run_num: 5  # Number of times to run mode 0/1/2/3/4
+  loop_num: 2  # Number of line scans to loop over in mode 4 for one run
   large_flag: 1  # Flag for whether to scan large FOV
   small_flag: 1  # Flag for whether to scan small FOV
   scan_num_x_large: 512  # Number of scan points along x direction for large FOV in mode 2
