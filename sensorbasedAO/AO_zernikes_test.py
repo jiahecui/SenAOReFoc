@@ -167,9 +167,7 @@ class AO_Zernikes_Test(QObject):
                     zern_amp_gen = config['zern_test']['incre_amp'] * (k + 1)
 
                     # Determine initial loop gain for generation of each Zernike mode
-                    if zern_amp_gen <= 0.1:
-                        loop_gain_gen = 0.1
-                    elif zern_amp_gen > 0.1 and zern_amp_gen <= 0.2:
+                    if zern_amp_gen <= 0.2:
                         loop_gain_gen = 0.2
                     elif zern_amp_gen > 0.2:
                         loop_gain_gen = 0.3
@@ -200,10 +198,6 @@ class AO_Zernikes_Test(QObject):
                                                     voltages[:] = config['DM']['vol_bias']
 
                                                 else:
-
-                                                    # Use smaller loop gain towards latter half of iteration
-                                                    if m >= config['zern_test']['loop_max_gen'] // 2:
-                                                        loop_gain_gen = 0.1
 
                                                     # Update control voltages
                                                     voltages -= loop_gain_gen * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
@@ -257,7 +251,7 @@ class AO_Zernikes_Test(QObject):
                                         voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                             [:,:config['AO']['control_coeff_num']], zern_err[:config['AO']['control_coeff_num']]))
 
-                                        print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
+                                        # print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
                                     if config['dummy']:
 
@@ -376,7 +370,8 @@ class AO_Zernikes_Test(QObject):
                                         self.det_cor_rms_zern[2 * j, 0] = rms_zern_part
                                         self.det_cor_strehl[2 * j, 0] = strehl
 
-                                    print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
+                                    print('Root mean square error {} is {} um'.format(i, rms_zern_part))
+                                    print('Strehl ratio {} is {}'.format(i, strehl))
 
                                     # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
                                     if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
@@ -483,9 +478,7 @@ class AO_Zernikes_Test(QObject):
                     zern_amp_gen = config['zern_test']['incre_amp'] * (k + 1)
 
                     # Determine initial loop gain for generation of each Zernike mode
-                    if zern_amp_gen <= 0.1:
-                        loop_gain_gen = 0.1
-                    elif zern_amp_gen > 0.1 and zern_amp_gen <= 0.2:
+                    if zern_amp_gen <= 0.2:
                         loop_gain_gen = 0.2
                     elif zern_amp_gen > 0.2:
                         loop_gain_gen = 0.3
@@ -516,10 +509,6 @@ class AO_Zernikes_Test(QObject):
                                                     voltages[:] = config['DM']['vol_bias']
 
                                                 else:
-
-                                                    # Use smaller loop gain towards latter half of iteration
-                                                    if m >= config['zern_test']['loop_max_gen'] // 2:
-                                                        loop_gain_gen = 0.1
 
                                                     # Update control voltages
                                                     voltages -= loop_gain_gen * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
@@ -572,7 +561,7 @@ class AO_Zernikes_Test(QObject):
 
                                         voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_slopes'], slope_err))
 
-                                        print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
+                                        # print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
                                     if config['dummy']:
 
@@ -694,7 +683,8 @@ class AO_Zernikes_Test(QObject):
                                         self.det_cor_rms_zern[2 * j, 0] = rms_zern_part
                                         self.det_cor_strehl[2 * j, 0] = strehl
 
-                                    print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
+                                    print('Root mean square error {} is {} um'.format(i, rms_zern_part))
+                                    print('Strehl ratio {} is {}'.format(i, strehl))
 
                                     # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
                                     if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
@@ -777,7 +767,7 @@ class AO_Zernikes_Test(QObject):
 
             # Initialise zernike mode array, zernike amplitude array, and loop_gain_gen array
             zern_mode_array = [2, 6, 11, 19]
-            zern_amp_array = [0.3, 0.15, 0.15, 0.15]
+            zern_amp_array = [0.3, 0.2, 0.15, 0.15]
             loop_gain_gen_array = [0.3, 0.2, 0.2, 0.2]
 
             # Get number of Zernike modes to generate
@@ -829,10 +819,6 @@ class AO_Zernikes_Test(QObject):
 
                                             else:
 
-                                                # Use smaller loop gain towards latter half of iteration
-                                                if m >= config['zern_test']['loop_max_gen'] // 2:
-                                                    loop_gain_gen = 0.1
-
                                                 # Update control voltages
                                                 voltages -= loop_gain_gen * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                                     [:,:config['AO']['control_coeff_num']], (zern_array_det[:config['AO']['control_coeff_num']] - self.zern_coeff)))
@@ -873,7 +859,7 @@ class AO_Zernikes_Test(QObject):
                                             # Get detected zernike coefficients from slope matrix
                                             zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                            # print('Detected amplitude of mode {} is {} um'.format(zern_mode_array[j] + 1, zern_array_det[zern_mode_array[j], 0]))
+                                            print('Detected amplitude of mode {} is {} um'.format(zern_mode_array[j] + 1, zern_array_det[zern_mode_array[j], 0]))
 
                                             if abs(zern_array_det[zern_mode_array[j], 0] - zern_amp_array[j]) / zern_amp_array[j] <= 0.05:
                                                 break
@@ -1013,7 +999,8 @@ class AO_Zernikes_Test(QObject):
                                 self.det_cor_rms_zern[i, 0] = rms_zern_part
                                 self.det_cor_strehl[i, 0] = strehl
 
-                                print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
+                                print('Root mean square error {} is {} um'.format(i, rms_zern_part))
+                                print('Strehl ratio {} is {}'.format(i, strehl))
 
                                 # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
                                 if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
@@ -1099,7 +1086,7 @@ class AO_Zernikes_Test(QObject):
 
             # Initialise zernike mode array, zernike amplitude array, and loop_gain_gen array
             zern_mode_array = [2, 6, 11, 19]
-            zern_amp_array = [0.3, 0.15, 0.15, 0.15]
+            zern_amp_array = [0.3, 0.2, 0.15, 0.15]
             loop_gain_gen_array = [0.3, 0.2, 0.2, 0.2]
 
             # Get number of Zernike modes to generate
@@ -1151,10 +1138,6 @@ class AO_Zernikes_Test(QObject):
 
                                             else:
 
-                                                # Use smaller loop gain towards latter half of iteration
-                                                if m >= config['zern_test']['loop_max_gen'] // 2:
-                                                    loop_gain_gen = 0.1
-
                                                 # Update control voltages
                                                 voltages -= loop_gain_gen * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                                     [:,:config['AO']['control_coeff_num']], (zern_array_det[:config['AO']['control_coeff_num']] - self.zern_coeff)))
@@ -1195,7 +1178,7 @@ class AO_Zernikes_Test(QObject):
                                             # Get detected zernike coefficients from slope matrix
                                             zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                            # print('Detected amplitude of mode {} is {} um'.format(zern_mode_array[j] + 1, zern_array_det[zern_mode_array[j], 0]))
+                                            print('Detected amplitude of mode {} is {} um'.format(zern_mode_array[j] + 1, zern_array_det[zern_mode_array[j], 0]))
 
                                             if abs(zern_array_det[zern_mode_array[j], 0] - zern_amp_array[j]) / zern_amp_array[j] <= 0.05:
                                                 break
@@ -1296,7 +1279,7 @@ class AO_Zernikes_Test(QObject):
                                 dset_append(data_set_1, 'real_AO_img', AO_image)
 
                                 if i == 0:
-                                    imsave('zern_gen_det_cor_full/zernike_correction/mode' + str(zern_mode_array[j] + 1) + '_SH_spots_before_run' + str(n) + '.tif',\
+                                    imsave('zern_gen_det_cor_full/slope_correction/mode' + str(zern_mode_array[j] + 1) + '_SH_spots_before_run' + str(n) + '.tif',\
                                         AO_image.astype(np.float32))
 
                                 # Calculate centroids of S-H spots
@@ -1312,9 +1295,9 @@ class AO_Zernikes_Test(QObject):
                                 slope_y -= np.mean(slope_y)
 
                                 if i == 0:
-                                    sp.io.savemat('zern_gen_det_cor_full/zernike_correction/mode' + str(zern_mode_array[j] + 1) + '_slope_x_before_run' + str(n) + '.mat',\
+                                    sp.io.savemat('zern_gen_det_cor_full/slope_correction/mode' + str(zern_mode_array[j] + 1) + '_slope_x_before_run' + str(n) + '.mat',\
                                         dict(zern_det_cor_slope_x_before = slope_x))
-                                    sp.io.savemat('zern_gen_det_cor_full/zernike_correction/mode' + str(zern_mode_array[j] + 1) + '_slope_y_before_run' + str(n) + '.mat',\
+                                    sp.io.savemat('zern_gen_det_cor_full/slope_correction/mode' + str(zern_mode_array[j] + 1) + '_slope_y_before_run' + str(n) + '.mat',\
                                         dict(zern_det_cor_slope_y_before = slope_y))
 
                                 # Concatenate slopes into one slope matrix
@@ -1337,16 +1320,17 @@ class AO_Zernikes_Test(QObject):
                                 self.det_cor_rms_zern[i, 0] = rms_zern_part
                                 self.det_cor_strehl[i, 0] = strehl
 
-                                print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
+                                print('Root mean square error {} is {} um'.format(i, rms_zern_part))
+                                print('Strehl ratio {} is {}'.format(i, strehl))
 
                                 # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
                                 if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
                                     self.zern_coeff[zern_mode_array[j], 0] = 0
-                                    sp.io.savemat('zern_gen_det_cor_full/zernike_correction/mode' + str(zern_mode_array[j] + 1) + '_slope_x_after_run' + str(n) + '.mat',\
+                                    sp.io.savemat('zern_gen_det_cor_full/slope_correction/mode' + str(zern_mode_array[j] + 1) + '_slope_x_after_run' + str(n) + '.mat',\
                                         dict(zern_det_cor_slope_x_after = slope_x))
-                                    sp.io.savemat('zern_gen_det_cor_full/zernike_correction/mode' + str(zern_mode_array[j] + 1) + '_slope_y_after_run' + str(n) + '.mat',\
+                                    sp.io.savemat('zern_gen_det_cor_full/slope_correction/mode' + str(zern_mode_array[j] + 1) + '_slope_y_after_run' + str(n) + '.mat',\
                                         dict(zern_det_cor_slope_y_after = slope_y))
-                                    imsave('zern_gen_det_cor_full/zernike_correction/mode' + str(zern_mode_array[j] + 1) + '_SH_spots_after_run' + str(n) + '.tif',\
+                                    imsave('zern_gen_det_cor_full/slope_correction/mode' + str(zern_mode_array[j] + 1) + '_SH_spots_after_run' + str(n) + '.tif',\
                                         AO_image.astype(np.float32))
                                     break                 
 

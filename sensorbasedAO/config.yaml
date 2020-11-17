@@ -32,8 +32,8 @@ camera:
 DM:
   SN: "HSDM69-15-014" 
   DM_num: 0  # Flag for choosing the working DM, 0-Alpao, 1-Boston
-  vol_min: -0.05  # V
-  vol_max: 0.05  # V
+  vol_min: -0.1  # V
+  vol_max: 0.1  # V
   vol_bias: 0
   vol_step: 1
   settling_time: 0.05
@@ -80,7 +80,7 @@ image:
   rescale: 1  # 0-rescale off, 1-rescale on
 
 AO:
-  zern_gen: 0  # Flag for whether to generate Zernike modes on DM before correction in AO_zernikes.py and AO_slopes.py
+  zern_gen: 1  # Flag for whether to generate Zernike modes on DM before correction in AO_zernikes.py and AO_slopes.py
   loop_max_gen: 20  # Maximum number of loops for closed-loop control during generation of Zernike modes
   recon_coeff_num: 69
   control_coeff_num: 20  # Alpao 46  # Boston 55  # 3rd - 14, 4th - 20, 5th - 27, 6th - 35, 7th - 44, 8th - 54, 9th - 65, 10th - 77
@@ -88,10 +88,10 @@ AO:
   suppress_gain: 10000  # Gain factor used to suppress certain zernike modes
   lambda: 0.83  # um 0.63 / 0.83
   tolerance_fact_zern: 0  # RMS error tolerance factor via zernikes, 0.045 = lambda / 14
-  tolerance_fact_strehl: 1  # Strehl ratio tolerance factor according to Marechel criteria, 0.81
+  tolerance_fact_strehl: 0.81  # Strehl ratio tolerance factor according to Marechel criteria, 0.81
 
 zern_test:
-  zern_test_mode: 0  # Mode flag for Zernike Test button, detailed function descriptions in app.py
+  zern_test_mode: 3  # Mode flag for Zernike Test button, detailed function descriptions in app.py
   loop_max_gen: 20  # Maximum number of loops for closed-loop control during generation of Zernike modes
   incre_num: 15  # Number of increments of each Zernike mode to generate 
   incre_amp: 0.02  # Increment amplitude of all zernike modes for comparison

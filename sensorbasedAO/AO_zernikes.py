@@ -223,10 +223,6 @@ class AO_Zernikes(QObject):
 
                                     else:
 
-                                        # Use smaller loop gain towards latter half of iteration
-                                        if j >= config['AO']['loop_max_gen'] // 2:
-                                            loop_gain_gen = 0.1
-
                                         # Update control voltages
                                         voltages -= loop_gain_gen * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                             [:,:config['AO']['control_coeff_num']], (zern_array_det[:config['AO']['control_coeff_num']] - zern_array)))
@@ -561,10 +557,6 @@ class AO_Zernikes(QObject):
                                         voltages[:] = config['DM']['vol_bias']
 
                                     else:
-
-                                        # Use smaller loop gain towards latter half of iteration
-                                        if j >= config['AO']['loop_max_gen'] // 2:
-                                            loop_gain_gen = 0.1
 
                                         # Update control voltages
                                         voltages -= loop_gain_gen * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
@@ -954,10 +946,6 @@ class AO_Zernikes(QObject):
 
                                         else:
 
-                                            # Use smaller loop gain towards latter half of iteration
-                                            if j >= config['AO']['loop_max_gen'] // 2:
-                                                loop_gain_gen = 0.1
-
                                             # Update control voltages
                                             voltages -= loop_gain_gen * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                                 [:,:config['AO']['control_coeff_num']], (zern_array_det[:config['AO']['control_coeff_num']] - zern_array)))
@@ -1335,10 +1323,6 @@ class AO_Zernikes(QObject):
                                             voltages[:] = config['DM']['vol_bias']
 
                                         else:
-
-                                            # Use smaller loop gain towards latter half of iteration
-                                            if j >= config['AO']['loop_max_gen'] // 2:
-                                                loop_gain_gen = 0.1
 
                                             # Update control voltages
                                             voltages -= loop_gain_gen * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
