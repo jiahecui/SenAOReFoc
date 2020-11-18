@@ -207,9 +207,7 @@ class AO_Zernikes(QObject):
                                 mode_index = np.nonzero(zern_array)[0][0]
 
                                 # Determine initial loop gain for generation of each Zernike mode
-                                if zern_array[mode_index, 0] <= 0.1:
-                                    loop_gain_gen = 0.1
-                                elif zern_array[mode_index, 0] > 0.1 and zern_array[mode_index, 0] <= 0.2:
+                                if zern_array[mode_index, 0] <= 0.2:
                                     loop_gain_gen = 0.2
                                 elif zern_array[mode_index, 0] > 0.2:
                                     loop_gain_gen = 0.3
@@ -265,7 +263,7 @@ class AO_Zernikes(QObject):
 
                                     print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
 
-                                    if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.05:
+                                    if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.075:
                                         break
                                 
                                 # Ask user whether to proceed with correction
@@ -542,9 +540,7 @@ class AO_Zernikes(QObject):
                                 mode_index = np.nonzero(zern_array)[0][0]
 
                                 # Determine initial loop gain for generation of each Zernike mode
-                                if zern_array[mode_index, 0] <= 0.1:
-                                    loop_gain_gen = 0.1
-                                elif zern_array[mode_index, 0] > 0.1 and zern_array[mode_index, 0] <= 0.2:
+                                if zern_array[mode_index, 0] <= 0.2:
                                     loop_gain_gen = 0.2
                                 elif zern_array[mode_index, 0] > 0.2:
                                     loop_gain_gen = 0.3
@@ -600,7 +596,7 @@ class AO_Zernikes(QObject):
 
                                     print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
 
-                                    if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.05:
+                                    if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.075:
                                         break
                                 
                                 # Ask user whether to proceed with correction
@@ -930,9 +926,7 @@ class AO_Zernikes(QObject):
                                     mode_index = np.nonzero(zern_array)[0][0]
 
                                     # Determine initial loop gain for generation of each Zernike mode
-                                    if zern_array[mode_index, 0] <= 0.1:
-                                        loop_gain_gen = 0.1
-                                    elif zern_array[mode_index, 0] > 0.1 and zern_array[mode_index, 0] <= 0.2:
+                                    if zern_array[mode_index, 0] <= 0.2:
                                         loop_gain_gen = 0.2
                                     elif zern_array[mode_index, 0] > 0.2:
                                         loop_gain_gen = 0.3
@@ -988,7 +982,7 @@ class AO_Zernikes(QObject):
 
                                         print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
 
-                                        if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.05:
+                                        if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.075:
                                             break
                                     
                                     # Ask user whether to proceed with correction
@@ -1308,9 +1302,7 @@ class AO_Zernikes(QObject):
                                     mode_index = np.nonzero(zern_array)[0][0]
 
                                     # Determine initial loop gain for generation of each Zernike mode
-                                    if zern_array[mode_index, 0] <= 0.1:
-                                        loop_gain_gen = 0.1
-                                    elif zern_array[mode_index, 0] > 0.1 and zern_array[mode_index, 0] <= 0.2:
+                                    if zern_array[mode_index, 0] <= 0.2:
                                         loop_gain_gen = 0.2
                                     elif zern_array[mode_index, 0] > 0.2:
                                         loop_gain_gen = 0.3
@@ -1366,7 +1358,7 @@ class AO_Zernikes(QObject):
 
                                         print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
 
-                                        if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.05:
+                                        if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.075:
                                             break
                                     
                                     # Ask user whether to proceed with correction

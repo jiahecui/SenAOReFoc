@@ -20,13 +20,13 @@ camera:
   burst_mode: 0  # Flag for whether to use burst mode, 0-burst_mode off, 1-burst_mode on 
   burst_frames: 10
   acq_timing_mode: "XI_ACQ_TIMING_MODE_FRAME_RATE"
-  frame_rate: 20.0  # Hz
+  frame_rate: 1.0  # Hz
   sensor_width: 2048  # pixels Ximea - 2048; IDS - 1024
   sensor_height: 2048  # pixels Ximea - 2048; IDS - 1024
   sensor_diam: 11.26  # mm Ximea - 11.26; IDS - 4.762
   bin_factor: 2  # Ximea - 2; IDS - 1
   pixel_size: 5.5  # um Ximea - 5.5; IDS - 4.65
-  frame_num: 1  # Number of frames to acquire in burst acquisition mode 
+  frame_num: 5  # Number of frames to acquire in burst acquisition mode 
   sleep_time: 0.1  # Interval time between frames during live acquisition
     
 DM:
@@ -72,7 +72,7 @@ search_block:
 
 image:
   noise: 0.1  # The uniform noise level for synthetic samples
-  threshold: 0.02  # Percentage of maximum pixel used for thresholding an image
+  threshold: 0  # Percentage of maximum pixel used for thresholding an image, 0.03
   dynamic_num: 1  # Number of cycles to use for centroiding with a dynamic range
   normalise: 1  # 0-normalise off, 1-normalise on
   norm_min: 0  # Below which will clip to 0, uint8
@@ -80,8 +80,8 @@ image:
   rescale: 1  # 0-rescale off, 1-rescale on
 
 AO:
-  zern_gen: 1  # Flag for whether to generate Zernike modes on DM before correction in AO_zernikes.py and AO_slopes.py
-  loop_max_gen: 25  # Maximum number of loops for closed-loop control during generation of Zernike modes
+  zern_gen: 0  # Flag for whether to generate Zernike modes on DM before correction in AO_zernikes.py and AO_slopes.py
+  loop_max_gen: 20  # Maximum number of loops for closed-loop control during generation of Zernike modes
   recon_coeff_num: 69
   control_coeff_num: 20  # Alpao 46  # Boston 55  # 3rd - 14, 4th - 20, 5th - 27, 6th - 35, 7th - 44, 8th - 54, 9th - 65, 10th - 77
   loop_gain: 0.2  # Fixed loop gain for closed-loop control during AO correction
@@ -91,7 +91,7 @@ AO:
   tolerance_fact_strehl: 0.81  # Strehl ratio tolerance factor according to Marechel criteria, 0.81
 
 zern_test:
-  zern_test_mode: 0  # Mode flag for Zernike Test button, detailed function descriptions in app.py
+  zern_test_mode: 3  # Mode flag for Zernike Test button, detailed function descriptions in app.py
   loop_max_gen: 20  # Maximum number of loops for closed-loop control during generation of Zernike modes
   incre_num: 1  # Number of increments of each Zernike mode to generate 
   incre_amp: 0.15  # Increment amplitude of all zernike modes for comparison

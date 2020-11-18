@@ -241,7 +241,7 @@ class AO_Zernikes_Test(QObject):
 
                                                 # print('Detected amplitude of mode {} is {} um'.format(m + 3, zern_array_det[j + 2, 0]))
 
-                                                if abs(zern_array_det[j + 2, 0] - zern_amp_gen) / zern_amp_gen <= 0.05:
+                                                if abs(zern_array_det[j + 2, 0] - zern_amp_gen) / zern_amp_gen <= 0.075:
                                                     break
                                         else:
 
@@ -552,7 +552,7 @@ class AO_Zernikes_Test(QObject):
 
                                                 # print('Detected amplitude of mode {} is {} um'.format(m + 3, zern_array_det[j + 2, 0]))
 
-                                                if abs(zern_array_det[j + 2, 0] - zern_amp_gen) / zern_amp_gen <= 0.05:
+                                                if abs(zern_array_det[j + 2, 0] - zern_amp_gen) / zern_amp_gen <= 0.075:
                                                     break
                                         else:
 
@@ -752,9 +752,9 @@ class AO_Zernikes_Test(QObject):
             Run closed-loop AO correction for some specific zernike mode aberrations via Zernike control with a fixed amplitude 
             """
             # Save calibration slope values and zernike influence function to file
-            sp.io.savemat('zern_gen_det_cor/calib_slope_x.mat', dict(calib_slope_x = self.mirror_settings['calib_slope_x']))
-            sp.io.savemat('zern_gen_det_cor/calib_slope_y.mat', dict(calib_slope_y = self.mirror_settings['calib_slope_y']))
-            sp.io.savemat('zern_gen_det_cor/inf_matrix_zern.mat', dict(inf_matrix_zern = self.mirror_settings['inf_matrix_zern']))
+            sp.io.savemat('zern_gen_det_cor_full/calib_slope_x.mat', dict(calib_slope_x = self.mirror_settings['calib_slope_x']))
+            sp.io.savemat('zern_gen_det_cor_full/calib_slope_y.mat', dict(calib_slope_y = self.mirror_settings['calib_slope_y']))
+            sp.io.savemat('zern_gen_det_cor_full/inf_matrix_zern.mat', dict(inf_matrix_zern = self.mirror_settings['inf_matrix_zern']))
 
             # Initialise AO information parameter
             self.AO_info = {'zern_test': {}}
@@ -767,7 +767,7 @@ class AO_Zernikes_Test(QObject):
 
             # Initialise zernike mode array, zernike amplitude array, and loop_gain_gen array
             zern_mode_array = [2, 6, 11, 19]
-            zern_amp_array = [0.3, 2, 0.15, 0.15]
+            zern_amp_array = [0.3, 0.15, 0.15, 0.15]
             loop_gain_gen_array = [0.3, 0.2, 0.2, 0.2]
 
             # Get number of Zernike modes to generate
@@ -861,7 +861,7 @@ class AO_Zernikes_Test(QObject):
 
                                             print('Detected amplitude of mode {} is {} um'.format(zern_mode_array[j] + 1, zern_array_det[zern_mode_array[j], 0]))
 
-                                            if abs(zern_array_det[zern_mode_array[j], 0] - zern_amp_array[j]) / zern_amp_array[j] <= 0.05:
+                                            if abs(zern_array_det[zern_mode_array[j], 0] - zern_amp_array[j]) / zern_amp_array[j] <= 0.075:
                                                 break
                                     else:
 
@@ -1071,9 +1071,9 @@ class AO_Zernikes_Test(QObject):
             Run closed-loop AO correction for some specific zernike mode aberrations via slopes control with a fixed amplitude 
             """
             # Save calibration slope values and zernike influence function to file
-            sp.io.savemat('zern_gen_det_cor/calib_slope_x.mat', dict(calib_slope_x = self.mirror_settings['calib_slope_x']))
-            sp.io.savemat('zern_gen_det_cor/calib_slope_y.mat', dict(calib_slope_y = self.mirror_settings['calib_slope_y']))
-            sp.io.savemat('zern_gen_det_cor/inf_matrix_zern.mat', dict(inf_matrix_zern = self.mirror_settings['inf_matrix_zern']))
+            sp.io.savemat('zern_gen_det_cor_full/calib_slope_x.mat', dict(calib_slope_x = self.mirror_settings['calib_slope_x']))
+            sp.io.savemat('zern_gen_det_cor_full/calib_slope_y.mat', dict(calib_slope_y = self.mirror_settings['calib_slope_y']))
+            sp.io.savemat('zern_gen_det_cor_full/inf_matrix_zern.mat', dict(inf_matrix_zern = self.mirror_settings['inf_matrix_zern']))
 
             # Initialise AO information parameter
             self.AO_info = {'zern_test': {}}
@@ -1086,7 +1086,7 @@ class AO_Zernikes_Test(QObject):
 
             # Initialise zernike mode array, zernike amplitude array, and loop_gain_gen array
             zern_mode_array = [2, 6, 11, 19]
-            zern_amp_array = [0.3, 2, 0.15, 0.15]
+            zern_amp_array = [0.3, 0.15, 0.15, 0.15]
             loop_gain_gen_array = [0.3, 0.2, 0.2, 0.2]
 
             # Get number of Zernike modes to generate
@@ -1180,7 +1180,7 @@ class AO_Zernikes_Test(QObject):
 
                                             print('Detected amplitude of mode {} is {} um'.format(zern_mode_array[j] + 1, zern_array_det[zern_mode_array[j], 0]))
 
-                                            if abs(zern_array_det[zern_mode_array[j], 0] - zern_amp_array[j]) / zern_amp_array[j] <= 0.05:
+                                            if abs(zern_array_det[zern_mode_array[j], 0] - zern_amp_array[j]) / zern_amp_array[j] <= 0.075:
                                                 break
                                     else:
 
@@ -1392,9 +1392,9 @@ class AO_Zernikes_Test(QObject):
             Perform a number of line scans across specimen and retrieve Zernike coefficients from each scan point
             """
             # Save calibration slope values and zernike influence function to file
-            sp.io.savemat('zern_gen_det_cor/calib_slope_x.mat', dict(calib_slope_x = self.mirror_settings['calib_slope_x']))
-            sp.io.savemat('zern_gen_det_cor/calib_slope_y.mat', dict(calib_slope_y = self.mirror_settings['calib_slope_y']))
-            sp.io.savemat('zern_gen_det_cor/inf_matrix_zern.mat', dict(inf_matrix_zern = self.mirror_settings['inf_matrix_zern']))
+            sp.io.savemat('xy_scan_aberr_meas/calib_slope_x.mat', dict(calib_slope_x = self.mirror_settings['calib_slope_x']))
+            sp.io.savemat('xy_scan_aberr_meas/calib_slope_y.mat', dict(calib_slope_y = self.mirror_settings['calib_slope_y']))
+            sp.io.savemat('xy_scan_aberr_meas/inf_matrix_zern.mat', dict(inf_matrix_zern = self.mirror_settings['inf_matrix_zern']))
 
             self.message.emit('\nProcess started for Zernike coefficient retrieval from different points along line scan...')
 
