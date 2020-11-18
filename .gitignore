@@ -35,3 +35,13 @@ labfiles/
 
 # mems documental files
 MEMS-Python/
+
+# tiff
+*.tif
+*.tiff
+
+# data folders
+xy_scan_aberr_meas/
+zern_gen_det_cor/
+zern_gen_det_cor_full/
+
