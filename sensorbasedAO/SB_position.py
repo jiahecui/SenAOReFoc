@@ -107,7 +107,8 @@ class Positioning(QObject):
 
                 else:
 
-                    self._image = acq_image(self.sensor, self.sensor_height, self.sensor_width, acq_mode = 0)               
+                    self._image_stack = acq_image(self.sensor, self.sensor_height, self.sensor_width, acq_mode = 1)
+                    self._image = np.mean(self._image_stack, axis = 2)               
                             
                 # Image thresholding to remove background
                 self._image = self._image - config['image']['threshold'] * np.amax(self._image)
@@ -180,7 +181,8 @@ class Positioning(QObject):
                     self.SB_layer_2D_temp = self.SB_layer_2D.copy()
                     self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
                     if not config['dummy']:
-                        self._image = acq_image(self.sensor, self.sensor_height, self.sensor_width, acq_mode = 0)
+                        self._image_stack = acq_image(self.sensor, self.sensor_height, self.sensor_width, acq_mode = 1)
+                        self._image = np.mean(self._image_stack, axis = 2)
                         self._image = self._image - config['image']['threshold'] * np.amax(self._image)
                         self._image[self._image < 0] = 0
                     self.SB_layer_2D_temp += self._image
@@ -208,7 +210,8 @@ class Positioning(QObject):
                 self.SB_layer_2D_temp = self.SB_layer_2D.copy()
                 self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
                 if not config['dummy']:
-                    self._image = acq_image(self.sensor, self.sensor_height, self.sensor_width, acq_mode = 0)
+                    self._image_stack = acq_image(self.sensor, self.sensor_height, self.sensor_width, acq_mode = 1)
+                    self._image = np.mean(self._image_stack, axis = 2)
                     self._image = self._image - config['image']['threshold'] * np.amax(self._image)
                     self._image[self._image < 0] = 0
                 self.SB_layer_2D_temp += self._image

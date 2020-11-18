@@ -767,7 +767,7 @@ class AO_Zernikes_Test(QObject):
 
             # Initialise zernike mode array, zernike amplitude array, and loop_gain_gen array
             zern_mode_array = [2, 6, 11, 19]
-            zern_amp_array = [0.3, 0.2, 0.15, 0.15]
+            zern_amp_array = [0.3, 2, 0.15, 0.15]
             loop_gain_gen_array = [0.3, 0.2, 0.2, 0.2]
 
             # Get number of Zernike modes to generate
@@ -1086,7 +1086,7 @@ class AO_Zernikes_Test(QObject):
 
             # Initialise zernike mode array, zernike amplitude array, and loop_gain_gen array
             zern_mode_array = [2, 6, 11, 19]
-            zern_amp_array = [0.3, 0.2, 0.15, 0.15]
+            zern_amp_array = [0.3, 2, 0.15, 0.15]
             loop_gain_gen_array = [0.3, 0.2, 0.2, 0.2]
 
             # Get number of Zernike modes to generate

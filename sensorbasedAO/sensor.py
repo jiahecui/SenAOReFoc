@@ -37,8 +37,9 @@ class SENSOR_XIMEA(xiapi.Camera):
         if config['camera']['burst_mode'] == 1:
             self.sensor.set_trigger_selector('XI_TRG_SEL_FRAME_BURST_START')
             self.sensor.set_acq_frame_burst_count(config['camera']['burst_frames'])
-
-        self.sensor.set_acq_timing_mode(config['camera']['acq_timing_mode'])
+        else:
+            self.sensor.set_acq_timing_mode(config['camera']['acq_timing_mode'])
+            self.sensor.set_framerate(config['camera']['frame_rate'])
 
         super().__init__()
 
