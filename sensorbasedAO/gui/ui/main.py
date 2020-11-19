@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Tue Nov 10 22:20:25 2020
+# Created: Wed Nov 18 23:21:37 2020
 #      by: pyside2-uic  running on PySide2 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -404,7 +404,7 @@ class Ui_MainWindow(object):
         self.cameraExpoSpin.setMinimum(30)
         self.cameraExpoSpin.setMaximum(1000000)
         self.cameraExpoSpin.setSingleStep(10)
-        self.cameraExpoSpin.setProperty("value", 18000)
+        self.cameraExpoSpin.setProperty("value", 40000)
         self.cameraExpoSpin.setObjectName("cameraExpoSpin")
         self.horizontalLayout_5.addWidget(self.cameraExpoSpin)
         self.loopMaxSpin = QtWidgets.QSpinBox(self.centralwidget)

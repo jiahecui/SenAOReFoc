@@ -92,6 +92,7 @@ AO:
 
 zern_test:
   zern_test_mode: 3  # Mode flag for Zernike Test button, detailed function descriptions in app.py
+  save_voltages: 0  # Flag for whether to save precise voltages generated in closed-loop
   loop_max_gen: 20  # Maximum number of loops for closed-loop control during generation of Zernike modes
   incre_num: 1  # Number of increments of each Zernike mode to generate 
   incre_amp: 0.15  # Increment amplitude of all zernike modes for comparison

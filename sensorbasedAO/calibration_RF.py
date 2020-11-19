@@ -116,8 +116,6 @@ class Calibration_RF(QObject):
                             elif l > 0 and i == 0:
                                 voltages = self.calib_array[:, l - 1].copy()
                             elif i > 0:
-                                # voltages -= 0.5 * config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
-                                #     [:,:config['AO']['control_coeff_num']], zern_err_part[:config['AO']['control_coeff_num']]))
                                 voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_slopes'], slope_err))
 
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))

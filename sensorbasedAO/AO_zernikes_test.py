@@ -70,6 +70,9 @@ class AO_Zernikes_Test(QObject):
         elif config['DM']['DM_num'] == 1:
             self.actuator_num = config['DM1']['actuator_num']
             self.pupil_diam = config['search_block']['pupil_diam_1']
+
+        # Initialise array to store accurate Zernike mode voltages
+        self.zern_volts = np.zeros([self.actuator_num, config['AO']['control_coeff_num'] - 2, config['zern_test']['incre_num']])
         
         super().__init__()
 
@@ -241,7 +244,9 @@ class AO_Zernikes_Test(QObject):
 
                                                 # print('Detected amplitude of mode {} is {} um'.format(m + 3, zern_array_det[j + 2, 0]))
 
-                                                if abs(zern_array_det[j + 2, 0] - zern_amp_gen) / zern_amp_gen <= 0.075:
+                                                if abs(zern_array_det[j + 2, 0] - zern_amp_gen) / zern_amp_gen <= 0.075 or m == config['zern_test']['loop_max_gen'] - 1:
+                                                    if config['zern_test']['save_voltages']:
+                                                        self.zern_volts[:, j, k] = voltages
                                                     break
                                         else:
 
@@ -394,6 +399,10 @@ class AO_Zernikes_Test(QObject):
                         dict(zern_det_cor_rms_zern = self.det_cor_rms_zern))
                     sp.io.savemat('zern_gen_det_cor/zernike_correction/amp_' + str(config['zern_test']['incre_amp'] * (k + 1)) + '_strehl_run' + str(n) + '.mat',\
                         dict(zern_det_cor_strehl = self.det_cor_strehl))
+                    if config['zern_test']['save_voltages']:
+                        sp.io.savemat('zern_volts/zern_volts_' + str(config['zern_test']['incre_num']) + '_' + str(config['zern_test']['incre_amp']) + '.mat',\
+                            dict(zern_volts = self.zern_volts))
+                        self.mirror_info['zern_volts'] = self.zern_volts
 
                     # Close HDF5 file
                     data_file.close()
@@ -552,7 +561,9 @@ class AO_Zernikes_Test(QObject):
 
                                                 # print('Detected amplitude of mode {} is {} um'.format(m + 3, zern_array_det[j + 2, 0]))
 
-                                                if abs(zern_array_det[j + 2, 0] - zern_amp_gen) / zern_amp_gen <= 0.075:
+                                                if abs(zern_array_det[j + 2, 0] - zern_amp_gen) / zern_amp_gen <= 0.075 or m == config['zern_test']['loop_max_gen'] - 1:
+                                                    if config['zern_test']['save_voltages']:
+                                                        self.zern_volts[:, j, k] = voltages
                                                     break
                                         else:
 
@@ -707,6 +718,10 @@ class AO_Zernikes_Test(QObject):
                         dict(zern_det_cor_rms_zern = self.det_cor_rms_zern))
                     sp.io.savemat('zern_gen_det_cor/zernike_correction/amp_' + str(config['zern_test']['incre_amp'] * (k + 1)) + '_strehl_run' + str(n) + '.mat',\
                         dict(zern_det_cor_strehl = self.det_cor_strehl))
+                    if config['zern_test']['save_voltages']:
+                        sp.io.savemat('zern_volts/zern_volts_' + str(config['zern_test']['incre_num']) + '_' + str(config['zern_test']['incre_amp']) + '.mat',\
+                            dict(zern_volts = self.zern_volts))
+                        self.mirror_info['zern_volts'] = self.zern_volts
 
                     # Close HDF5 file
                     data_file.close()

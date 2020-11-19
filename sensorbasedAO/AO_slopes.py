@@ -63,6 +63,10 @@ class AO_Slopes(QObject):
         # self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_2um_31.mat','r').get('interp_volts')
         # self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_2um_21_mod.mat','r').get('interp_volts')
         self.remote_focus_voltages = np.array(self.remote_focus_voltages).T
+
+        # Get voltages for generating Zernike modes in one shot
+        if config['AO']['zern_gen'] == 2:
+            self.zern_volts = self.mirror_settings['zern_volts']
         
         # Initialise Zernike coefficient array
         self.zern_coeff = np.zeros(config['AO']['control_coeff_num'])
@@ -199,7 +203,7 @@ class AO_Slopes(QObject):
                         if i == 0:
 
                             # Determine whether to generate Zernike modes using DM
-                            if not config['dummy'] and config['AO']['zern_gen']:
+                            if not config['dummy'] and config['AO']['zern_gen'] == 1:
 
                                 # Retrieve input zernike coefficient array
                                 zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
@@ -277,7 +281,17 @@ class AO_Slopes(QObject):
                                     else:
                                         self.message.emit('\nInvalid input. Please try again.')
 
-                                    c = click.getchar()                                  
+                                    c = click.getchar()
+
+                            elif not config['dummy'] and config['AO']['zern_gen'] == 2:
+
+                                # Retrieve input zernike coefficient array
+                                zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
+                                mode_index = len(zern_array_temp)
+                                mode_amp = zern_array_temp[-1]
+
+                                voltages[:] = self.zern_volts[:, mode_index - 3, int(mode_amp // config['zern_test']['incre_amp'] - 1)]
+
                             else:
 
                                 voltages[:] = config['DM']['vol_bias']
@@ -386,9 +400,6 @@ class AO_Slopes(QObject):
 
                         # Append image to list
                         dset_append(data_set_1, 'real_AO_img', AO_image)
-
-                        if i == 0:
-                            imsave('test_slope.tif', AO_image.astype(np.float32))
 
                         # Calculate centroids of S-H spots
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 4)
@@ -543,7 +554,7 @@ class AO_Slopes(QObject):
                         if i == 0:
 
                             # Determine whether to generate Zernike modes using DM
-                            if not config['dummy'] and config['AO']['zern_gen']:
+                            if not config['dummy'] and config['AO']['zern_gen'] == 1:
 
                                 # Retrieve input zernike coefficient array
                                 zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
@@ -621,7 +632,17 @@ class AO_Slopes(QObject):
                                     else:
                                         self.message.emit('\nInvalid input. Please try again.')
 
-                                    c = click.getchar() 
+                                    c = click.getchar()
+
+                            elif not config['dummy'] and config['AO']['zern_gen'] == 2:
+
+                                # Retrieve input zernike coefficient array
+                                zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
+                                mode_index = len(zern_array_temp)
+                                mode_amp = zern_array_temp[-1]
+
+                                voltages[:] = self.zern_volts[:, mode_index - 3, int(mode_amp // config['zern_test']['incre_amp'] - 1)]
+
                             else:
 
                                 voltages[:] = config['DM']['vol_bias']
@@ -929,7 +950,7 @@ class AO_Slopes(QObject):
                             if i == 0:
 
                                 # Determine whether to generate Zernike modes using DM
-                                if not config['dummy'] and config['AO']['zern_gen']:
+                                if not config['dummy'] and config['AO']['zern_gen'] == 1:
 
                                     # Retrieve input zernike coefficient array
                                     zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
@@ -1008,6 +1029,16 @@ class AO_Slopes(QObject):
                                             self.message.emit('\nInvalid input. Please try again.')
 
                                         c = click.getchar()
+
+                                elif not config['dummy'] and config['AO']['zern_gen'] == 2:
+
+                                    # Retrieve input zernike coefficient array
+                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
+                                    mode_index = len(zern_array_temp)
+                                    mode_amp = zern_array_temp[-1]
+
+                                    voltages[:] = self.zern_volts[:, mode_index - 3, int(mode_amp // config['zern_test']['incre_amp'] - 1)]
+
                                 else:
 
                                     voltages[:] = config['DM']['vol_bias'] + voltages_defoc
@@ -1320,7 +1351,7 @@ class AO_Slopes(QObject):
                             if i == 0:
 
                                 # Determine whether to generate Zernike modes using DM
-                                if not config['dummy'] and config['AO']['zern_gen']:
+                                if not config['dummy'] and config['AO']['zern_gen'] == 1:
 
                                     # Retrieve input zernike coefficient array
                                     zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
@@ -1399,6 +1430,16 @@ class AO_Slopes(QObject):
                                             self.message.emit('\nInvalid input. Please try again.')
 
                                         c = click.getchar()
+
+                                elif not config['dummy'] and config['AO']['zern_gen'] == 2:
+
+                                    # Retrieve input zernike coefficient array
+                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
+                                    mode_index = len(zern_array_temp)
+                                    mode_amp = zern_array_temp[-1]
+
+                                    voltages[:] = self.zern_volts[:, mode_index - 3, int(mode_amp // config['zern_test']['incre_amp'] - 1)]
+
                                 else:
 
                                     voltages[:] = config['DM']['vol_bias'] + voltages_defoc
