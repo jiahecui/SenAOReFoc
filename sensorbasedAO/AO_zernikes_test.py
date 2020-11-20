@@ -57,8 +57,9 @@ class AO_Zernikes_Test(QObject):
         # Get scanner instance
         # self.scanner = scanner
 
-        # Initialise AO information parameter
+        # Initialise AO and deformable mirror information parameter
         self.AO_info = {'zern_test': {}}
+        self.zern_volts_info = {}
 
         # Initialise zernike coefficient array
         self.zern_coeff = np.zeros([config['AO']['control_coeff_num'], 1])
@@ -399,10 +400,6 @@ class AO_Zernikes_Test(QObject):
                         dict(zern_det_cor_rms_zern = self.det_cor_rms_zern))
                     sp.io.savemat('zern_gen_det_cor/zernike_correction/amp_' + str(config['zern_test']['incre_amp'] * (k + 1)) + '_strehl_run' + str(n) + '.mat',\
                         dict(zern_det_cor_strehl = self.det_cor_strehl))
-                    if config['zern_test']['save_voltages']:
-                        sp.io.savemat('zern_volts/zern_volts_' + str(config['zern_test']['incre_num']) + '_' + str(config['zern_test']['incre_amp']) + '.mat',\
-                            dict(zern_volts = self.zern_volts))
-                        self.mirror_info['zern_volts'] = self.zern_volts
 
                     # Close HDF5 file
                     data_file.close()
@@ -422,6 +419,11 @@ class AO_Zernikes_Test(QObject):
                 self.AO_info['zern_test']['zern_det_cor_strehl_via_zern'] = self.det_cor_strehl
 
                 self.info.emit(self.AO_info)
+                if config['zern_test']['save_voltages']:
+                    sp.io.savemat('zern_volts/zern_volts_' + str(config['zern_test']['incre_num']) + '_' + str(config['zern_test']['incre_amp']) + '.mat',\
+                        dict(zern_volts = self.zern_volts))
+                    self.zern_volts_info['zern_volts'] = self.zern_volts
+                    self.info.emit(self.zern_volts_info)
                 self.write.emit()
             else:
 
@@ -718,10 +720,6 @@ class AO_Zernikes_Test(QObject):
                         dict(zern_det_cor_rms_zern = self.det_cor_rms_zern))
                     sp.io.savemat('zern_gen_det_cor/zernike_correction/amp_' + str(config['zern_test']['incre_amp'] * (k + 1)) + '_strehl_run' + str(n) + '.mat',\
                         dict(zern_det_cor_strehl = self.det_cor_strehl))
-                    if config['zern_test']['save_voltages']:
-                        sp.io.savemat('zern_volts/zern_volts_' + str(config['zern_test']['incre_num']) + '_' + str(config['zern_test']['incre_amp']) + '.mat',\
-                            dict(zern_volts = self.zern_volts))
-                        self.mirror_info['zern_volts'] = self.zern_volts
 
                     # Close HDF5 file
                     data_file.close()
@@ -741,6 +739,11 @@ class AO_Zernikes_Test(QObject):
                 self.AO_info['zern_test']['zern_det_cor_strehl_via_slopes'] = self.det_cor_strehl
 
                 self.info.emit(self.AO_info)
+                if config['zern_test']['save_voltages']:
+                    sp.io.savemat('zern_volts/zern_volts_' + str(config['zern_test']['incre_num']) + '_' + str(config['zern_test']['incre_amp']) + '.mat',\
+                        dict(zern_volts = self.zern_volts))
+                    self.zern_volts_info['zern_volts'] = self.zern_volts
+                    self.info.emit(self.zern_volts_info)
                 self.write.emit()
             else:
 
@@ -781,8 +784,8 @@ class AO_Zernikes_Test(QObject):
             data_set_2 = data_file['AO_info']['zern_test']
 
             # Initialise zernike mode array, zernike amplitude array, and loop_gain_gen array
-            zern_mode_array = [2, 6, 11, 19]
-            zern_amp_array = [0.3, 0.15, 0.15, 0.15]
+            zern_mode_array = [4, 6, 11, 19]
+            zern_amp_array = [0.3, 0.15, 0.15, 0.2]
             loop_gain_gen_array = [0.3, 0.2, 0.2, 0.2]
 
             # Get number of Zernike modes to generate
@@ -1100,8 +1103,8 @@ class AO_Zernikes_Test(QObject):
             data_set_2 = data_file['AO_info']['zern_test']
 
             # Initialise zernike mode array, zernike amplitude array, and loop_gain_gen array
-            zern_mode_array = [2, 6, 11, 19]
-            zern_amp_array = [0.3, 0.15, 0.15, 0.15]
+            zern_mode_array = [4, 6, 11, 19]
+            zern_amp_array = [0.3, 0.15, 0.15, 0.2]
             loop_gain_gen_array = [0.3, 0.2, 0.2, 0.2]
 
             # Get number of Zernike modes to generate
