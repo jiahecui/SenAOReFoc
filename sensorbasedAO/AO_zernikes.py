@@ -66,8 +66,12 @@ class AO_Zernikes(QObject):
 
         # Get voltages for generating Zernike modes in one shot
         if config['AO']['zern_gen'] == 2:
-            self.zern_volts = h5py.File('zern_volts_6_0.05_-v7.3.mat','r').get('zern_volts')
-            # self.zern_volts = h5py.File('zern_volts_15_0.02_-v7.3.mat','r').get('zern_volts')
+            if config['AO']['gen_volts_flag'] == 0:
+                self.zern_volts = h5py.File('zern_volts_6_0.05_-v7.3.mat','r').get('zern_volts')
+                self.incre_amp = config['AO']['incre_amp_0']
+            else:
+                self.zern_volts = h5py.File('zern_volts_15_0.02_-v7.3.mat','r').get('zern_volts')
+                self.incre_amp = config['AO']['incre_amp_1']
 
         # Initialise Zernike coefficient array
         self.zern_coeff = np.zeros(config['AO']['control_coeff_num'])
@@ -290,7 +294,7 @@ class AO_Zernikes(QObject):
                                 mode_index = len(zern_array_temp)
                                 mode_amp = zern_array_temp[-1]
 
-                                voltages[:] = self.zern_volts[int(mode_amp // config['zern_test']['incre_amp'] - 1), mode_index - 3, :]
+                                voltages[:] = self.zern_volts[int(mode_amp // self.incre_amp - 1), mode_index - 3, :]
 
                                 # Send values vector to mirror
                                 self.mirror.Send(voltages)
@@ -647,9 +651,24 @@ class AO_Zernikes(QObject):
                                 mode_index = len(zern_array_temp)
                                 mode_amp = zern_array_temp[-1]
 
-                                voltages[:] = self.zern_volts[int(mode_amp // config['zern_test']['incre_amp'] - 1), mode_index - 3, :]
+                                voltages[:] = self.zern_volts[int(mode_amp // self.incre_amp - 1), mode_index - 3, :]
+
+                                # Send values vector to mirror
+                                self.mirror.Send(voltages)
 
                                 print('Applied amplitude of mode {} is {} um'.format(mode_index, mode_amp))
+
+                                # Ask user whether to proceed with correction
+                                self.message.emit('\nPress [y] to proceed with correction.')
+                                c = click.getchar()
+
+                                while True:
+                                    if c == 'y':
+                                        break
+                                    else:
+                                        self.message.emit('\nInvalid input. Please try again.')
+
+                                    c = click.getchar()
 
                             else:
 
@@ -1045,7 +1064,7 @@ class AO_Zernikes(QObject):
                                     mode_index = len(zern_array_temp)
                                     mode_amp = zern_array_temp[-1]
 
-                                    voltages[:] = self.zern_volts[int(mode_amp // config['zern_test']['incre_amp'] - 1), mode_index - 3, :]
+                                    voltages[:] = self.zern_volts[int(mode_amp // self.incre_amp - 1), mode_index - 3, :]
 
                                     # Send values vector to mirror
                                     self.mirror.Send(voltages)
@@ -1448,9 +1467,24 @@ class AO_Zernikes(QObject):
                                     mode_index = len(zern_array_temp)
                                     mode_amp = zern_array_temp[-1]
 
-                                    voltages[:] = self.zern_volts[int(mode_amp // config['zern_test']['incre_amp'] - 1), mode_index - 3, :]
+                                    voltages[:] = self.zern_volts[int(mode_amp // self.incre_amp - 1), mode_index - 3, :]
+
+                                    # Send values vector to mirror
+                                    self.mirror.Send(voltages)
 
                                     print('Applied amplitude of mode {} is {} um'.format(mode_index, mode_amp))
+
+                                    # Ask user whether to proceed with correction
+                                    self.message.emit('\nPress [y] to proceed with correction.')
+                                    c = click.getchar()
+
+                                    while True:
+                                        if c == 'y':
+                                            break
+                                        else:
+                                            self.message.emit('\nInvalid input. Please try again.')
+
+                                        c = click.getchar()
                                     
                                 else:
 

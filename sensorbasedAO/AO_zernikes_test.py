@@ -57,9 +57,8 @@ class AO_Zernikes_Test(QObject):
         # Get scanner instance
         # self.scanner = scanner
 
-        # Initialise AO and deformable mirror information parameter
+        # Initialise AO information parameter
         self.AO_info = {'zern_test': {}}
-        self.zern_volts_info = {}
 
         # Initialise zernike coefficient array
         self.zern_coeff = np.zeros([config['AO']['control_coeff_num'], 1])
@@ -404,6 +403,11 @@ class AO_Zernikes_Test(QObject):
                     # Close HDF5 file
                     data_file.close()
 
+            # Save accurate Zernike mode voltages to file
+            if config['zern_test']['save_voltages']:
+                sp.io.savemat('zern_volts/zern_volts_' + str(config['zern_test']['incre_num']) + '_' + str(config['zern_test']['incre_amp']) + '.mat',\
+                    dict(zern_volts = self.zern_volts))
+
             self.message.emit('\nProcess complete.')
 
             prev2 = time.perf_counter()
@@ -419,11 +423,6 @@ class AO_Zernikes_Test(QObject):
                 self.AO_info['zern_test']['zern_det_cor_strehl_via_zern'] = self.det_cor_strehl
 
                 self.info.emit(self.AO_info)
-                if config['zern_test']['save_voltages']:
-                    sp.io.savemat('zern_volts/zern_volts_' + str(config['zern_test']['incre_num']) + '_' + str(config['zern_test']['incre_amp']) + '.mat',\
-                        dict(zern_volts = self.zern_volts))
-                    self.zern_volts_info['zern_volts'] = self.zern_volts
-                    self.info.emit(self.zern_volts_info)
                 self.write.emit()
             else:
 
@@ -724,6 +723,11 @@ class AO_Zernikes_Test(QObject):
                     # Close HDF5 file
                     data_file.close()
 
+            # Save accurate Zernike mode voltages to file
+            if config['zern_test']['save_voltages']:
+                sp.io.savemat('zern_volts/zern_volts_' + str(config['zern_test']['incre_num']) + '_' + str(config['zern_test']['incre_amp']) + '.mat',\
+                    dict(zern_volts = self.zern_volts))
+
             self.message.emit('\nProcess complete.')
 
             prev2 = time.perf_counter()
@@ -739,11 +743,6 @@ class AO_Zernikes_Test(QObject):
                 self.AO_info['zern_test']['zern_det_cor_strehl_via_slopes'] = self.det_cor_strehl
 
                 self.info.emit(self.AO_info)
-                if config['zern_test']['save_voltages']:
-                    sp.io.savemat('zern_volts/zern_volts_' + str(config['zern_test']['incre_num']) + '_' + str(config['zern_test']['incre_amp']) + '.mat',\
-                        dict(zern_volts = self.zern_volts))
-                    self.zern_volts_info['zern_volts'] = self.zern_volts
-                    self.info.emit(self.zern_volts_info)
                 self.write.emit()
             else:
 

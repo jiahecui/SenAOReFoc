@@ -74,16 +74,19 @@ image:
   noise: 0.1  # The uniform noise level for synthetic samples
   threshold: 0.02  # Percentage of maximum pixel used for thresholding an image, 0.03
   dynamic_num: 1  # Number of cycles to use for centroiding with a dynamic range
-  normalise: 1  # 0-normalise off, 1-normalise on
+  normalise: 1  # 0 - normalise off, 1 - normalise on
   norm_min: 0  # Below which will clip to 0, uint8
   norm_max: 255  # Above which will clip to 1, uint8
-  rescale: 1  # 0-rescale off, 1-rescale on
+  rescale: 1  # 0 - rescale off, 1 - rescale on
 
 AO:
-  zern_gen: 0  # Flag for whether to generate Zernike modes on DM before correction in AO_zernikes.py and AO_slopes.py
-  loop_max_gen: 20  # Maximum number of loops for closed-loop control during generation of Zernike modes
-  recon_coeff_num: 69
-  control_coeff_num: 20  # Alpao 46  # Boston 55  # 3rd - 14, 4th - 20, 5th - 27, 6th - 35, 7th - 44, 8th - 54, 9th - 65, 10th - 77
+  zern_gen: 0  # Flag for generating zernike modes on DM in AO_zernikes.py and AO_slopes.py, 0 - off, 1 - iterative generation, 2 - one-shot generation from file
+  gen_volts_flag: 0  # Flag for the set of zernike mode generation voltages to use when zern_gen == 2, 0 - 6 (0.05), 1 - 15 (0.02)
+  incre_amp_0: 0.05  # Increment amplitude value 0
+  incre_amp_1: 0.02  # Increment amplitude value 1
+  loop_max_gen: 20  # Maximum number of loops for closed-loop control during generation of zernike modes
+  recon_coeff_num: 69  # Number of zernike modes to use during wavefront reconstruction
+  control_coeff_num: 20  # Number of zernike modes to control during AO correction  # 3rd - 14, 4th - 20, 5th - 27, 6th - 35, 7th - 44, 8th - 54, 9th - 65, 10th - 77
   loop_gain: 0.2  # Fixed loop gain for closed-loop control during AO correction
   suppress_gain: 10000  # Gain factor used to suppress certain zernike modes
   lambda: 0.83  # um 0.63 / 0.83
@@ -92,10 +95,10 @@ AO:
 
 zern_test:
   zern_test_mode: 3  # Mode flag for Zernike Test button, detailed function descriptions in app.py
-  save_voltages: 0  # Flag for whether to save precise voltages generated in closed-loop
-  loop_max_gen: 20  # Maximum number of loops for closed-loop control during generation of Zernike modes
-  incre_num: 6  # Number of increments of each Zernike mode to generate 
-  incre_amp: 0.05  # Increment amplitude of all zernike modes for comparison
+  save_voltages: 0  # Flag for whether to save precise voltages generated in closed-loop in mode 0/1
+  loop_max_gen: 20  # Maximum number of loops during closed-loop generation of zernike modes in mode 0/1/2/3
+  incre_num: 6  # Number of zernike mode amplitudes to generate in mode 0/1
+  incre_amp: 0.05  # Increment amplitude between zernike modes in mode 0/1
   run_num: 5  # Number of times to run mode 0/1/2/3/4
   loop_num: 2  # Number of line scans to loop over in mode 4 for one run
   large_flag: 1  # Flag for whether to scan large FOV

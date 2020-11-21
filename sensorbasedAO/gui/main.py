@@ -228,16 +228,25 @@ class Main(QMainWindow):
                 self.app.handle_message_disp('\nPlease enter zernike coefficients.')
 
             if btn.isChecked():
+                if config['AO']['zern_gen'] == 2 and config['AO']['gen_volts_flag'] == 0:
+                    if self.ui.ZernikeValSpin.value() % config['AO']['incre_amp_0'] != 0:
+                        btn.setChecked(False)       
+                        self.app.handle_message_disp('\nInvalid input. Please try again.')
+                elif config['AO']['zern_gen'] == 2 and config['AO']['gen_volts_flag'] == 1:
+                    if self.ui.ZernikeValSpin.value() % config['AO']['incre_amp_1'] != 0:
+                        btn.setChecked(False)       
+                        self.app.handle_message_disp('\nInvalid input. Please try again.')
+
                 if not len(zernike_array) > config['AO']['control_coeff_num']:
                     settings = {}
                     settings['zernike_array_test'] = zernike_array
                     self.app.handle_SB_info(settings)
                     self.app.write_SB_info()
-                    self.app.handle_message_disp('\nZernike coefficients loaded.')
                     btn.setChecked(False)
+                    self.app.handle_message_disp('\nZernike coefficients loaded.')
                 else:
-                    self.app.handle_message_disp('\nInput too long. Please try again.')
                     btn.setChecked(False)       
+                    self.app.handle_message_disp('\nInput too long. Please try again.')
 
     def on_zern_test(self, checked):
         """
