@@ -20,13 +20,13 @@ camera:
   burst_mode: 0  # Flag for whether to use burst mode, 0-burst_mode off, 1-burst_mode on 
   burst_frames: 10
   acq_timing_mode: "XI_ACQ_TIMING_MODE_FRAME_RATE"
-  frame_rate: 1.0  # Hz
+  frame_rate: 20.0  # Hz
   sensor_width: 2048  # pixels Ximea - 2048; IDS - 1024
   sensor_height: 2048  # pixels Ximea - 2048; IDS - 1024
   sensor_diam: 11.26  # mm Ximea - 11.26; IDS - 4.762
   bin_factor: 2  # Ximea - 2; IDS - 1
   pixel_size: 5.5  # um Ximea - 5.5; IDS - 4.65
-  frame_num: 3  # Number of frames to acquire in burst acquisition mode 
+  frame_num: 1  # Number of frames to acquire in burst acquisition mode 
   sleep_time: 0.1  # Interval time between frames during live acquisition
     
 DM:
@@ -80,11 +80,11 @@ image:
   rescale: 1  # 0 - rescale off, 1 - rescale on
 
 AO:
-  zern_gen: 0  # Flag for generating zernike modes on DM in AO_zernikes.py and AO_slopes.py, 0 - off, 1 - iterative generation, 2 - one-shot generation from file
+  zern_gen: 1  # Flag for generating zernike modes on DM in AO_zernikes.py and AO_slopes.py, 0 - off, 1 - iterative generation, 2 - one-shot generation from file
   gen_volts_flag: 0  # Flag for the set of zernike mode generation voltages to use when zern_gen == 2, 0 - 6 (0.05), 1 - 15 (0.02)
   incre_amp_0: 0.05  # Increment amplitude value 0
   incre_amp_1: 0.02  # Increment amplitude value 1
-  loop_max_gen: 20  # Maximum number of loops for closed-loop control during generation of zernike modes
+  loop_max_gen: 10  # Maximum number of loops for closed-loop control during generation of zernike modes
   recon_coeff_num: 69  # Number of zernike modes to use during wavefront reconstruction
   control_coeff_num: 20  # Number of zernike modes to control during AO correction  # 3rd - 14, 4th - 20, 5th - 27, 6th - 35, 7th - 44, 8th - 54, 9th - 65, 10th - 77
   loop_gain: 0.2  # Fixed loop gain for closed-loop control during AO correction
@@ -96,7 +96,7 @@ AO:
 zern_test:
   zern_test_mode: 3  # Mode flag for Zernike Test button, detailed function descriptions in app.py
   save_voltages: 0  # Flag for whether to save precise voltages generated in closed-loop in mode 0/1
-  loop_max_gen: 20  # Maximum number of loops during closed-loop generation of zernike modes in mode 0/1/2/3
+  loop_max_gen: 10  # Maximum number of loops during closed-loop generation of zernike modes in mode 0/1/2/3
   incre_num: 6  # Number of zernike mode amplitudes to generate in mode 0/1
   incre_amp: 0.05  # Increment amplitude between zernike modes in mode 0/1
   run_num: 5  # Number of times to run mode 0/1/2/3/4

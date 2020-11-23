@@ -212,13 +212,22 @@ class AO_Slopes(QObject):
                                 zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
                                 zern_array = np.zeros([config['AO']['control_coeff_num'], 1])
                                 zern_array[:len(zern_array_temp), 0] = zern_array_temp
-                                mode_index = np.nonzero(zern_array)[0][0]
+
+                                # mode_index = np.nonzero(zern_array)[0][0]
+                                mode_index_0 = np.nonzero(zern_array)[0][0]
+                                mode_index_1 = np.nonzero(zern_array)[0][1]
+                                mode_index_2 = np.nonzero(zern_array)[0][2]
+                                print('zern_array:', zern_array)
+                                print('mode_index_0:', mode_index_0)
+                                print('mode_index_1:', mode_index_1)
+                                print('mode_index_2:', mode_index_2)
 
                                 # Determine initial loop gain for generation of each Zernike mode
-                                if zern_array[mode_index, 0] <= 0.2:
-                                    loop_gain_gen = 0.2
-                                elif zern_array[mode_index, 0] > 0.2:
-                                    loop_gain_gen = 0.3
+                                # if zern_array[mode_index, 0] <= 0.2:
+                                #     loop_gain_gen = 0.2
+                                # elif zern_array[mode_index, 0] > 0.2:
+                                #     loop_gain_gen = 0.3
+                                loop_gain_gen = 0.2
 
                                 # Run closed-loop to generate a precise amount of Zernike modes using DM
                                 for j in range(config['AO']['loop_max_gen']):
@@ -269,10 +278,13 @@ class AO_Slopes(QObject):
                                     # Get detected zernike coefficients from slope matrix
                                     zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                    print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
+                                    # print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
+                                    print('Detected amplitude of mode {} is {} um'.format(mode_index_0 + 1, zern_array_det[mode_index_0, 0]))
+                                    print('Detected amplitude of mode {} is {} um'.format(mode_index_1 + 1, zern_array_det[mode_index_1, 0]))
+                                    print('Detected amplitude of mode {} is {} um'.format(mode_index_2 + 1, zern_array_det[mode_index_2, 0]))
 
-                                    if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.075:
-                                        break
+                                    # if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.075:
+                                    #     break
                                 
                                 # Ask user whether to proceed with correction
                                 self.message.emit('\nPress [y] to proceed with correction.')

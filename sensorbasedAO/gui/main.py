@@ -214,7 +214,7 @@ class Main(QMainWindow):
                     zernike_array = [float(i) for i in zernike_array.split(' ')]
                 except Exception as e:
                     btn.setChecked(False)
-                    self.app.handle_message_disp('\nInvalid input. Please try again.')
+                    self.app.handle_message_disp('\nNo space between inputs. Please try again.')
             elif not self.ui.ZernikeValSpin.value() == 0 or self.ui.ZernikeCoeffSpin.value() == 0:
                 try:
                     zernike_coeff = self.ui.ZernikeCoeffSpin.value()
