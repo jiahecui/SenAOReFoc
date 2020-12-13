@@ -798,6 +798,11 @@ class AO_Zernikes_Test(QObject):
             zern_array_temp = [0, 0, 0, 0, 0.1, 0, 0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0, 0.1]
             zern_num = 1
 
+            # For multiple modes 2
+            # zern_mode_array = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+            # zern_array_temp = [0, 0, 0.05, 0.03, 0.05, 0.02, 0.08, 0.02, 0.01, 0.04, 0.01, 0.06, 0.02, 0.02, 0.01, 0.015, 0.01, 0.01, 0.02, 0.01]
+            # zern_num = 1
+
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
 
@@ -891,6 +896,7 @@ class AO_Zernikes_Test(QObject):
                                             print('Detected amplitude of mode {} is {} um'.format(zern_mode_array[1] + 1, zern_array_det[zern_mode_array[1], 0]))
                                             print('Detected amplitude of mode {} is {} um'.format(zern_mode_array[2] + 1, zern_array_det[zern_mode_array[2], 0]))
                                             print('Detected amplitude of mode {} is {} um'.format(zern_mode_array[3] + 1, zern_array_det[zern_mode_array[3], 0]))
+                                            # print('Detected amplitude of mode {} is {} um'.format(zern_mode_array[4] + 1, zern_array_det[zern_mode_array[4], 0]))
 
                                             # if abs(zern_array_det[zern_mode_array[j], 0] - zern_amp_array[j]) / zern_amp_array[j] <= 0.075:
                                             #     break
@@ -1142,11 +1148,16 @@ class AO_Zernikes_Test(QObject):
 
             # Get number of Zernike modes to generate
             # zern_num = len(zern_mode_array)
-            
+
             # For multiple modes 1
             zern_mode_array = [4, 6, 11, 19]
             zern_array_temp = [0, 0, 0, 0, 0.1, 0, 0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0, 0.1]
             zern_num = 1
+            
+            # For multiple modes 2
+            # zern_mode_array = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+            # zern_array_temp = [0, 0, 0.05, 0.03, 0.05, 0.02, 0.08, 0.02, 0.01, 0.04, 0.01, 0.06, 0.02, 0.02, 0.01, 0.015, 0.01, 0.01, 0.02, 0.01]
+            # zern_num = 1
 
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
@@ -1241,6 +1252,7 @@ class AO_Zernikes_Test(QObject):
                                             print('Detected amplitude of mode {} is {} um'.format(zern_mode_array[1] + 1, zern_array_det[zern_mode_array[1], 0]))
                                             print('Detected amplitude of mode {} is {} um'.format(zern_mode_array[2] + 1, zern_array_det[zern_mode_array[2], 0]))
                                             print('Detected amplitude of mode {} is {} um'.format(zern_mode_array[3] + 1, zern_array_det[zern_mode_array[3], 0]))
+                                            # print('Detected amplitude of mode {} is {} um'.format(zern_mode_array[4] + 1, zern_array_det[zern_mode_array[4], 0]))
 
                                             # if abs(zern_array_det[zern_mode_array[j], 0] - zern_amp_array[j]) / zern_amp_array[j] <= 0.075:
                                             #     break

@@ -13,20 +13,20 @@ camera:
   dataformat: "XI_MONO8"
   data_min: 0  # Minimum image output value
   data_max: 255  # Maximum image output value for dataformat 1023 for actual camera
-  exposure: 40000  # us
+  exposure: 40000  # us  40000, 250000
   auto_gain: 0  # Flag for whether to use automatic exposure / gain mode, 0-auto_gain off, 1-auto_gain on
   exp_priority: 0.8  # exposure n, gain (1 - n)
   ae_max_limit: 100000  # maximum time (us) used for exposure in AEAG procedure
   burst_mode: 0  # Flag for whether to use burst mode, 0-burst_mode off, 1-burst_mode on 
   burst_frames: 10
   acq_timing_mode: "XI_ACQ_TIMING_MODE_FRAME_RATE"
-  frame_rate: 20.0  # Hz
+  frame_rate: 20.0  # Hz  20, 3
   sensor_width: 2048  # pixels Ximea - 2048; IDS - 1024
   sensor_height: 2048  # pixels Ximea - 2048; IDS - 1024
   sensor_diam: 11.26  # mm Ximea - 11.26; IDS - 4.762
   bin_factor: 2  # Ximea - 2; IDS - 1
   pixel_size: 5.5  # um Ximea - 5.5; IDS - 4.65
-  frame_num: 1  # Number of frames to acquire in burst acquisition mode 
+  frame_num: 1  # Number of frames to acquire in burst acquisition mode  1
   sleep_time: 0.1  # Interval time between frames during live acquisition
     
 DM:
@@ -80,11 +80,11 @@ image:
   rescale: 1  # 0 - rescale off, 1 - rescale on
 
 AO:
-  zern_gen: 1  # Flag for generating zernike modes on DM in AO_zernikes.py and AO_slopes.py, 0 - off, 1 - iterative generation, 2 - one-shot generation from file
+  zern_gen: 0  # Flag for generating zernike modes on DM in AO_zernikes.py and AO_slopes.py, 0 - off, 1 - iterative generation, 2 - one-shot generation from file
   gen_volts_flag: 0  # Flag for the set of zernike mode generation voltages to use when zern_gen == 2, 0 - 6 (0.05), 1 - 15 (0.02)
   incre_amp_0: 0.05  # Increment amplitude value 0
   incre_amp_1: 0.02  # Increment amplitude value 1
-  loop_max_gen: 10  # Maximum number of loops for closed-loop control during generation of zernike modes
+  loop_max_gen: 20  # Maximum number of loops for closed-loop control during generation of zernike modes
   recon_coeff_num: 69  # Number of zernike modes to use during wavefront reconstruction
   control_coeff_num: 20  # Number of zernike modes to control during AO correction  # 3rd - 14, 4th - 20, 5th - 27, 6th - 35, 7th - 44, 8th - 54, 9th - 65, 10th - 77
   loop_gain: 0.2  # Fixed loop gain for closed-loop control during AO correction
@@ -113,7 +113,7 @@ zern_test:
   y_amp_small: 0.166  # Normalised voltage range for y scan, max/min +/-0.166V (100um)
 
 RF_calib:
-  step_num: 21 # Number of steps used in one direction during calibration of remote focusing
+  step_num: 31  # Number of steps used in one direction during calibration of remote focusing
   step_incre: 2  # Axial increment between each step / um
 
 reflect_prof:
