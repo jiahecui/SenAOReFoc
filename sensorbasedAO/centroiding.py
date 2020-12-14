@@ -31,13 +31,22 @@ class Centroiding(QObject):
     message = Signal(object)
     SB_info = Signal(object)
     
-    def __init__(self, sensor, settings):
+    def __init__(self, sensor, mirror, settings):
 
         # Get search block settings
         self.SB_settings = settings
 
         # Get sensor instance
         self.sensor = sensor
+
+        # Get mirror instance
+        self.mirror = mirror
+
+        # Choose working DM along with its parameters
+        if config['DM']['DM_num'] == 0:
+            self.actuator_num = config['DM0']['actuator_num']
+        elif config['DM']['DM_num'] == 1:
+            self.actuator_num = config['DM1']['actuator_num']
 
         super().__init__()
 
@@ -65,6 +74,15 @@ class Centroiding(QObject):
             SB_layer_2D = np.zeros([self.SB_settings['sensor_height'], self.SB_settings['sensor_width']])
             SB_layer_2D_temp = SB_layer_2D.copy()
             SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = config['search_block']['outline_int']
+
+            # Initialise deformable mirror voltage array
+            voltages = np.zeros(self.actuator_num)
+
+            # Select system aberration calibration mode
+            if config['sys_calib']['sys_calib_mode'] == 1:
+                voltages = h5py.File('flat_volts_1.mat','r').get('flat_volts')
+                voltages = np.array(voltages)
+                self.mirror.Send(voltages)
 
             # Acquire S-H spot image
             cent_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
@@ -97,6 +115,9 @@ class Centroiding(QObject):
 
                 print(np.mean(slope_x), np.mean(slope_y))
 
+                slope_x -= np.mean(slope_x)
+                slope_y -= np.mean(slope_y)
+
                 self.message.emit('\nSystem aberration calibration process finished.')
             else:
 
@@ -110,6 +131,8 @@ class Centroiding(QObject):
                 self.SB_settings['act_ref_cent_coord_x'] = act_ref_cent_coord_x
                 self.SB_settings['act_ref_cent_coord_y'] = act_ref_cent_coord_y
                 self.SB_settings['act_ref_cent_coord'] = act_ref_cent_coord
+                self.SB_settings['real_spot_slope_x'] = slope_x
+                self.SB_settings['real_spot_slope_y'] = slope_y
 
                 self.SB_info.emit(self.SB_settings)
                 self.write.emit()

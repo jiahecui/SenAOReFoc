@@ -26,7 +26,16 @@ class Setup_SB(QObject):
     message = Signal(object)
     info = Signal(object)
 
-    def __init__(self):
+    def __init__(self, mirror):
+
+        # Get mirror instance
+        self.mirror = mirror
+
+        # Choose working DM along with its parameters
+        if config['DM']['DM_num'] == 0:
+            self.actuator_num = config['DM0']['actuator_num']
+        elif config['DM']['DM_num'] == 1:
+            self.actuator_num = config['DM1']['actuator_num']
 
         # Get lenslet parameters
         self.lenslet_pitch = config['lenslet']['lenslet_pitch']
@@ -231,6 +240,29 @@ class Setup_SB(QObject):
             # Get actual search block coordinates
             self.act_SB_coord = np.nonzero(np.ravel(self.SB_layer_2D))
             self.act_SB_coord = np.array(self.act_SB_coord)
+
+            # Determine whether to exercise DM upon initialisation
+            if config['DM']['exercise']:
+
+                print('DM exercise started...')
+
+                try:
+                    
+                    # Initialise deformable mirror voltage array
+                    voltages = 2 * (0.5 - np.random.rand(self.actuator_num, config['DM']['exercise_num'))
+
+                    print(voltages)
+
+                    # Send voltages to exercise DM
+                    self.mirror.Send(voltages, config['DM']['exercise_num'])
+
+                    # Reset DM
+                    self.mirror.Reset()
+
+                except Exception as e:
+                    print(e)
+
+                print('DM exercise finished.')
 
             """
             Returns search block information

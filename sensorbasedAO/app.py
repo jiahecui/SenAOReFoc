@@ -161,14 +161,14 @@ class App(QApplication):
 
         self.devices['scanner'] = scanner
 
-    def setup_SB(self):
+    def setup_SB(self, mirror):
         """
         Setup search block geometry and get reference centroids
         """
         # Create SB worker and thread
         SB_thread = QThread()
         SB_thread.setObjectName('SB_thread')
-        SB_worker = Setup_SB()
+        SB_worker = Setup_SB(mirror)
         SB_worker.moveToThread(SB_thread)
         
         # Connect to signals
@@ -213,14 +213,14 @@ class App(QApplication):
         # Start positioning thread
         pos_thread.start()
 
-    def get_centroids(self, sensor, SB_info):
+    def get_centroids(self, sensor, mirror, SB_info):
         """
         Get actual centroids of S-H spots for system aberration correction
         """
         # Create centroiding worker and thread
         cent_thread = QThread()
         cent_thread.setObjectName('cent_thread')
-        cent_worker = Centroiding(sensor, SB_info)
+        cent_worker = Centroiding(sensor, mirror, SB_info)
         cent_worker.moveToThread(cent_thread)
 
         # Connect to signals
@@ -648,6 +648,12 @@ class App(QApplication):
         Handle errors from threads
         """
         raise(RuntimeError(error))
+
+    def handle_SB_start(self):
+        """
+        Handle start of search block geometry setup
+        """
+        self.setup_SB(self.devices['mirror'])
         
     def handle_SB_done(self):
         """
@@ -675,7 +681,7 @@ class App(QApplication):
         """
         Handle start of S-H spot centroid calculation for system aberration calibration
         """
-        self.get_centroids(self.devices['sensor'], self.data_info['SB_info'])
+        self.get_centroids(self.devices['sensor'], self.devices['mirror'], self.data_info['SB_info'])
 
     def handle_cent_done(self):
         """

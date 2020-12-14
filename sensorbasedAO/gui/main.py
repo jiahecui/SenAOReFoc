@@ -130,7 +130,7 @@ class Main(QMainWindow):
         if not btn.isChecked():
             btn.setChecked(False)
         else:
-            self.app.setup_SB()
+            self.app.handle_SB_start()
             btn.setChecked(True)
 
     def on_position(self, checked):
@@ -148,7 +148,7 @@ class Main(QMainWindow):
 
     def on_centroid(self, checked):
         """
-        S-H spot centroid calculation handler
+        S-H spot centroid calculation handler for system aberration calibration
         """
         btn = self.sender()
 

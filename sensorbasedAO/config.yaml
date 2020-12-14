@@ -32,6 +32,8 @@ camera:
 DM:
   SN: "HSDM69-15-014" 
   DM_num: 0  # Flag for choosing the working DM, 0-Alpao, 1-Boston
+  exercise: 0  # Flag for whether to exercise DM upon initialisation
+  exercise_num: 50  # Number of shapes used during DM exercise
   vol_min: -0.1  # V
   vol_max: 0.1  # V
   vol_bias: 0
@@ -78,6 +80,9 @@ image:
   norm_min: 0  # Below which will clip to 0, uint8
   norm_max: 255  # Above which will clip to 1, uint8
   rescale: 1  # 0 - rescale off, 1 - rescale on
+
+sys_calib:
+  sys_calib_mode: 0  # Mode flag for system aberration calibration method, 0 - calculate present centroids, 1 - load precalibrated voltages before calculating present centroids
 
 AO:
   zern_gen: 0  # Flag for generating zernike modes on DM in AO_zernikes.py and AO_slopes.py, 0 - off, 1 - iterative generation, 2 - one-shot generation from file
