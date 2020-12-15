@@ -13,14 +13,14 @@ camera:
   dataformat: "XI_MONO8"
   data_min: 0  # Minimum image output value
   data_max: 255  # Maximum image output value for dataformat 1023 for actual camera
-  exposure: 40000  # us  40000, 250000
+  exposure: 250000  # us  40000, 250000
   auto_gain: 0  # Flag for whether to use automatic exposure / gain mode, 0-auto_gain off, 1-auto_gain on
   exp_priority: 0.8  # exposure n, gain (1 - n)
   ae_max_limit: 100000  # maximum time (us) used for exposure in AEAG procedure
   burst_mode: 0  # Flag for whether to use burst mode, 0-burst_mode off, 1-burst_mode on 
   burst_frames: 10
   acq_timing_mode: "XI_ACQ_TIMING_MODE_FRAME_RATE"
-  frame_rate: 20.0  # Hz  20, 3
+  frame_rate: 3.0  # Hz  20, 3
   sensor_width: 2048  # pixels Ximea - 2048; IDS - 1024
   sensor_height: 2048  # pixels Ximea - 2048; IDS - 1024
   sensor_diam: 11.26  # mm Ximea - 11.26; IDS - 4.762
@@ -82,7 +82,7 @@ image:
   rescale: 1  # 0 - rescale off, 1 - rescale on
 
 sys_calib:
-  sys_calib_mode: 0  # Mode flag for system aberration calibration method, 0 - calculate present centroids, 1 - load precalibrated voltages before calculating present centroids
+  sys_calib_mode: 1  # Mode flag for system aberration calibration method, 0 - calculate present centroids, 1 - load precalibrated voltages before calculating present centroids
 
 AO:
   zern_gen: 0  # Flag for generating zernike modes on DM in AO_zernikes.py and AO_slopes.py, 0 - off, 1 - iterative generation, 2 - one-shot generation from file

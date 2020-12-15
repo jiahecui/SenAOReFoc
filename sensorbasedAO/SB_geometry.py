@@ -245,22 +245,17 @@ class Setup_SB(QObject):
             if config['DM']['exercise']:
 
                 print('DM exercise started...')
-
-                try:
                     
-                    # Initialise deformable mirror voltage array
-                    voltages = 2 * (0.5 - np.random.rand(self.actuator_num, config['DM']['exercise_num'))
+                for i in range(config['DM']['exercise_num']):
 
-                    print(voltages)
+                    # Initialise deformable mirror voltage array
+                    voltages = np.ravel(1.8 * (0.5 - np.random.rand(self.actuator_num, 1)))
 
                     # Send voltages to exercise DM
-                    self.mirror.Send(voltages, config['DM']['exercise_num'])
+                    self.mirror.Send(voltages)
 
-                    # Reset DM
-                    self.mirror.Reset()
-
-                except Exception as e:
-                    print(e)
+                # Reset DM
+                self.mirror.Send(np.zeros(self.actuator_num))
 
                 print('DM exercise finished.')
 

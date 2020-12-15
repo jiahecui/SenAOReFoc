@@ -81,7 +81,7 @@ class Centroiding(QObject):
             # Select system aberration calibration mode
             if config['sys_calib']['sys_calib_mode'] == 1:
                 voltages = h5py.File('flat_volts_1.mat','r').get('flat_volts')
-                voltages = np.array(voltages)
+                voltages = np.ravel(np.array(voltages))
                 self.mirror.Send(voltages)
 
             # Acquire S-H spot image
