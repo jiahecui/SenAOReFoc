@@ -16,6 +16,7 @@
 
 # virtualenv
 venv/
+venv32/
 
 # datafile
 data/
@@ -30,9 +31,6 @@ build/
 # sample file
 sensorbasedAO/sample_ML/
 
-# labfile
-labfiles/
-
 # mems documental files
 MEMS-Python/
 
@@ -44,4 +42,10 @@ MEMS-Python/
 xy_scan_aberr_meas/
 zern_gen_det_cor/
 zern_gen_det_cor_full/
+zern_gen_det_cor_mult_full/
+zern_volts/
+centroid_values/
+correction_voltages/
+
+
 
