@@ -124,7 +124,7 @@ class Centroiding(QObject):
                 self.done.emit()
 
             """
-            Returns centroid information into self.cent_info
+            Returns system aberration information into self.SB_info
             """ 
             if self.log:
 

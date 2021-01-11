@@ -118,8 +118,12 @@ zern_test:
   y_amp_small: 0.166  # Normalised voltage range for y scan, max/min +/-0.166V (100um)
 
 RF_calib:
-  step_num: 31  # Number of steps used in one direction during calibration of remote focusing
-  step_incre: 2  # Axial increment between each step / um
+  calib_step_num: 10  # Number of steps used in one direction during calibration of remote focusing
+  calib_step_incre: 10  # Axial increment between each step during calibration of remote focusing/ um
+  calib_direct: 1  # Direction of calibration, 0-negative, 1-positive
+
+RF:
+  step_incre: 1  # Axial increment between each step during actual remote focusing/ um
 
 reflect_prof:
   samp_num: 33  # Flag for choosing the working sample

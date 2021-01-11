@@ -249,7 +249,7 @@ class Setup_SB(QObject):
                 for i in range(config['DM']['exercise_num']):
 
                     # Initialise deformable mirror voltage array
-                    voltages = np.ravel(1.8 * (0.5 - np.random.rand(self.actuator_num, 1)))
+                    voltages = np.ravel(1.0 * (0.5 - np.random.rand(self.actuator_num, 1)))
 
                     # Send voltages to exercise DM
                     self.mirror.Send(voltages)

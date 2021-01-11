@@ -65,7 +65,7 @@ class App(QApplication):
 
         # Initialise dictionary for storing data info throughout processing of software
         self.data_info = {'SB_info': {}, 'mirror_info': {}, 'centroiding_info': {}, 'AO_info': {}, 'centroiding_img': {}, \
-            'calibration_img': {}, 'calibration_RF_img': {}, 'AO_img': {}, 'focusing_info': {}}
+            'calibration_img': {}, 'calibration_RF_img': {}, 'calibration_RF_info': {}, 'AO_img': {}, 'focusing_info': {}}
         self.AO_group = {'zern_test': {}, 'zern_AO_1': {}, 'zern_AO_2': {}, 'zern_AO_3': {}, 'zern_AO_full': {}, \
             'slope_AO_1': {}, 'slope_AO_2': {}, 'slope_AO_3': {}, 'slope_AO_full': {}}
 
@@ -455,7 +455,7 @@ class App(QApplication):
         # Start Zernike AO thread
         acq_thread.start()
 
-    def calibrate_RF(self, sensor, mirror, data_info):
+    def calibrate_RF(self, sensor, mirror, data_info, direct):
         """
         Calibrate remote focusing
         """
@@ -466,11 +466,17 @@ class App(QApplication):
         calib_RF_worker.moveToThread(calib_RF_thread)
 
         # Connect to signals
-        calib_RF_thread.started.connect(calib_RF_worker.run)
+        if direct == 0:
+            calib_RF_thread.started.connect(calib_RF_worker.run0)
+        if direct == 1:
+            calib_RF_thread.started.connect(calib_RF_worker.run1)
+            
         calib_RF_worker.image.connect(lambda obj: self.handle_image_disp(obj))
         calib_RF_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         calib_RF_worker.info.connect(lambda obj: self.handle_mirror_info(obj))
         calib_RF_worker.write.connect(self.write_mirror_info)
+        calib_RF_worker.calib_info.connect(lambda obj: self.handle_calibration_RF_info(obj))
+        calib_RF_worker.calib_write.connect(self.write_calibration_RF_info)
         calib_RF_worker.error.connect(lambda obj: self.handle_error(obj))
         calib_RF_worker.done.connect(self.handle_calib_RF_done)
 
@@ -625,6 +631,24 @@ class App(QApplication):
                     grp4.create_dataset(k, data = v)            
         self.output_data.close()
 
+    def handle_calibration_RF_info(self, obj):
+        """
+        Handle remote focusing calibration information
+        """
+        self.data_info['calibration_RF_info'].update(obj)
+
+    def write_calibration_RF_info(self):
+        """
+        Write calibration RF info into HDF5 file
+        """
+        self.output_data = h5py.File('data_info.h5', 'a')
+        grp5 = self.output_data['calibration_RF_info']
+        for k, v in self.data_info['calibration_RF_info'].items():
+            if k in grp5:
+               del grp5[k]
+            grp5.create_dataset(k, data = v)
+        self.output_data.close()
+    
     def handle_focusing_info(self, obj):
         """
         Handle remote focusing information
@@ -636,10 +660,10 @@ class App(QApplication):
         Write focusing info into HDF5 file
         """
         self.output_data = h5py.File('data_info.h5', 'a')
-        grp5 = self.output_data['focusing_info']
+        grp6 = self.output_data['focusing_info']
         for k, v in self.data_info['focusing_info'].items():
-            if k in grp5:
-               del grp5[k]
+            if k in grp6:
+               del grp6[k]
             grp5.create_dataset(k, data = v)
         self.output_data.close()
 
@@ -886,11 +910,11 @@ class App(QApplication):
         except Exception as e:
             logger.warning("Error on setting camera exposure: {}".format(e))
 
-    def handle_calib_RF_start(self):
+    def handle_calib_RF_start(self, direct = 1):
         """
         Handle calibration of remote focusing
         """
-        self.calibrate_RF(self.devices['sensor'], self.devices['mirror'], self.data_info)
+        self.calibrate_RF(self.devices['sensor'], self.devices['mirror'], self.data_info, direct)
 
     def handle_calib_RF_done(self):
         """

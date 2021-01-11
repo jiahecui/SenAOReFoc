@@ -1009,11 +1009,11 @@ class AO_Zernikes(QObject):
                 # Retrieve voltages for remote focusing component
                 if self.AO_settings['focus_enable'] == 1:
                     if self.focus_settings['focus_mode_flag'] == 0:
-                        RF_index = int(self.focus_settings['focus_depth_defoc'] // config['RF_calib']['step_incre'])
+                        RF_index = int(self.focus_settings['focus_depth_defoc'] // config['RF']['step_incre'])
                         voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
                     else:
-                        RF_index = int(self.focus_settings['start_depth_defoc'] // config['RF_calib']['step_incre'] \
-                            + self.focus_settings['step_incre_defoc'] // config['RF_calib']['step_incre'] * j)
+                        RF_index = int(self.focus_settings['start_depth_defoc'] // config['RF']['step_incre'] \
+                            + self.focus_settings['step_incre_defoc'] // config['RF']['step_incre'] * j)
                         voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
                 else:
                     voltages_defoc = 0
@@ -1438,11 +1438,11 @@ class AO_Zernikes(QObject):
                 # Retrieve voltages for remote focusing component
                 if self.AO_settings['focus_enable'] == 1:
                     if self.focus_settings['focus_mode_flag'] == 0:
-                        RF_index = int(self.focus_settings['focus_depth_defoc'] // config['RF_calib']['step_incre'])
+                        RF_index = int(self.focus_settings['focus_depth_defoc'] // config['RF']['step_incre'])
                         voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
                     else:
-                        RF_index = int(self.focus_settings['start_depth_defoc'] // config['RF_calib']['step_incre'] \
-                            + self.focus_settings['step_incre_defoc'] // config['RF_calib']['step_incre'] * j)
+                        RF_index = int(self.focus_settings['start_depth_defoc'] // config['RF']['step_incre'] \
+                            + self.focus_settings['step_incre_defoc'] // config['RF']['step_incre'] * j)
                         voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
                 else:
                     voltages_defoc = 0
@@ -1894,11 +1894,11 @@ class AO_Zernikes(QObject):
                 try:
                     if self.AO_settings['focus_enable'] == 1:
                         if self.focus_settings['focus_mode_flag'] == 0:
-                            RF_index = int(self.focus_settings['focus_depth_defoc'] // config['RF_calib']['step_incre'])
+                            RF_index = int(self.focus_settings['focus_depth_defoc'] // config['RF']['step_incre'])
                             voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
                         else:
-                            RF_index = int(self.focus_settings['start_depth_defoc'] // config['RF_calib']['step_incre'] \
-                                + self.focus_settings['step_incre_defoc'] // config['RF_calib']['step_incre'] * j)
+                            RF_index = int(self.focus_settings['start_depth_defoc'] // config['RF']['step_incre'] \
+                                + self.focus_settings['step_incre_defoc'] // config['RF']['step_incre'] * j)
                             voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
                 except Exception as e:
                     print(e)

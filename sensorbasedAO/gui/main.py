@@ -562,7 +562,7 @@ class Main(QMainWindow):
             self.app.write_AO_info()
 
             # Start calibrate_RF
-            self.app.handle_calib_RF_start()
+            self.app.handle_calib_RF_start(config['RF_calib']['calib_direct'])
             btn.setChecked(True)
 
     def on_move(self, checked):
