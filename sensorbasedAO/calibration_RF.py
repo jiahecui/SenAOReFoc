@@ -66,8 +66,8 @@ class Calibration_RF(QObject):
         self.calib_array = np.zeros([self.actuator_num, config['RF_calib']['calib_step_num']])
 
         # Initialise array to store final value of Zernike modes / RMS Zernike value / Strehl ratio for each calibration step
-        self.calib_slope_x = np.zeros([config['RF_calib']['calib_step_num'] * 2, self.actuator_num])
-        self.calib_slope_y = np.zeros([config['RF_calib']['calib_step_num'] * 2, self.actuator_num])
+        self.calib_slope_x = np.zeros([config['RF_calib']['calib_step_num'] * 2, self.SB_settings['act_ref_cent_num']])
+        self.calib_slope_y = np.zeros([config['RF_calib']['calib_step_num'] * 2, self.SB_settings['act_ref_cent_num']])
         self.calib_zern_coeff = np.zeros([config['RF_calib']['calib_step_num'] * 2, config['AO']['control_coeff_num']])
         self.calib_rms_zern = np.zeros([config['RF_calib']['calib_step_num'], 2])
         self.calib_strehl = np.zeros([config['RF_calib']['calib_step_num'], 2])
@@ -102,8 +102,8 @@ class Calibration_RF(QObject):
             for l in range(config['RF_calib']['calib_step_num']):
 
                 # Ask user to move sample to different positions along the z-axis
-                self.message.emit('\nMove sample to negative position {}. Press [y] to confirm. Press [s] to save and exit.\
-                    Press [d] to discard and exit.'.format(l + 1))
+                self.message.emit('\nMove sample to negative position {}. \nPress [y] to confirm. \nPress [s] to save and exit.\
+                    \nPress [d] to discard and exit.'.format(l + 1))
                 c = click.getchar()
 
                 while True:
@@ -289,8 +289,8 @@ class Calibration_RF(QObject):
             for l in range(config['RF_calib']['calib_step_num']):
 
                 # Ask user to move sample to different positions along the z-axis
-                self.message.emit('\nMove sample to positive position {}. Press [y] to confirm. Press [s] to save and exit.\
-                    Press [d] to discard and exit.'.format(l + 1))
+                self.message.emit('\nMove sample to positive position {}. \nPress [y] to confirm. \nPress [s] to save and exit.\
+                    \nPress [d] to discard and exit.'.format(l + 1))
                 c = click.getchar()
 
                 while True:

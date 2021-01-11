@@ -245,7 +245,7 @@ class Setup_SB(QObject):
             if config['DM']['exercise']:
 
                 print('DM exercise started...')
-                    
+                   
                 for i in range(config['DM']['exercise_num']):
 
                     # Initialise deformable mirror voltage array
@@ -255,7 +255,7 @@ class Setup_SB(QObject):
                     self.mirror.Send(voltages)
 
                 # Reset DM
-                self.mirror.Send(np.zeros(self.actuator_num))
+                self.mirror.Reset()
 
                 print('DM exercise finished.')
 
