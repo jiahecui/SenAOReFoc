@@ -84,6 +84,10 @@ class App(QApplication):
         self.main = Main(self, debug = debug)
         self.main.show()
 
+        # Initialise remote focusing voltages
+        self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_full_01um_1501.mat','r').get('interp_volts')
+        self.remote_focus_voltages = np.array(self.remote_focus_voltages).T
+
     def add_devices(self):
         """
         Add hardware devices to a dictionary
@@ -664,7 +668,7 @@ class App(QApplication):
         for k, v in self.data_info['focusing_info'].items():
             if k in grp6:
                del grp6[k]
-            grp5.create_dataset(k, data = v)
+            grp6.create_dataset(k, data = v)
         self.output_data.close()
 
     def handle_error(self, error):
@@ -959,6 +963,22 @@ class App(QApplication):
             self.main.ui.moveBtn.setChecked(False)
         elif mode == 1:
             self.main.ui.scanBtn.setChecked(False)
+
+    def handle_RF_control(self, val = 0):
+        """
+        Handle remote focusing control slider
+        """
+        # Update value of remote focusing position 
+        RF_index = int(val // config['RF']['step_incre']) + config['RF']['index_offset']
+        voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
+
+        # Apply remote focusing voltages
+        voltages = config['DM']['vol_bias'] + voltages_defoc
+
+        # Send voltages to mirror
+        self.devices['mirror'].Send(voltages)
+
+        print('Focus position: {} um'.format(val))       
 
     def handle_ML_dataset_start(self):
         """

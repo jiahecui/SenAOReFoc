@@ -58,6 +58,7 @@ class Main(QMainWindow):
         self.ui.calibrateRFBtn.clicked.connect(self.on_calibrate_RF)
         self.ui.moveBtn.clicked.connect(self.on_move)
         self.ui.scanBtn.clicked.connect(self.on_scan)
+        self.ui.RFSlider.valueChanged.connect(self.on_control_RF)
         self.ui.MLDataBtn.clicked.connect(self.on_ML_dataset)
         self.ui.stopBtn.clicked.connect(self.on_stop)
         self.ui.quitBtn.clicked.connect(self.on_quit)
@@ -627,6 +628,16 @@ class Main(QMainWindow):
             self.app.write_focusing_info()
             self.app.handle_focus_start(AO_type = settings['AO_type'])
             btn.setChecked(True)
+
+    def on_control_RF(self):
+        """
+        Remote focusing control slider handler
+        """
+        # Retrieve remote focusing position on GUI
+        RF_val = self.ui.RFSlider.value() / 10
+
+        # Control remote focusing if value changed
+        self.app.handle_RF_control(RF_val)
 
     def on_ML_dataset(self, checked):
         """

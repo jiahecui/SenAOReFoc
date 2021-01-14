@@ -3,13 +3,16 @@
 ################################################################################
 ## Form generated from reading UI file 'main.ui'
 ##
-## Created by: Qt User Interface Compiler version 5.15.2
+## Created by: Qt User Interface Compiler version 5.15.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide2.QtCore import *
-from PySide2.QtGui import *
+from PySide2.QtCore import (QCoreApplication, QDate, QDateTime, QMetaObject,
+    QObject, QPoint, QRect, QSize, QTime, QUrl, Qt)
+from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont,
+    QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter,
+    QPixmap, QRadialGradient)
 from PySide2.QtWidgets import *
 
 from sensorbasedAO.gui.SHViewer import SHViewer
@@ -546,8 +549,8 @@ class Ui_MainWindow(object):
         self.RFSlider.setObjectName(u"RFSlider")
         sizePolicy5.setHeightForWidth(self.RFSlider.sizePolicy().hasHeightForWidth())
         self.RFSlider.setSizePolicy(sizePolicy5)
-        self.RFSlider.setMinimum(-1000)
-        self.RFSlider.setMaximum(1000)
+        self.RFSlider.setMinimum(-900)
+        self.RFSlider.setMaximum(600)
         self.RFSlider.setSingleStep(1)
         self.RFSlider.setValue(0)
         self.RFSlider.setOrientation(Qt.Horizontal)

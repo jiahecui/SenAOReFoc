@@ -56,12 +56,7 @@ class AO_Slopes(QObject):
         self.mirror = mirror
 
         # Get voltages for remote focusing
-        # self.remote_focus_voltages = self.mirror_settings['remote_focus_voltages']
-        # self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_1um_41.mat','r').get('interp_volts')
-        # self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_2um_21.mat','r').get('interp_volts')
-        self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_2um_21_2.mat','r').get('interp_volts')
-        # self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_2um_31.mat','r').get('interp_volts')
-        # self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_2um_21_mod.mat','r').get('interp_volts')
+        self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_full_01um_1501.mat','r').get('interp_volts')
         self.remote_focus_voltages = np.array(self.remote_focus_voltages).T
 
         # Get voltages for generating Zernike modes in one shot
@@ -347,6 +342,13 @@ class AO_Slopes(QObject):
                         else:
 
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_slopes'], slope_err))
+
+                            # voltages[12] = 0.5 * voltages[12]
+                            # voltages[21] = 0.5 * voltages[21]
+                            # voltages[30] = 0.5 * voltages[30]
+                            # voltages[39] = 0.5 * voltages[39]
+                            # voltages[57] = 0.5 * voltages[57]
+                            # voltages[64] = 0.5 * voltages[64]
 
                             self.voltages[:, i] = voltages
 
@@ -1023,11 +1025,11 @@ class AO_Slopes(QObject):
                 # Retrieve voltages for remote focusing component
                 if self.AO_settings['focus_enable'] == 1:
                     if self.focus_settings['focus_mode_flag'] == 0:
-                        RF_index = int(self.focus_settings['focus_depth_defoc'] // config['RF']['step_incre'])
+                        RF_index = int(self.focus_settings['focus_depth_defoc'] // config['RF']['step_incre']) + config['RF']['index_offset']
                         voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
                     else:
                         RF_index = int(self.focus_settings['start_depth_defoc'] // config['RF']['step_incre'] \
-                            + self.focus_settings['step_incre_defoc'] // config['RF']['step_incre'] * j)
+                            + self.focus_settings['step_incre_defoc'] // config['RF']['step_incre'] * j) + config['RF']['index_offset']
                         voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
                 else:
                     voltages_defoc = 0
@@ -1468,11 +1470,11 @@ class AO_Slopes(QObject):
                 # Retrieve voltages for remote focusing component
                 if self.AO_settings['focus_enable'] == 1:
                     if self.focus_settings['focus_mode_flag'] == 0:
-                        RF_index = self.focus_settings['focus_depth_defoc'] // config['RF']['step_incre']
+                        RF_index = int(self.focus_settings['focus_depth_defoc'] // config['RF']['step_incre']) + config['RF']['index_offset']
                         voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
                     else:
-                        RF_index = self.focus_settings['start_depth_defoc'] // config['RF']['step_incre'] \
-                            + self.focus_settings['step_incre_defoc'] // config['RF']['step_incre'] * j
+                        RF_index = int(self.focus_settings['start_depth_defoc'] // config['RF']['step_incre'] \
+                            + self.focus_settings['step_incre_defoc'] // config['RF']['step_incre'] * j) + config['RF']['index_offset']
                         voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
                 else:
                     voltages_defoc = 0

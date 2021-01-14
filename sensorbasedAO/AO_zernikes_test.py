@@ -1353,6 +1353,8 @@ class AO_Zernikes_Test(QObject):
                                 dset_append(data_set_1, 'real_AO_img', AO_image)
 
                                 if i == 0:
+                                    # imsave('zern_gen_det_cor_full/slope_correction/SH_spots_before_run' + str(n) + '.tif',\
+                                    #     AO_image.astype(np.float32))
                                     imsave('zern_gen_det_cor_mult_full/slope_correction/SH_spots_before_run' + str(n) + '.tif',\
                                         AO_image.astype(np.float32))
 

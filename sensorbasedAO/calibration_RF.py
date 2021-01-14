@@ -149,6 +149,9 @@ class Calibration_RF(QObject):
                             elif i > 0:
                                 voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_slopes'], slope_err))
 
+                            # voltages[voltages < -1.0] = -1.0
+                            # voltages[voltages > 1.0] = 1.0
+                            
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
                             # Send values vector to mirror
@@ -335,6 +338,9 @@ class Calibration_RF(QObject):
                                 voltages = self.calib_array[:, l - 1].copy()
                             elif i > 0:
                                 voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_slopes'], slope_err))
+
+                            # voltages[voltages < -1.0] = -1.0
+                            # voltages[voltages > 1.0] = 1.0
 
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 

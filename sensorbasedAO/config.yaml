@@ -38,7 +38,7 @@ DM:
   vol_max: 0.1  # V
   vol_bias: 0
   vol_step: 1
-  settling_time: 0.05
+  settling_time: 0.005
 
 DM0: 
   actuator_num: 69  # Alpao
@@ -123,7 +123,8 @@ RF_calib:
   calib_direct: 1  # Direction of calibration, 0-negative, 1-positive
 
 RF:
-  step_incre: 2  # Axial increment between each step during actual remote focusing/ um
+  step_incre: 0.1  # Axial increment between each step during actual remote focusing/ um
+  index_offset: 900  # Index offset in voltage lookup table
 
 reflect_prof:
   samp_num: 33  # Flag for choosing the working sample

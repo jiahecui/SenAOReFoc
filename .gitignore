@@ -11,6 +11,9 @@
 # mat
 *.mat
 
+# xlsx
+*.xlsx
+
 # markdown
 *.md
 
