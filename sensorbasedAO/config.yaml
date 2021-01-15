@@ -89,7 +89,7 @@ AO:
   gen_volts_flag: 0  # Flag for the set of zernike mode generation voltages to use when zern_gen == 2, 0 - 6 (0.05), 1 - 15 (0.02)
   incre_amp_0: 0.05  # Increment amplitude value 0
   incre_amp_1: 0.02  # Increment amplitude value 1
-  loop_max_gen: 20  # Maximum number of loops for closed-loop control during generation of zernike modes
+  loop_max_gen: 10  # Maximum number of loops for closed-loop control during generation of zernike modes
   recon_coeff_num: 69  # Number of zernike modes to use during wavefront reconstruction
   control_coeff_num: 20  # Number of zernike modes to control during AO correction  # 3rd - 14, 4th - 20, 5th - 27, 6th - 35, 7th - 44, 8th - 54, 9th - 65, 10th - 77
   loop_gain: 0.2  # Fixed loop gain for closed-loop control during AO correction
@@ -99,23 +99,23 @@ AO:
   tolerance_fact_strehl: 1  # Strehl ratio tolerance factor according to Marechel criteria, 0.81
 
 zern_test:
-  zern_test_mode: 3  # Mode flag for Zernike Test button, detailed function descriptions in app.py
+  zern_test_mode: 4  # Mode flag for Zernike Test button, detailed function descriptions in app.py
   save_voltages: 0  # Flag for whether to save precise voltages generated in closed-loop in mode 0/1
   loop_max_gen: 10  # Maximum number of loops during closed-loop generation of zernike modes in mode 0/1/2/3
   incre_num: 6  # Number of zernike mode amplitudes to generate in mode 0/1
   incre_amp: 0.05  # Increment amplitude between zernike modes in mode 0/1
-  run_num: 5  # Number of times to run mode 0/1/2/3/4
-  loop_num: 2  # Number of line scans to loop over in mode 4 for one run
-  large_flag: 1  # Flag for whether to scan large FOV
+  run_num: 1  # Number of times to run mode 0/1/2/3/4
+  loop_num: 5  # Number of line scans to loop over in mode 4 for one run
+  large_flag: 0  # Flag for whether to scan large FOV
   small_flag: 1  # Flag for whether to scan small FOV
   scan_num_x_large: 512  # Number of scan points along x direction for large FOV in mode 2
   scan_num_y_large: 512  # Number of scan points along y direction for large FOV in mode 2
-  scan_num_x_small: 512  # Number of scan points along x direction for small FOV in mode 2
-  scan_num_y_small: 512  # Number of scan points along y direction for small FOV in mode 2
+  scan_num_x_small: 256  # Number of scan points along x direction for small FOV in mode 2
+  scan_num_y_small: 256  # Number of scan points along y direction for small FOV in mode 2
   x_amp_large: 1  # Normalised voltage range for x scan, max/min +/-1V (600 um)
   y_amp_large: 1  # Normalised voltage range for y scan, max/min +/-1V (600 um)
-  x_amp_small: 0.166  # Normalised voltage range for x scan, max/min +/-0.166V (100um)
-  y_amp_small: 0.166  # Normalised voltage range for y scan, max/min +/-0.166V (100um)
+  x_amp_small: 0.14  # Normalised voltage range for x scan, max/min +/-0.14V (100um) 0.124V (90um) 0.11V (80um) 0.098V (70um) 0.084V (60um) 0.07V (50um)
+  y_amp_small: 0.14  # Normalised voltage range for y scan, max/min +/-0.14V (100um) 0.124V (90um) 0.11V (80um) 0.098V (70um) 0.084V (60um) 0.07V (50um)
 
 RF_calib:
   calib_step_num: 10  # Number of steps used in one direction during calibration of remote focusing

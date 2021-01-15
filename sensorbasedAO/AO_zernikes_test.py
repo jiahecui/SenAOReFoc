@@ -36,8 +36,8 @@ class AO_Zernikes_Test(QObject):
     message = Signal(object)
     info = Signal(object)
 
-    # def __init__(self, sensor, mirror, scanner, settings):
-    def __init__(self, sensor, mirror, settings):
+    def __init__(self, sensor, mirror, scanner, settings):
+    # def __init__(self, sensor, mirror, settings):
 
         # Get search block settings
         self.SB_settings = settings['SB_info']
@@ -55,7 +55,7 @@ class AO_Zernikes_Test(QObject):
         self.mirror = mirror
 
         # Get scanner instance
-        # self.scanner = scanner
+        self.scanner = scanner
 
         # Initialise AO information parameter
         self.AO_info = {'zern_test': {}}
