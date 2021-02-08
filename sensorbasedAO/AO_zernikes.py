@@ -38,7 +38,7 @@ class AO_Zernikes(QObject):
     message = Signal(object)
     info = Signal(object)
 
-    def __init__(self, sensor, mirror, settings):
+    def __init__(self, sensor, mirror, settings, main):
 
         # Get search block settings
         self.SB_settings = settings['SB_info']
@@ -54,6 +54,9 @@ class AO_Zernikes(QObject):
 
         # Get mirror instance
         self.mirror = mirror
+
+        # Get GUI instance
+        self.main = main
 
         # Get voltages for remote focusing
         self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_full_01um_1501.mat','r').get('interp_volts')
@@ -160,7 +163,7 @@ class AO_Zernikes(QObject):
             (coord_yy * self.SB_settings['pixel_size']) ** 2) <= self.pupil_diam * 1e3 / 2
         
         return pupil_mask
-        
+
     @Slot(object)
     def run1(self):
         try:
@@ -1972,6 +1975,69 @@ class AO_Zernikes(QObject):
         except Exception as e:
             raise
             self.error.emit(e)
+
+    @Slot(object)
+    def run6(self):
+        try:
+            # Start thread
+            self.start.emit()
+
+            """
+            Perform remote focusing during xz scan process
+            """
+            # Initialise deformable mirror voltage array
+            voltages = np.zeros(self.actuator_num)
+
+            while self.main.ui.stopRFSpin.value():
+
+                # Trigger start of xz scan image acquisition by updating RF status
+                self.focus_settings['RF_status'] = abs(1 - self.focus_settings['RF_status'])
+                self.main.ui.serverSpin.setValue(self.focus_settings['RF_status'])
+
+                prev1 = time.perf_counter()
+
+                # Run correction for each focus depth
+                for j in range(self.correct_num):
+
+                    # Retrieve voltages for remote focusing component
+                    try:
+                        if self.AO_settings['focus_enable'] == 1:
+                            RF_index = int(self.focus_settings['start_depth_defoc'] // config['RF']['step_incre'] \
+                                + self.focus_settings['step_incre_defoc'] // config['RF']['step_incre'] * j) + config['RF']['index_offset']
+                            voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
+                        else:
+                            raise RuntimeError
+
+                        # print('Current depth: {} um'.format(self.focus_settings['start_depth_defoc'] + self.focus_settings['step_incre_defoc'] * j))
+
+                        # Apply remote focusing voltages
+                        voltages[:] = config['DM']['vol_bias'] + voltages_defoc
+
+                        # Send voltages to mirror
+                        self.mirror.Send(voltages)
+
+                        # prev2 = time.perf_counter()
+
+                        # Pause for specified amount of time
+                        _ = time.perf_counter() + self.focus_settings['pause_time']
+                        while time.perf_counter() < _:
+                            pass
+
+                        # prev3 = time.perf_counter()                       
+                        # print('DM actual pause time: {} s'.format(prev3 - prev2))
+
+                    except Exception as e:
+                        raise
+                        # self.error.emit(e)
+
+                prev4 = time.perf_counter()
+                print('Time for single xz scan RF process is: {} s'.format(prev4 - prev1))
+
+            self.mirror.Reset()
+
+        except Exception as e:
+            raise
+            # self.error.emit(e)
 
     @Slot(object)
     def stop(self):

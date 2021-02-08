@@ -21,6 +21,8 @@ class Main(QMainWindow):
         # Setup and initialise GUI
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.ui.serverSpin.hide()
+        self.ui.stopRFSpin.hide()
 
         # Initialise instance variables
         self.prev_settings = {}
@@ -58,6 +60,7 @@ class Main(QMainWindow):
         self.ui.calibrateRFBtn.clicked.connect(self.on_calibrate_RF)
         self.ui.moveBtn.clicked.connect(self.on_move)
         self.ui.scanBtn.clicked.connect(self.on_scan)
+        self.ui.serverBtn.clicked.connect(self.on_server)
         self.ui.RFSlider.valueChanged.connect(self.on_control_RF)
         self.ui.MLDataBtn.clicked.connect(self.on_ML_dataset)
         self.ui.stopBtn.clicked.connect(self.on_stop)
@@ -67,6 +70,12 @@ class Main(QMainWindow):
         self.on_focussettings()
 
     #=============== Methods ===============#
+    def get_AO_loop_max(self):
+        """
+        Retrieve AO_loop_max from GUI
+        """
+        return self.ui.loopMaxSpin.value()
+
     def get_focus_settings(self):
         """
         Retrieve remote focusing settings from GUI
@@ -574,7 +583,6 @@ class Main(QMainWindow):
 
         # Stop running focus scan
         self.app.handle_focus_done(1)
-        self.ui.scanBtn.setChecked(False)
 
         # Move focus if pressed
         if not btn.isChecked():
@@ -584,6 +592,8 @@ class Main(QMainWindow):
             settings = self.get_focus_settings()
             settings['step_num'] = 1
             settings['focus_mode_flag'] = 0
+            settings['is_xz_scan'] = 0
+            settings['RF_status'] = 0
 
             # Set remote focusing flag to 1 and update AO_info
             AO_settings = {}
@@ -606,7 +616,6 @@ class Main(QMainWindow):
 
         # Stop running focus move
         self.app.handle_focus_done(0)
-        self.ui.moveBtn.setChecked(False)
 
         # Scan focus if pressed
         if not btn.isChecked():
@@ -615,6 +624,8 @@ class Main(QMainWindow):
             # Retrieve remote focusing settings from GUI
             settings = self.get_focus_settings()
             settings['focus_mode_flag'] = 1
+            settings['is_xz_scan'] = 0
+            settings['RF_status'] = 0
 
             # Set remote focusing flag to 1 and update AO_info
             AO_settings = {}
@@ -623,11 +634,29 @@ class Main(QMainWindow):
             self.app.handle_AO_info(AO_settings)
             self.app.write_AO_info()
 
-            # Start focus move
+            # Start focus scan
             self.app.handle_focusing_info(settings)
             self.app.write_focusing_info()
             self.app.handle_focus_start(AO_type = settings['AO_type'])
             btn.setChecked(True)
+
+    def on_server(self, checked):
+        """
+        Background server system start handler
+        """
+        btn = self.sender()
+
+        # Stop running focus move and focus scan
+        self.app.handle_focus_done(0)
+        self.app.handle_focus_done(1)
+
+        # Start background server system if pressed
+        if not btn.isChecked():
+            self.app.stop_focus()
+            self.app.stop_server()
+        else:
+            self.app.add_server()
+            btn.setChecked(False)
 
     def on_control_RF(self):
         """

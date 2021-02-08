@@ -485,9 +485,9 @@ class Ui_MainWindow(object):
         self.pauseTimeSpin.setObjectName(u"pauseTimeSpin")
         self.pauseTimeSpin.setMinimumSize(QSize(0, 20))
         self.pauseTimeSpin.setFont(font1)
-        self.pauseTimeSpin.setDecimals(2)
+        self.pauseTimeSpin.setDecimals(4)
         self.pauseTimeSpin.setMaximum(1000.000000000000000)
-        self.pauseTimeSpin.setSingleStep(0.010000000000000)
+        self.pauseTimeSpin.setSingleStep(0.000100000000000)
 
         self.verticalLayout_3.addWidget(self.pauseTimeSpin)
 
@@ -544,6 +544,31 @@ class Ui_MainWindow(object):
         self.scanBtn.setCheckable(True)
 
         self.verticalLayout_5.addWidget(self.scanBtn)
+
+        self.serverBtn = QPushButton(self.centralwidget)
+        self.serverBtn.setObjectName(u"serverBtn")
+        self.serverBtn.setMinimumSize(QSize(0, 30))
+        self.serverBtn.setFont(font1)
+        self.serverBtn.setCheckable(True)
+
+        self.verticalLayout_5.addWidget(self.serverBtn)
+
+        self.serverSpin = QSpinBox(self.centralwidget)
+        self.serverSpin.setObjectName(u"serverSpin")
+        self.serverSpin.setFont(font1)
+        self.serverSpin.setReadOnly(True)
+        self.serverSpin.setMaximum(1)
+
+        self.verticalLayout_5.addWidget(self.serverSpin)
+
+        self.stopRFSpin = QSpinBox(self.centralwidget)
+        self.stopRFSpin.setObjectName(u"stopRFSpin")
+        self.stopRFSpin.setFont(font1)
+        self.stopRFSpin.setReadOnly(True)
+        self.stopRFSpin.setMaximum(1)
+        self.stopRFSpin.setValue(1)
+
+        self.verticalLayout_5.addWidget(self.stopRFSpin)
 
         self.RFSlider = QSlider(self.centralwidget)
         self.RFSlider.setObjectName(u"RFSlider")
@@ -694,6 +719,7 @@ class Ui_MainWindow(object):
         self.calibrateRFBtn.setText(QCoreApplication.translate("MainWindow", u"CALIBRATE", None))
         self.moveBtn.setText(QCoreApplication.translate("MainWindow", u"MOVE", None))
         self.scanBtn.setText(QCoreApplication.translate("MainWindow", u"SCAN", None))
+        self.serverBtn.setText(QCoreApplication.translate("MainWindow", u"START SERVER", None))
         self.MLDataBtn.setText(QCoreApplication.translate("MainWindow", u"ML Dataset", None))
         self.displayBox.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Sensorbased AO Software", None))
         self.stopBtn.setText(QCoreApplication.translate("MainWindow", u"STOP", None))
