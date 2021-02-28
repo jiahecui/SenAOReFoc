@@ -64,9 +64,12 @@ class AO_Slopes(QObject):
             if config['AO']['gen_volts_flag'] == 0:
                 self.zern_volts = h5py.File('zern_volts_6_0.05_-v7.3.mat','r').get('zern_volts')
                 self.incre_amp = config['AO']['incre_amp_0']
-            else:
+            elif config['AO']['gen_volts_flag'] == 1:
                 self.zern_volts = h5py.File('zern_volts_15_0.02_-v7.3.mat','r').get('zern_volts')
                 self.incre_amp = config['AO']['incre_amp_1']
+            elif config['AO']['gen_volts_flag'] == 2:
+                self.zern_volts = h5py.File('zern_volts_10_0.02_-v7.3.mat','r').get('zern_volts')
+                self.incre_amp = config['AO']['incre_amp_2']
         
         # Initialise Zernike coefficient array
         self.zern_coeff = np.zeros(config['AO']['control_coeff_num'])

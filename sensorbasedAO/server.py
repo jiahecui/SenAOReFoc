@@ -31,10 +31,12 @@ class RemoteService(rpyc.Service):
         try:
             while self.active:
                 self.stat = self.main.ui.serverSpin.value()
-                if self.last_stat is not None and self.last_stat != self.stat:
+                if self.last_stat != 1 and self.stat == 1:
                     self.callback()   # Notify the client of the change
                 self.last_stat = self.stat
-                time.sleep(self.interval)
+                _ = time.perf_counter() + self.interval
+                while time.perf_counter() < _:
+                    pass
         except Exception as e:
             print(e)
 
@@ -50,7 +52,6 @@ class RemoteService(rpyc.Service):
             self.RF_settings = self.main.get_focus_settings()
             self.RF_settings['focus_mode_flag'] = 1
             self.RF_settings['is_xz_scan'] = 1
-            self.RF_settings['RF_status'] = 0
 
             # Set remote focusing flag to 1 and update AO_info
             self.AO_settings = {}
@@ -80,19 +81,30 @@ class RemoteService(rpyc.Service):
             print(e)
             return False
 
-    def exposed_focusing_monitor(self, callback, interval = 0.00001): # Exposed method
+    def exposed_focusing_monitor(self, callback, interval = 0.000001): # Exposed method
         """
-        xz scan image acquisition trigger monitor thread
+        xz scan line acquisition trigger monitor thread
         """
         try:
             self.interval = interval
             self.last_stat = None
-            self.callback = rpyc.async_(callback)   # Create an async callback
+            self.callback = rpyc.async_(callback) # Create an async callback
             self.active = True
             self.thread = Thread(target = self.work)
             self.thread.start()
         except Exception as e:
             print(e)
+
+    def exposed_line_term(self):
+        """
+        Handles line termination trigger from scanning software
+        """
+        try:
+            self.main.ui.serverSpin.setValue(0)
+            return True
+        except Exception as e:
+            print(e)
+            return False
 
     def exposed_stop(self): # Exposed method
         """

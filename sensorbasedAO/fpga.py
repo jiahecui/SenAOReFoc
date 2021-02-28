@@ -106,13 +106,13 @@ class FPGA_NI():
     def write(self, control, value):
         self.session.registers[control].write(value)
 
-    def write_fifo(self, fifo, data):
-        pass
+    def write_fifo(self, fifo, data, timeout=0):
+        elements_remaining = self.session.fifos[fifo].write(data, timeout_ms=timeout)
+        return elements_remaining
 
     def read_fifo_raw(self, fifo, length, timeout=0):
         d = self.session.fifos[fifo].read(length, timeout_ms=timeout)
         return d.data, d.elements_remaining
-
 
     def read_fifo(self, fifo, length=None, timeout=0, chunk=None, dtype=None):
         """
@@ -138,7 +138,15 @@ class FPGA_NI():
         # Handle length = None
         # Will return all FIFO elements, but set length to 1 for now
         if length is None:
-            length = 0
+            try:
+                data_fifo = self.session.fifos[fifo].read(toread, timeout_ms=timeout)
+                length = data_fifo.elements_remaining
+            except Exception as e:
+                length = 0
+
+        # Return None if no data to read
+        if not length:
+            return None
 
         # Set required data length to read, chunked, if requested
         if chunk is None:
@@ -149,9 +157,14 @@ class FPGA_NI():
         # Read data from FIFO in a loop until required data acquired
         read = 0
         keepreading = True
+
+        ts_begin = time.perf_counter()
+
         while keepreading:
             try:
                 (_, data_available) =  self.session.fifos[fifo].read(0, timeout_ms=0)
+                # print('data_available:', data_available)
+                # print('toread:', toread)
                 if data_available >= toread:
                     # Get data from FIFO and append to data list
                     data_fifo = self.session.fifos[fifo].read(toread, timeout_ms=timeout)
@@ -163,7 +176,7 @@ class FPGA_NI():
                     read += toread
 
                     # Break read loop if required data acquired
-                    if (read == length) or (data.elements_remaining == 0):
+                    if read == length or (data.elements_remaining == 0):
                         keepreading = False
                         continue
 
@@ -173,9 +186,15 @@ class FPGA_NI():
                     else:
                         toread = min((length-read), chunk)
 
-            except:
+            except Exception as e:
                 # Handle timeout
+                print(e)
                 raise
+        
+            # Handle timeout
+            ts_elapsed = time.perf_counter() - ts_begin
+            if ts_elapsed > timeout:
+                return None
 
         # Get FIFO datatype from bitfile, if not explicitly set
         if not dtype:
@@ -209,7 +228,7 @@ class FPGA_NI():
         print('FIFOs:')
         for fifo_name in self.session.fifos:
             fifo = self.session.fifos[fifo_name]
-            logger.info("\t{}, {}".format(fifo.name, fifo.datatype))
+            print("\t{}, {}".format(fifo.name, fifo.datatype))
 
     def list_inputs(self):
         pass

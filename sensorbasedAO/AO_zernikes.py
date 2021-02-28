@@ -67,9 +67,12 @@ class AO_Zernikes(QObject):
             if config['AO']['gen_volts_flag'] == 0:
                 self.zern_volts = h5py.File('zern_volts_6_0.05_-v7.3.mat','r').get('zern_volts')
                 self.incre_amp = config['AO']['incre_amp_0']
-            else:
+            elif config['AO']['gen_volts_flag'] == 1:
                 self.zern_volts = h5py.File('zern_volts_15_0.02_-v7.3.mat','r').get('zern_volts')
                 self.incre_amp = config['AO']['incre_amp_1']
+            elif config['AO']['gen_volts_flag'] == 2:
+                self.zern_volts = h5py.File('zern_volts_10_0.02_-v7.3.mat','r').get('zern_volts')
+                self.incre_amp = config['AO']['incre_amp_2']
 
         # Initialise Zernike coefficient array
         self.zern_coeff = np.zeros(config['AO']['control_coeff_num'])
@@ -1990,14 +1993,12 @@ class AO_Zernikes(QObject):
 
             while self.main.ui.stopRFSpin.value():
 
-                # Trigger start of xz scan image acquisition by updating RF status
-                self.focus_settings['RF_status'] = abs(1 - self.focus_settings['RF_status'])
-                self.main.ui.serverSpin.setValue(self.focus_settings['RF_status'])
-
                 prev1 = time.perf_counter()
 
                 # Run correction for each focus depth
                 for j in range(self.correct_num):
+
+                    print('On line {}'.format(j + 1))          
 
                     # Retrieve voltages for remote focusing component
                     try:
@@ -2008,7 +2009,7 @@ class AO_Zernikes(QObject):
                         else:
                             raise RuntimeError
 
-                        # print('Current depth: {} um'.format(self.focus_settings['start_depth_defoc'] + self.focus_settings['step_incre_defoc'] * j))
+                        print('Current depth: {} um'.format(self.focus_settings['start_depth_defoc'] + self.focus_settings['step_incre_defoc'] * j))
 
                         # Apply remote focusing voltages
                         voltages[:] = config['DM']['vol_bias'] + voltages_defoc
@@ -2016,19 +2017,30 @@ class AO_Zernikes(QObject):
                         # Send voltages to mirror
                         self.mirror.Send(voltages)
 
-                        # prev2 = time.perf_counter()
+                        # Trigger start of xz scan line acquisition
+                        self.main.ui.serverSpin.setValue(1)
+
+                        waiting_time = 0
+                        # print('Waiting for trigger.')
+
+                        # Wait for line termination trigger
+                        while self.main.ui.serverSpin.value() == 1:
+                            _ = time.perf_counter() + 0.000001
+                            waiting_time += 0.000001
+                            while time.perf_counter() < _:
+                                pass
+
+                        print('Waiting time:', waiting_time)
+                        # print('Trigger received.')
 
                         # Pause for specified amount of time
                         _ = time.perf_counter() + self.focus_settings['pause_time']
                         while time.perf_counter() < _:
                             pass
 
-                        # prev3 = time.perf_counter()                       
-                        # print('DM actual pause time: {} s'.format(prev3 - prev2))
-
                     except Exception as e:
+                        print(e)
                         raise
-                        # self.error.emit(e)
 
                 prev4 = time.perf_counter()
                 print('Time for single xz scan RF process is: {} s'.format(prev4 - prev1))
@@ -2037,7 +2049,6 @@ class AO_Zernikes(QObject):
 
         except Exception as e:
             raise
-            # self.error.emit(e)
 
     @Slot(object)
     def stop(self):

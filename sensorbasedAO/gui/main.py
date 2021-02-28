@@ -593,7 +593,6 @@ class Main(QMainWindow):
             settings['step_num'] = 1
             settings['focus_mode_flag'] = 0
             settings['is_xz_scan'] = 0
-            settings['RF_status'] = 0
 
             # Set remote focusing flag to 1 and update AO_info
             AO_settings = {}
@@ -625,7 +624,6 @@ class Main(QMainWindow):
             settings = self.get_focus_settings()
             settings['focus_mode_flag'] = 1
             settings['is_xz_scan'] = 0
-            settings['RF_status'] = 0
 
             # Set remote focusing flag to 1 and update AO_info
             AO_settings = {}
