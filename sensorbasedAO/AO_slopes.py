@@ -68,7 +68,7 @@ class AO_Slopes(QObject):
                 self.zern_volts = h5py.File('zern_volts_15_0.02_-v7.3.mat','r').get('zern_volts')
                 self.incre_amp = config['AO']['incre_amp_1']
             elif config['AO']['gen_volts_flag'] == 2:
-                self.zern_volts = h5py.File('zern_volts_10_0.02_-v7.3.mat','r').get('zern_volts')
+                self.zern_volts = h5py.File('zern_volts_10_0.02_3-v7.3.mat','r').get('zern_volts')
                 self.incre_amp = config['AO']['incre_amp_2']
         
         # Initialise Zernike coefficient array
@@ -345,14 +345,6 @@ class AO_Slopes(QObject):
                         else:
 
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_slopes'], slope_err))
-
-                            # voltages[12] = 0.5 * voltages[12]
-                            # voltages[21] = 0.5 * voltages[21]
-                            # voltages[30] = 0.5 * voltages[30]
-                            # voltages[39] = 0.5 * voltages[39]
-                            # voltages[57] = 0.5 * voltages[57]
-                            # voltages[64] = 0.5 * voltages[64]
-
                             self.voltages[:, i] = voltages
 
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
@@ -503,8 +495,11 @@ class AO_Slopes(QObject):
                         print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
                         print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
                         print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
+                        if config['AO']['zern_gen'] == 2:
+                            print('Detected amount of mode {} is {}'.format(mode_index, zern_err[mode_index - 1, 0]))
                         if config['dummy']:
-                            print('Strehl ratio {} from phase profile is: {} \n'.format(i, strehl_2))                       
+                            print('Strehl ratio {} from phase profile is: {} \n'.format(i, strehl_2))
+
 
                         # Append data to list
                         if config['dummy']:

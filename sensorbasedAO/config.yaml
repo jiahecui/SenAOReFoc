@@ -85,12 +85,16 @@ sys_calib:
   sys_calib_mode: 1  # Mode flag for system aberration calibration method, 0 - calculate present centroids, 1 - load precalibrated voltages before calculating present centroids
 
 AO:
-  zern_gen: 1  # Flag for generating zernike modes on DM in AO_zernikes.py and AO_slopes.py, 0 - off, 1 - iterative generation, 2 - one-shot generation from file
+  zern_gen: 2  # Flag for generating zernike modes on DM in AO_zernikes.py and AO_slopes.py, 0 - off, 1 - iterative generation, 2 - one-shot generation from file
   gen_volts_flag: 2  # Flag for the set of zernike mode generation voltages to use when zern_gen == 2, 0 - 6 (0.05), 1 - 15 (0.02), 2 - 10 (0.02)
+  incre_num_0: 6  # Increment number 0
+  incre_num_1: 15  # Increment number 1
+  incre_num_2: 10  # Increment number 2
   incre_amp_0: 0.05  # Increment amplitude value 0
   incre_amp_1: 0.02  # Increment amplitude value 1
   incre_amp_2: 0.02  # Increment amplitude value 2
-  loop_max_gen: 10  # Maximum number of loops for closed-loop control during generation of zernike modes
+  mode_num_array: [3, 7, 12]  # Array of zernike modes to generate for zern_gen == 2
+  loop_max_gen: 15  # Maximum number of loops for closed-loop control during generation of zernike modes
   recon_coeff_num: 69  # Number of zernike modes to use during wavefront reconstruction
   control_coeff_num: 20  # Number of zernike modes to control during AO correction  # 3rd - 14, 4th - 20, 5th - 27, 6th - 35, 7th - 44, 8th - 54, 9th - 65, 10th - 77
   loop_gain: 0.2  # Fixed loop gain for closed-loop control during AO correction
@@ -101,13 +105,17 @@ AO:
 
 zern_test:
   zern_test_mode: 4  # Mode flag for Zernike Test button, detailed function descriptions in app.py
-  zern_gen: 1  # Flag for generating one-shot zernike modes from file on DM before performing scans in mode 4, 0 - off, 1 - on
+  zern_gen: 0  # Flag for generating one-shot zernike modes from file on DM before performing scans in mode 4, 0 - off, 1 - on
   gen_volts_flag: 2  # Flag for the set of zernike mode generation voltages to use when zern_gen == 1, 0 - 6 (0.05), 1 - 15 (0.02), 2 - 10 (0.02)
+  incre_num_0: 6  # Increment number 0
+  incre_num_1: 15  # Increment number 1
+  incre_num_2: 10  # Increment number 2
   incre_amp_0: 0.05  # Increment amplitude value 0
   incre_amp_1: 0.02  # Increment amplitude value 1
   incre_amp_2: 0.02  # Increment amplitude value 2
+  mode_num_array: [3, 7]  # Array of zernike modes to generate in mode 4
   save_voltages: 0  # Flag for whether to save precise voltages generated in closed-loop in mode 0/1
-  loop_max_gen: 10  # Maximum number of loops during closed-loop generation of zernike modes in mode 0/1/2/3
+  loop_max_gen: 15  # Maximum number of loops during closed-loop generation of zernike modes in mode 0/1/2/3
   incre_num: 10  # Number of zernike mode amplitudes to generate in mode 0/1
   incre_amp: 0.02  # Increment amplitude between zernike modes in mode 0/1
   run_num: 1  # Number of times to run mode 0/1/2/3/4
