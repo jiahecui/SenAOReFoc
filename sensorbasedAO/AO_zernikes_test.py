@@ -71,7 +71,7 @@ class AO_Zernikes_Test(QObject):
                 self.incre_num = config['zern_test']['incre_num_1']
                 self.incre_amp = config['zern_test']['incre_amp_1']
             elif config['zern_test']['gen_volts_flag'] == 2:
-                self.zern_volts = h5py.File('zern_volts_10_0.02_3-v7.3.mat','r').get('zern_volts')
+                self.zern_volts = h5py.File('zern_volts_10_0.02_4-v7.3.mat','r').get('zern_volts')
                 self.incre_num = config['zern_test']['incre_num_2']
                 self.incre_amp = config['zern_test']['incre_amp_2']
 
@@ -1616,9 +1616,9 @@ class AO_Zernikes_Test(QObject):
                                             rms_zern = np.sqrt((zern_err ** 2).sum())
                                             self.zern_x[:,m,l] = zern_err[:,0]
                                             self.rms_zern_x[m,l] = rms_zern
-
-                                            print('Full zernike root mean square error for x line {} position {} is {} um'.format(l + 1, m + 1, rms_zern))                              
-
+                           
+                                            print('Run {} detected amplitude of mode {} for x line {} position {} is {} um'.format(n + 1, 4, l + 1, m + 1, self.zern_coeff_detect[3, 0]))
+                                            
                                         except Exception as e:
                                             print(e)
                                     else:
@@ -1684,8 +1684,8 @@ class AO_Zernikes_Test(QObject):
                                             self.zern_y[:,m,l] = zern_err[:,0]
                                             self.rms_zern_y[m,l] = rms_zern
 
-                                            print('Full zernike root mean square error for y line {} position {} is {} um'.format(l + 1, m + 1, rms_zern))                              
-
+                                            print('Run {} detected amplitude of mode {} for y line {} position {} is {} um'.format(n + 1, 4, l + 1, m + 1, self.zern_coeff_detect[3, 0]))
+                                        
                                         except Exception as e:
                                             print(e)
                                     else:
@@ -1788,7 +1788,7 @@ class AO_Zernikes_Test(QObject):
                                                     self.zern_x[:,m,l] = zern_err[:,0]
                                                     self.rms_zern_x[m,l] = rms_zern
 
-                                                    print('Full zernike root mean square error for x line {} position {} is {} um'.format(l + 1, m + 1, rms_zern))                              
+                                                    print('Run {} detected amplitude of mode {} for x line {} position {} is {} um'.format(n + 1, mode_index, l + 1, m + 1, self.zern_coeff_detect[mode_index - 1, 0]))
 
                                                 except Exception as e:
                                                     print(e)
@@ -1855,7 +1855,7 @@ class AO_Zernikes_Test(QObject):
                                                     self.zern_y[:,m,l] = zern_err[:,0]
                                                     self.rms_zern_y[m,l] = rms_zern
 
-                                                    print('Full zernike root mean square error for y line {} position {} is {} um'.format(l + 1, m + 1, rms_zern))                              
+                                                    print('Run {} detected amplitude of mode {} for y line {} position {} is {} um'.format(n + 1, mode_index, l + 1, m + 1, self.zern_coeff_detect[mode_index - 1, 0]))
 
                                                 except Exception as e:
                                                     print(e)
@@ -1968,7 +1968,7 @@ class AO_Zernikes_Test(QObject):
                                             self.zern_x[:,m,l] = zern_err[:,0]
                                             self.rms_zern_x[m,l] = rms_zern
 
-                                            print('Full zernike root mean square error for x line {} position {} is {} um'.format(l + 1, m + 1, rms_zern))                              
+                                            print('Run {} detected amplitude of mode {} for x line {} position {} is {} um'.format(n + 1, 4, l + 1, m + 1, self.zern_coeff_detect[3, 0]))
 
                                         except Exception as e:
                                             print(e)
@@ -2035,7 +2035,7 @@ class AO_Zernikes_Test(QObject):
                                             self.zern_y[:,m,l] = zern_err[:,0]
                                             self.rms_zern_y[m,l] = rms_zern
 
-                                            print('Full zernike root mean square error for y line {} position {} is {} um'.format(l + 1, m + 1, rms_zern))                              
+                                            print('Run {} detected amplitude of mode {} for y line {} position {} is {} um'.format(n + 1, 4, l + 1, m + 1, self.zern_coeff_detect[3, 0]))
 
                                         except Exception as e:
                                             print(e)
@@ -2139,7 +2139,7 @@ class AO_Zernikes_Test(QObject):
                                                     self.zern_x[:,m,l] = zern_err[:,0]
                                                     self.rms_zern_x[m,l] = rms_zern
 
-                                                    print('Full zernike root mean square error for x line {} position {} is {} um'.format(l + 1, m + 1, rms_zern))                              
+                                                    print('Run {} detected amplitude of mode {} for x line {} position {} is {} um'.format(n + 1, mode_index, l + 1, m + 1, self.zern_coeff_detect[mode_index - 1, 0]))
 
                                                 except Exception as e:
                                                     print(e)
@@ -2206,7 +2206,7 @@ class AO_Zernikes_Test(QObject):
                                                     self.zern_y[:,m,l] = zern_err[:,0]
                                                     self.rms_zern_y[m,l] = rms_zern
 
-                                                    print('Full zernike root mean square error for y line {} position {} is {} um'.format(l + 1, m + 1, rms_zern))                              
+                                                    print('Run {} detected amplitude of mode {} for y line {} position {} is {} um'.format(n + 1, mode_index, l + 1, m + 1, self.zern_coeff_detect[mode_index - 1, 0]))                            
 
                                                 except Exception as e:
                                                     print(e)
@@ -2242,6 +2242,225 @@ class AO_Zernikes_Test(QObject):
                     self.AO_info['zern_test']['y_scan_zern_coeff'] = self.zern_y
                     self.AO_info['zern_test']['y_scan_rms_zern'] = self.rms_zern_y                
                     self.AO_info['zern_test']['y_scan_slope_val'] = self.slope_y
+
+                self.info.emit(self.AO_info)
+                self.write.emit()
+
+            else:
+
+                self.done.emit()
+
+            # Finished closed-loop AO process
+            self.done.emit()
+
+        except Exception as e:
+            raise
+            self.error.emit(e)
+
+    @Slot(object)
+    def run5(self):
+        try:
+            # Set process flags
+            self.loop = True 
+            self.log = True
+
+            # Start thread
+            self.start.emit()
+
+            """
+            Retrieve zernike coefficients with scanner scanning over full frame exposure time with / without aberrations applied on DM 
+            """
+            # Save calibration slope values and zernike influence function to file
+            sp.io.savemat('full_scan_aberr_meas/calib_slope_x.mat', dict(calib_slope_x = self.mirror_settings['calib_slope_x']))
+            sp.io.savemat('full_scan_aberr_meas/calib_slope_y.mat', dict(calib_slope_y = self.mirror_settings['calib_slope_y']))
+            sp.io.savemat('full_scan_aberr_meas/inf_matrix_zern.mat', dict(inf_matrix_zern = self.mirror_settings['inf_matrix_zern']))
+
+            # Get number of Zernike modes to generate
+            zern_num = config['AO']['control_coeff_num'] - 2
+            
+            # Initialise deformable mirror voltage array
+            voltages = np.zeros(self.actuator_num)
+
+            self.message.emit('\nProcess started for Zernike coefficient retrieval over full frame exposure time...')
+
+            prev1 = time.perf_counter()
+
+            # Reset deformable mirror
+            self.mirror.Reset()
+
+            for n in range(config['zern_test']['run_num']):
+
+                # Initialise AO information parameter
+                self.AO_info = {'zern_test': {}}
+
+                # Create new datasets in HDF5 file to store closed-loop AO data and open file
+                get_dset(self.SB_settings, 'zern_test', flag = 0)
+                data_file = h5py.File('data_info.h5', 'a')
+                data_set_1 = data_file['AO_img']['zern_test']
+                data_set_2 = data_file['AO_info']['zern_test']
+
+                if config['zern_test']['zern_gen'] == 0:
+
+                    if self.loop:
+
+                        try:
+
+                            # Update mirror control voltages
+                            if not config['dummy']:
+
+                                # Acquire S-H spots using camera
+                                AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                                AO_image = np.mean(AO_image_stack, axis = 2)
+
+                                # Image thresholding to remove background
+                                AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                                AO_image[AO_image < 0] = 0
+                                self.image.emit(AO_image)
+
+                                # Append image to list
+                                dset_append(data_set_1, 'real_AO_img', AO_image)
+
+                                # Calculate centroids of S-H spots
+                                act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 2) 
+                                act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+
+                                # Draw actual S-H spot centroids on image layer
+                                AO_image.ravel()[act_cent_coord.astype(int)] = 0
+                                self.image.emit(AO_image)
+
+                                # Take tip\tilt off
+                                slope_x -= np.mean(slope_x)
+                                slope_y -= np.mean(slope_y)
+
+                                # Concatenate slopes into one slope matrix
+                                slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+                                self.det_slope_val = slope[:,0]
+
+                                # Get detected zernike coefficients from slope matrix
+                                self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
+
+                                # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
+                                zern_err = self.zern_coeff_detect.copy()
+                                rms_zern = np.sqrt((zern_err ** 2).sum())
+                                self.det_zern_coeff = zern_err[:,0]
+
+                                print('Run {} detected amplitude of mode {} is {} um'.format(n + 1, 3, self.zern_coeff_detect[2, 0]))
+                                print('Run {} detected amplitude of mode {} is {} um'.format(n + 1, 7, self.zern_coeff_detect[6, 0]))
+                                print('Run {} detected amplitude of mode {} is {} um'.format(n + 1, 12, self.zern_coeff_detect[11, 0]))                              
+
+                        except Exception as e:
+                            print(e)   
+
+                    else:
+
+                        self.done.emit()
+
+                    sp.io.savemat('full_scan_aberr_meas/without_applied_aberr/full_scan_zern_coeff_run' + str(n + 1) + '.mat', dict(full_scan_zern_coeff = self.det_zern_coeff))
+                    sp.io.savemat('full_scan_aberr_meas/without_applied_aberr/full_scan_slope_val_run' + str(n + 1) + '.mat', dict(full_scan_slope_val = self.det_slope_val))
+
+                if config['zern_test']['zern_gen'] == 1:
+
+                    # Initialise array for storing retrieved zernike coefficients
+                    self.det_zern_coeff = np.zeros([config['AO']['recon_coeff_num'], self.incre_num, zern_num])
+                    self.det_slope_val = np.zeros([self.SB_settings['act_ref_cent_num'] * 2, self.incre_num, zern_num])
+                    self.det_rms_zern = np.zeros([zern_num, self.incre_num])
+              
+                    # Run closed-loop control for each zernike mode aberration
+                    for amp_num in range(self.incre_num):        
+
+                        # Determine the amplitude to be generated for each Zernike mode
+                        mode_amp = self.incre_amp * (amp_num + 1)
+
+                        for mode_num in range(zern_num):
+
+                            if self.loop:
+
+                                try:
+
+                                    # Update mirror control voltages
+                                    if not config['dummy']:
+
+                                        # Get voltages from file
+                                        voltages[:] = self.zern_volts[amp_num, mode_num, :]
+
+                                        # Send values vector to mirror
+                                        self.mirror.Send(voltages)
+
+                                        print('Applied amplitude of mode {} is {} um'.format(mode_num + 3, mode_amp))
+
+                                        # Acquire S-H spots using camera
+                                        AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                                        AO_image = np.mean(AO_image_stack, axis = 2)
+
+                                        # Image thresholding to remove background
+                                        AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                                        AO_image[AO_image < 0] = 0
+                                        self.image.emit(AO_image)
+
+                                        # Append image to list
+                                        dset_append(data_set_1, 'real_AO_img', AO_image)
+
+                                        # Calculate centroids of S-H spots
+                                        act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 2) 
+                                        act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+
+                                        # Draw actual S-H spot centroids on image layer
+                                        AO_image.ravel()[act_cent_coord.astype(int)] = 0
+                                        self.image.emit(AO_image)
+
+                                        # Take tip\tilt off
+                                        slope_x -= np.mean(slope_x)
+                                        slope_y -= np.mean(slope_y)
+
+                                        # Concatenate slopes into one slope matrix
+                                        slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+                                        self.det_slope_val[:,amp_num,mode_num] = slope[:,0]
+
+                                        # Get detected zernike coefficients from slope matrix
+                                        self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
+
+                                        # Get phase residual (zernike coefficient residual error) and calculate root mean square (rms) error
+                                        zern_err = self.zern_coeff_detect.copy()
+                                        rms_zern = np.sqrt((zern_err ** 2).sum())
+                                        self.det_zern_coeff[:,amp_num,mode_num] = zern_err[:,0]
+                                        self.det_rms_zern[mode_num,amp_num] = rms_zern
+
+                                        print('Run {} detected amplitude of mode {} is {} um'.format(n + 1, mode_num + 3, self.zern_coeff_detect[mode_num + 2, 0]))                              
+
+                                except Exception as e:
+                                    print(e)   
+
+                            else:
+
+                                self.done.emit()
+
+                    sp.io.savemat('full_scan_aberr_meas/with_applied_aberr/full_scan_zern_coeff_run' + str(n + 1) + '.mat', dict(full_scan_zern_coeff = self.det_zern_coeff))
+                    sp.io.savemat('full_scan_aberr_meas/with_applied_aberr/full_scan_rms_zern_run' + str(n + 1) + '.mat', dict(full_scan_rms_zern = self.det_rms_zern))
+                    sp.io.savemat('full_scan_aberr_meas/with_applied_aberr/full_scan_slope_val_run' + str(n + 1) + '.mat', dict(full_scan_slope_val = self.det_slope_val))
+
+                # Close HDF5 file
+                data_file.close()
+
+            self.message.emit('\nProcess complete.')
+
+            prev2 = time.perf_counter()
+            print('Time for Zernike coefficient retrieval over full frame exposure time is:', (prev2 - prev1))
+
+            """
+            Returns closed-loop AO information into self.AO_info
+            """             
+            if self.log:
+
+                if config['zern_test']['zern_gen'] == 1:
+
+                    self.AO_info['zern_test']['full_scan_zern_coeff'] = self.det_zern_coeff
+                    self.AO_info['zern_test']['full_scan_rms_zern'] = self.det_rms_zern                
+                    self.AO_info['zern_test']['full_scan_slope_val'] = self.det_slope_val
+                
+                else:
+
+                    self.AO_info['zern_test']['full_scan_zern_coeff'] = self.det_zern_coeff               
+                    self.AO_info['zern_test']['full_scan_slope_val'] = self.det_slope_val
 
                 self.info.emit(self.AO_info)
                 self.write.emit()

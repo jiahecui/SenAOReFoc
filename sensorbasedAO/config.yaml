@@ -105,7 +105,7 @@ AO:
 
 zern_test:
   zern_test_mode: 4  # Mode flag for Zernike Test button, detailed function descriptions in app.py
-  zern_gen: 0  # Flag for generating one-shot zernike modes from file on DM before performing scans in mode 4, 0 - off, 1 - on
+  zern_gen: 1  # Flag for generating one-shot zernike modes from file on DM before performing scans in mode 4, 0 - off, 1 - on
   gen_volts_flag: 2  # Flag for the set of zernike mode generation voltages to use when zern_gen == 1, 0 - 6 (0.05), 1 - 15 (0.02), 2 - 10 (0.02)
   incre_num_0: 6  # Increment number 0
   incre_num_1: 15  # Increment number 1

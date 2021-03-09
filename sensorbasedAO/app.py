@@ -389,6 +389,8 @@ class App(QApplication):
             zern_thread.started.connect(zern_worker.run3)
         elif mode == 4:
             zern_thread.started.connect(zern_worker.run4)
+        elif mode == 5:
+            zern_thread.started.connect(zern_worker.run5)
 
         zern_worker.done.connect(self.handle_zern_test_done)
         zern_worker.image.connect(lambda obj: self.handle_image_disp(obj))   
@@ -823,7 +825,10 @@ class App(QApplication):
                        a fixed amplitude
             mode = 3 - Run closed-loop AO correction for some specific zernike mode aberrations via slopes control with
                        a fixed amplitude
-            mode = 4 - Perform a number of line scans on specimen and retrieve Zernike coefficients from each scan point
+            mode = 4 - Perform a number of line scans on specimen and retrieve zernike coefficients from each scan point
+                       with / without aberrations applied on DM 
+            mode = 5 - Retrieve zernike coefficients with scanner scanning over full frame exposure time with / without
+                       aberrations applied on DM 
         """
         self.control_zern_test(self.devices['sensor'], self.devices['mirror'], self.devices['scanner'], self.data_info, mode)
         # self.control_zern_test(self.devices['sensor'], self.devices['mirror'], self.data_info, mode)
