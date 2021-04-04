@@ -36,8 +36,7 @@ class AO_Zernikes_Test(QObject):
     message = Signal(object)
     info = Signal(object)
 
-    def __init__(self, sensor, mirror, scanner, settings):
-    # def __init__(self, sensor, mirror, settings):
+    def __init__(self, sensor, mirror, settings, scanner = None):
 
         # Get search block settings
         self.SB_settings = settings['SB_info']
@@ -71,7 +70,7 @@ class AO_Zernikes_Test(QObject):
                 self.incre_num = config['zern_test']['incre_num_1']
                 self.incre_amp = config['zern_test']['incre_amp_1']
             elif config['zern_test']['gen_volts_flag'] == 2:
-                self.zern_volts = h5py.File('zern_volts_10_0.02_4-v7.3.mat','r').get('zern_volts')
+                self.zern_volts = h5py.File('zern_volts_10_0.02_6-v7.3.mat','r').get('zern_volts')
                 self.incre_num = config['zern_test']['incre_num_2']
                 self.incre_amp = config['zern_test']['incre_amp_2']
 
@@ -2344,8 +2343,7 @@ class AO_Zernikes_Test(QObject):
                                 rms_zern = np.sqrt((zern_err ** 2).sum())
                                 self.det_zern_coeff = zern_err[:,0]
 
-                                print('Run {} detected amplitude of mode {} is {} um'.format(n + 1, 3, self.zern_coeff_detect[2, 0]))
-                                print('Run {} detected amplitude of mode {} is {} um'.format(n + 1, 7, self.zern_coeff_detect[6, 0]))
+                                print('Run {} detected amplitude of mode {} is {} um'.format(n + 1, 4, self.zern_coeff_detect[3, 0]))
                                 print('Run {} detected amplitude of mode {} is {} um'.format(n + 1, 12, self.zern_coeff_detect[11, 0]))                              
 
                         except Exception as e:

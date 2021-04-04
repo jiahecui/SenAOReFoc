@@ -254,6 +254,9 @@ class Setup_SB(QObject):
                     # Send voltages to exercise DM
                     self.mirror.Send(voltages)
 
+                    # Wait for DM to settle
+                    time.sleep(config['DM']['settling_time'])
+                    
                 # Reset DM
                 self.mirror.Reset()
 

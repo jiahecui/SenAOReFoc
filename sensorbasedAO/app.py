@@ -366,16 +366,14 @@ class App(QApplication):
         # Start calibration thread
         calib2_thread.start()
 
-    def control_zern_test(self, sensor, mirror, scanner, data_info, mode):
-    # def control_zern_test(self, sensor, mirror, data_info, mode):
+    def control_zern_test(self, sensor, mirror, data_info, mode, scanner):
         """
         Closed-loop AO control via Zernikes test run
         """
         # Create Zernike AO worker and thread
         zern_thread = QThread()
         zern_thread.setObjectName('zern_thread')
-        zern_worker = AO_Zernikes_Test(sensor, mirror, scanner, data_info)
-        # zern_worker = AO_Zernikes_Test(sensor, mirror, data_info)
+        zern_worker = AO_Zernikes_Test(sensor, mirror, data_info, scanner)
         zern_worker.moveToThread(zern_thread)
 
         # Connect to signals
@@ -830,8 +828,10 @@ class App(QApplication):
             mode = 5 - Retrieve zernike coefficients with scanner scanning over full frame exposure time with / without
                        aberrations applied on DM 
         """
-        self.control_zern_test(self.devices['sensor'], self.devices['mirror'], self.devices['scanner'], self.data_info, mode)
-        # self.control_zern_test(self.devices['sensor'], self.devices['mirror'], self.data_info, mode)
+        if mode == 4:
+            self.control_zern_test(self.devices['sensor'], self.devices['mirror'], self.data_info, mode, self.devices['scanner'])
+        else:
+            self.control_zern_test(self.devices['sensor'], self.devices['mirror'], self.data_info, mode)
 
     def handle_zern_test_done(self):
         """

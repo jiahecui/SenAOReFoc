@@ -85,7 +85,7 @@ sys_calib:
   sys_calib_mode: 1  # Mode flag for system aberration calibration method, 0 - calculate present centroids, 1 - load precalibrated voltages before calculating present centroids
 
 AO:
-  zern_gen: 2  # Flag for generating zernike modes on DM in AO_zernikes.py and AO_slopes.py, 0 - off, 1 - iterative generation, 2 - one-shot generation from file
+  zern_gen: 0  # Flag for generating zernike modes on DM in AO_zernikes.py and AO_slopes.py, 0 - off, 1 - iterative generation, 2 - one-shot generation from file
   gen_volts_flag: 2  # Flag for the set of zernike mode generation voltages to use when zern_gen == 2, 0 - 6 (0.05), 1 - 15 (0.02), 2 - 10 (0.02)
   incre_num_0: 6  # Increment number 0
   incre_num_1: 15  # Increment number 1
@@ -104,8 +104,8 @@ AO:
   tolerance_fact_strehl: 1  # Strehl ratio tolerance factor according to Marechel criteria, 0.81
 
 zern_test:
-  zern_test_mode: 4  # Mode flag for Zernike Test button, detailed function descriptions in app.py
-  zern_gen: 1  # Flag for generating one-shot zernike modes from file on DM before performing scans in mode 4, 0 - off, 1 - on
+  zern_test_mode: 5  # Mode flag for Zernike Test button, detailed function descriptions in app.py
+  zern_gen: 0  # Flag for generating one-shot zernike modes from file on DM before performing scans in mode 4/5, 0 - off, 1 - on
   gen_volts_flag: 2  # Flag for the set of zernike mode generation voltages to use when zern_gen == 1, 0 - 6 (0.05), 1 - 15 (0.02), 2 - 10 (0.02)
   incre_num_0: 6  # Increment number 0
   incre_num_1: 15  # Increment number 1
@@ -118,7 +118,7 @@ zern_test:
   loop_max_gen: 15  # Maximum number of loops during closed-loop generation of zernike modes in mode 0/1/2/3
   incre_num: 10  # Number of zernike mode amplitudes to generate in mode 0/1
   incre_amp: 0.02  # Increment amplitude between zernike modes in mode 0/1
-  run_num: 1  # Number of times to run mode 0/1/2/3/4
+  run_num: 10  # Number of times to run mode 0/1/2/3/4
   loop_num: 1  # Number of line scans to loop over in mode 4 for one run
   line_pos_num: 5  # Number of positions to perform line scan in direction orthogonal to line scan direction
   large_flag: 0  # Flag for whether to scan large FOV

@@ -71,7 +71,7 @@ class AO_Zernikes(QObject):
                 self.zern_volts = h5py.File('zern_volts_15_0.02_-v7.3.mat','r').get('zern_volts')
                 self.incre_amp = config['AO']['incre_amp_1']
             elif config['AO']['gen_volts_flag'] == 2:
-                self.zern_volts = h5py.File('zern_volts_10_0.02_4-v7.3.mat','r').get('zern_volts')
+                self.zern_volts = h5py.File('zern_volts_10_0.02_6-v7.3.mat','r').get('zern_volts')
                 self.incre_amp = config['AO']['incre_amp_2']
 
         # Initialise Zernike coefficient array
