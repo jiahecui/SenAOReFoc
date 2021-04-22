@@ -1881,14 +1881,33 @@ class AO_Zernikes(QObject):
             """
             Perform remote focusing without AO by applying defocus component to DM
             """
-            self.message.emit('\nProcess started for remote focusing without AO...')
+            # Initialise AO information parameter (reuse zern_AO_1)
+            self.AO_info = {'zern_AO_1': {}}
+
+            # Create new datasets in HDF5 file to store SH images (reuse zern_AO_1)
+            get_dset(self.SB_settings, 'zern_AO_1', flag = 1)
+            data_file = h5py.File('data_info.h5', 'a')
+            data_set_1 = data_file['AO_img']['zern_AO_1']
+            data_set_2 = data_file['AO_info']['zern_AO_1']
+
+            # Initialise array to store generated voltages for wavefront detection process
+            self.voltages_detect = np.zeros([self.correct_num, self.actuator_num])
+
+            # Initialise array to store detected slope values / zernike coefficients / RMS zernike value / strehl ratio for each defocus position
+            self.slope_x_detect = np.zeros([self.correct_num, self.SB_settings['act_ref_cent_num']])
+            self.slope_y_detect = np.zeros([self.correct_num, self.SB_settings['act_ref_cent_num']])
+            self.zern_coeffs_detect = np.zeros([self.correct_num, config['AO']['control_coeff_num']])
+            self.rms_zern_detect = np.zeros([self.correct_num, 1])
+            self.strehl_detect = np.zeros([self.correct_num, 1])
+
+            self.message.emit('\nProcess started for wavefront detection process...')
 
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
                        
             prev1 = time.perf_counter()
 
-            # Run correction for each focus depth
+            # Detect the wavefront for each remote-focussing position
             for j in range(self.correct_num):
 
                 # Retrieve voltages for remote focusing component
@@ -1926,32 +1945,70 @@ class AO_Zernikes(QObject):
                         self._image[self._image < 0] = 0
                         self.image.emit(self._image)
 
+                        # Append image to list
+                        dset_append(data_set_1, 'real_AO_img', self._image)
+
+                        # imsave('ML_training_data/SH_images/SH_spots_' + str(self.focus_settings['start_depth_defoc'] + j) + 'um.tif', self._image.astype(np.uint8))
+
+                        # Calculate centroids of S-H spots
+                        act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 3)
+                        act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+
+                        # Draw actual S-H spot centroids on image layer
+                        self._image.ravel()[act_cent_coord.astype(int)] = 0
+                        self.image.emit(self._image)
+
+                        # Take tip\tilt off
+                        slope_x -= np.mean(slope_x)
+                        slope_y -= np.mean(slope_y)
+
+                        # Concatenate slopes into one slope matrix
+                        slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+
+                        # Get detected zernike coefficients from slope matrix
+                        self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
+
+                        # Get residual zernike error and calculate root mean square (rms) error
+                        zern_err, zern_err_part = (self.zern_coeff_detect.copy() for c in range(2))
+                        zern_err_part[[0, 1], 0] = 0
+                        rms_zern = np.sqrt((zern_err ** 2).sum())
+                        rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
+
+                        strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
+                        
+                        self.slope_x_detect[j, :] = slope_x
+                        self.slope_y_detect[j, :] = slope_y
+                        self.zern_coeffs_detect[j, :] = self.zern_coeff_detect[:config['AO']['control_coeff_num'], 0].T
+                        self.rms_zern_detect[j, 0] = rms_zern_part
+                        self.strehl_detect[j, 0] = strehl
+                        self.voltages_detect[j, :] = voltages
+
                         # Pause for specified amount of time
                         # time.sleep(self.focus_settings['pause_time'])              
                         
                         # Ask user whether to move to next depth
-                        if j == (self.correct_num - 1):
-                            self.message.emit('\nPress [y] to end.')
-                            c = click.getchar()
+                        # if j == (self.correct_num - 1):
+                        #     self.message.emit('\nPress [y] to end.')
+                        #     c = click.getchar()
 
-                            while True:
-                                if c == 'y':
-                                    break
-                                else:
-                                    self.message.emit('\nInvalid input. Please try again.')
+                        #     while True:
+                        #         if c == 'y':
+                        #             break
+                        #         else:
+                        #             self.message.emit('\nInvalid input. Please try again.')
 
-                                c = click.getchar()
-                        else:
-                            self.message.emit('\nPress [y] to move to next depth.')
-                            c = click.getchar()
+                        #         c = click.getchar()
+                        # else:
+                        #     self.message.emit('\nPress [y] to move to next depth.')
+                        #     c = click.getchar()
 
-                            while True:
-                                if c == 'y':
-                                    break
-                                else:
-                                    self.message.emit('\nInvalid input. Please try again.')
+                        #     while True:
+                        #         if c == 'y':
+                        #             break
+                        #         else:
+                        #             self.message.emit('\nInvalid input. Please try again.')
 
-                                c = click.getchar()
+                        #         c = click.getchar()
 
                     except Exception as e:
                         print(e)
@@ -1963,11 +2020,19 @@ class AO_Zernikes(QObject):
                         self.done2.emit(1)
 
             self.mirror.Reset()
+
+            # Save data to file
+            sp.io.savemat('ML_training_data/slope_x_detect.mat', dict(slope_x_detect = self.slope_x_detect))
+            sp.io.savemat('ML_training_data/slope_y_detect.mat', dict(slope_y_detect = self.slope_y_detect))
+            sp.io.savemat('ML_training_data/zern_coeffs_detect.mat', dict(zern_coeffs_detect = self.zern_coeffs_detect))
+            sp.io.savemat('ML_training_data/rms_zern_detect.mat', dict(rms_zern_detect = self.rms_zern_detect))
+            sp.io.savemat('ML_training_data/strehl_detect.mat', dict(strehl_detect = self.strehl_detect))
+            sp.io.savemat('ML_training_data/voltages_detect.mat', dict(voltages_detect = self.voltages_detect))
             
-            self.message.emit('\nProcess complete.')
+            self.message.emit('\nWavefront detection process complete.')
 
             prev2 = time.perf_counter()
-            print('Time for remote focusing is: {} s'.format(prev2 - prev1))
+            print('Time for wavefront detection process is: {} s'.format(prev2 - prev1))
 
             # Finished remote focusing process
             if self.focus_settings['focus_mode_flag'] == 0:

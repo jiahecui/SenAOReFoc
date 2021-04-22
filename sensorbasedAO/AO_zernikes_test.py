@@ -733,11 +733,11 @@ class AO_Zernikes_Test(QObject):
                                 self.done.emit()
 
                     # Save data to file
-                    sp.io.savemat('zern_gen_det_cor/zernike_correction/amp_' + str(config['zern_test']['incre_amp'] * (k + 1)) + '_zern_amp_run' + str(n) + '.mat',\
+                    sp.io.savemat('zern_gen_det_cor/slope_correction/amp_' + str(config['zern_test']['incre_amp'] * (k + 1)) + '_zern_amp_run' + str(n) + '.mat',\
                         dict(zern_det_cor_zern_amp = self.det_cor_zern_coeff))
-                    sp.io.savemat('zern_gen_det_cor/zernike_correction/amp_' + str(config['zern_test']['incre_amp'] * (k + 1)) + '_rms_zern_run' + str(n) + '.mat',\
+                    sp.io.savemat('zern_gen_det_cor/slope_correction/amp_' + str(config['zern_test']['incre_amp'] * (k + 1)) + '_rms_zern_run' + str(n) + '.mat',\
                         dict(zern_det_cor_rms_zern = self.det_cor_rms_zern))
-                    sp.io.savemat('zern_gen_det_cor/zernike_correction/amp_' + str(config['zern_test']['incre_amp'] * (k + 1)) + '_strehl_run' + str(n) + '.mat',\
+                    sp.io.savemat('zern_gen_det_cor/slope_correction/amp_' + str(config['zern_test']['incre_amp'] * (k + 1)) + '_strehl_run' + str(n) + '.mat',\
                         dict(zern_det_cor_strehl = self.det_cor_strehl))
 
                     # Close HDF5 file
