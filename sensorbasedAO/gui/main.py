@@ -60,6 +60,7 @@ class Main(QMainWindow):
         self.ui.calibrateRFBtn.clicked.connect(self.on_calibrate_RF)
         self.ui.moveBtn.clicked.connect(self.on_move)
         self.ui.scanBtn.clicked.connect(self.on_scan)
+        self.ui.trackBtn.clicked.connect(self.on_track)
         self.ui.serverBtn.clicked.connect(self.on_server)
         self.ui.RFSlider.valueChanged.connect(self.on_control_RF)
         self.ui.MLDataBtn.clicked.connect(self.on_ML_dataset)
@@ -636,6 +637,19 @@ class Main(QMainWindow):
             self.app.handle_focusing_info(settings)
             self.app.write_focusing_info()
             self.app.handle_focus_start(AO_type = settings['AO_type'])
+            btn.setChecked(True)
+
+    def on_track(self, checked):
+        """
+        Surface tracking start handler
+        """
+        btn = self.sender()
+
+        # Start surface tracking via machine learning when pressed
+        if not btn.isChecked():
+            btn.setChecked(False)
+        else:
+            self.app.handle_tracking_start()
             btn.setChecked(True)
 
     def on_server(self, checked):

@@ -143,6 +143,12 @@ RF:
   step_incre: 0.1  # Axial increment between each step during actual remote focusing/ um
   index_offset: 900  # Index offset in voltage lookup table
 
+tracking:
+  timestep_num: 3  # Number of timesteps for surface tracking
+  stride_length: 35  # um, remote-focussing stride applied on DM between timesteps
+  feature_num: 6  # Number of Zernike modes used as input features
+  feature_indice: [2, 3, 4, 6, 7, 11]  # Zernike modes used as input features
+
 reflect_prof:
   samp_num: 33  # Flag for choosing the working sample
   samp_width: 128  # pixels  # Note that this has to be a factor of the sensor width

@@ -3,16 +3,13 @@
 ################################################################################
 ## Form generated from reading UI file 'main.ui'
 ##
-## Created by: Qt User Interface Compiler version 5.15.0
+## Created by: Qt User Interface Compiler version 5.15.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide2.QtCore import (QCoreApplication, QDate, QDateTime, QMetaObject,
-    QObject, QPoint, QRect, QSize, QTime, QUrl, Qt)
-from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont,
-    QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter,
-    QPixmap, QRadialGradient)
+from PySide2.QtCore import *
+from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from sensorbasedAO.gui.SHViewer import SHViewer
@@ -545,6 +542,14 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_5.addWidget(self.scanBtn)
 
+        self.trackBtn = QPushButton(self.centralwidget)
+        self.trackBtn.setObjectName(u"trackBtn")
+        self.trackBtn.setMinimumSize(QSize(0, 30))
+        self.trackBtn.setFont(font1)
+        self.trackBtn.setCheckable(True)
+
+        self.verticalLayout_5.addWidget(self.trackBtn)
+
         self.serverBtn = QPushButton(self.centralwidget)
         self.serverBtn.setObjectName(u"serverBtn")
         self.serverBtn.setMinimumSize(QSize(0, 30))
@@ -719,6 +724,7 @@ class Ui_MainWindow(object):
         self.calibrateRFBtn.setText(QCoreApplication.translate("MainWindow", u"CALIBRATE", None))
         self.moveBtn.setText(QCoreApplication.translate("MainWindow", u"MOVE", None))
         self.scanBtn.setText(QCoreApplication.translate("MainWindow", u"SCAN", None))
+        self.trackBtn.setText(QCoreApplication.translate("MainWindow", u"TRACK SURFACE", None))
         self.serverBtn.setText(QCoreApplication.translate("MainWindow", u"START SERVER", None))
         self.MLDataBtn.setText(QCoreApplication.translate("MainWindow", u"ML Dataset", None))
         self.displayBox.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Sensorbased AO Software", None))

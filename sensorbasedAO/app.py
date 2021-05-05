@@ -427,9 +427,12 @@ class App(QApplication):
             zern_AO_thread.started.connect(zern_AO_worker.run5)
         elif mode == 6:
             zern_AO_thread.started.connect(zern_AO_worker.run6)
+        elif mode == 7:
+            zern_AO_thread.started.connect(zern_AO_worker.run7)
 
         zern_AO_worker.done.connect(lambda mode: self.handle_zern_AO_done(mode))
         zern_AO_worker.done2.connect(lambda mode: self.handle_focus_done(mode))
+        zern_AO_worker.done3.connect(self.handle_tracking_done)
         zern_AO_worker.image.connect(lambda obj: self.handle_image_disp(obj))   
         zern_AO_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         zern_AO_worker.info.connect(lambda obj: self.handle_AO_info(obj))
@@ -995,7 +998,7 @@ class App(QApplication):
         if AO_type == 0 and self.data_info['focusing_info']['is_xz_scan'] == 0:
             self.control_zern_AO(self.devices['sensor'], self.devices['mirror'], self.data_info, 5)
         elif AO_type == 0 and self.data_info['focusing_info']['is_xz_scan'] == 1:
-            self.control_zern_AO(self.devices['sensor'], self.devices['mirror'], self.data_info, 6)
+            self.control_zern_AO(self.devices['sensor'], self.devices['mirror'], self.data_info, 7)
         elif AO_type in {1,2}:
             self.control_zern_AO(self.devices['sensor'], self.devices['mirror'], self.data_info, AO_type + 2)
         elif AO_type in {3,4}:
@@ -1021,6 +1024,20 @@ class App(QApplication):
             self.main.ui.scanBtn.setChecked(False)
         else:
             pass
+
+    def handle_tracking_start(self):
+        """
+        Handle start of surface tracking
+        """
+        self.control_zern_AO(self.devices['sensor'], self.devices['mirror'], self.data_info, 6)
+
+    def handle_tracking_done(self):
+        """
+        Handle end of surface tracking
+        """
+        self.threads['zern_AO_thread'].quit()
+        self.threads['zern_AO_thread'].wait()
+        self.main.ui.trackBtn.setChecked(False)
 
     def handle_RF_control(self, val = 0):
         """

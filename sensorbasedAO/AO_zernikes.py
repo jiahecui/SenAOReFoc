@@ -1,7 +1,12 @@
 from PySide2.QtCore import QThread, QObject, Signal, Slot
 from PySide2.QtWidgets import QApplication
 
+from tensorflow.keras.models import model_from_yaml
+from tensorflow.keras.models import Model
+from sklearn.preprocessing import MinMaxScaler
+
 import logging
+import joblib
 import sys
 import os
 import argparse
@@ -33,6 +38,7 @@ class AO_Zernikes(QObject):
     write = Signal()
     done = Signal(object)
     done2 = Signal(object)
+    done3 = Signal()
     error = Signal(object)
     image = Signal(object)
     message = Signal(object)
@@ -2046,6 +2052,144 @@ class AO_Zernikes(QObject):
 
     @Slot(object)
     def run6(self):
+        try:
+            # Set process flags
+            self.loop = True
+            self.log = True
+
+            # Start thread
+            self.start.emit()
+
+            """
+            Perform surface tracking via machine learning
+            """
+            # Initialise AO information parameter (reuse zern_AO_1)
+            self.AO_info = {'zern_AO_1': {}}
+
+            # Create new datasets in HDF5 file to store SH images (reuse zern_AO_1)
+            get_dset(self.SB_settings, 'zern_AO_1', flag = 1)
+            data_file = h5py.File('data_info.h5', 'a')
+            data_set_1 = data_file['AO_img']['zern_AO_1']
+            data_set_2 = data_file['AO_info']['zern_AO_1']
+
+            try:
+                # Load YAML and create model
+                yaml_file = open('model.yaml', 'r')
+                loaded_model_yaml = yaml_file.read()
+                yaml_file.close()
+                loaded_model = model_from_yaml(loaded_model_yaml)
+
+                # Load weights into new model
+                loaded_model.load_weights("model.h5")
+                print('Model loaded from disk')
+
+                # Load MinMaxScaler
+                scaler_input_list = []
+                for i in range(config['tracking']['feature_num'])
+                    scaler_input = joblib.load('scaler_input' + str(i) + '.gz')
+                    scaler_input_list.append(scaler_input)
+                scaler_output = joblib.load('scaler_output.gz')
+            except Exception as e:
+                print(e)
+
+            # Initialise timestep array and array to store detected zernike coefficients
+            self.zern_coeffs_detect, zern_coeff_input = (np.zeros([config['tracking']['timestep_num'], config['AO']['control_coeff_num']]) for i in range(2))
+            timestep_pos = [0, - config['tracking']['stride_length'], config['tracking']['stride_length']]
+
+            self.message.emit('\nProcess started for surface tracking...')
+
+            # Initialise deformable mirror voltage array
+            voltages = np.zeros(self.actuator_num)
+                       
+            prev1 = time.perf_counter()
+
+            # Detect the wavefront for each timestep position
+            for j in range(config['tracking']['timestep_num']):
+
+                try:
+                    RF_index = int(timestep_pos[j] // config['RF']['step_incre']) + config['RF']['index_offset']
+                    voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
+                except Exception as e:
+                    print(e)
+
+                # Detect wavefront at different timestep positions
+                if self.loop:
+
+                    try:
+
+                        # Apply remote focusing voltages
+                        voltages[:] = config['DM']['vol_bias'] + voltages_defoc
+
+                        # Send voltages to mirror
+                        self.mirror.Send(voltages)
+
+                        # Wait for DM to settle
+                        time.sleep(config['DM']['settling_time'])
+
+                        # Acquire S-H spot image 
+                        self._image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                        self._image = np.mean(self._image_stack, axis = 2)
+
+                        # Image thresholding to remove background
+                        self._image = self._image - config['image']['threshold'] * np.amax(self._image)
+                        self._image[self._image < 0] = 0
+                        self.image.emit(self._image)
+
+                        # Append image to list
+                        dset_append(data_set_1, 'real_AO_img', self._image)
+
+                        # Calculate centroids of S-H spots
+                        act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 3)
+                        act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+
+                        # Draw actual S-H spot centroids on image layer
+                        self._image.ravel()[act_cent_coord.astype(int)] = 0
+                        self.image.emit(self._image)
+
+                        # Take tip\tilt off
+                        slope_x -= np.mean(slope_x)
+                        slope_y -= np.mean(slope_y)
+
+                        # Concatenate slopes into one slope matrix
+                        slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+
+                        # Get detected zernike coefficients from slope matrix
+                        self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
+                        self.zern_coeffs_detect[j, :] = self.zern_coeff_detect[:config['AO']['control_coeff_num'], 0].T
+
+                    except Exception as e:
+                        print(e)
+
+                else:
+
+                    self.done3.emit()
+
+            # Normalise data input
+            for i in range(config['tracking']['feature_num']):
+                zern_coeff_input(:, i) = scaler_input_list[i].transform(self.zern_coeffs_detect[:, config['tracking']['feature_indice'][i]].reshape(-1,1))
+
+            # Reshape data input
+            zern_coeff_input = array(zern_coeff_input).reshape(1, config['tracking']['timestep_num'], config['tracking']['feature_num'])
+
+            # Predict voltage output
+            voltage_output = loaded_model.predictzern_coeff_input, verbose = 1)
+            voltage_output_inversed = scaler_output.inverse_transform(voltage_output).ravel()
+
+            # Send voltages to mirror
+            self.mirror.Send(voltage_output_inversed)
+
+            prev2 = time.perf_counter()
+            print('Time for one tracking prodedure is: {} s'.format(prev2 - prev1))
+
+            # Finished one tracking prodedure
+            self.done3.emit()
+
+        except Exception as e:
+            raise
+            self.error.emit(e)
+
+    @Slot(object)
+    def run7(self):
         try:
             # Start thread
             self.start.emit()
