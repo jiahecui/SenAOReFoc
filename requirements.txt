@@ -14,3 +14,6 @@ h5py
 scikit-image
 Cython
 rpyc
+tensorflow
+joblib
+sklearn

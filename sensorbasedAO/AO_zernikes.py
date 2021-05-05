@@ -2074,26 +2074,27 @@ class AO_Zernikes(QObject):
 
             try:
                 # Load YAML and create model
-                yaml_file = open('model.yaml', 'r')
+                yaml_file = open('model_param/model.yaml', 'r')
                 loaded_model_yaml = yaml_file.read()
                 yaml_file.close()
                 loaded_model = model_from_yaml(loaded_model_yaml)
 
                 # Load weights into new model
-                loaded_model.load_weights("model.h5")
+                loaded_model.load_weights("model_param/model.h5")
                 print('Model loaded from disk')
 
                 # Load MinMaxScaler
                 scaler_input_list = []
-                for i in range(config['tracking']['feature_num'])
-                    scaler_input = joblib.load('scaler_input' + str(i) + '.gz')
+                for i in range(config['tracking']['feature_num']):
+                    scaler_input = joblib.load('model_param/scaler_input' + str(i + 1) + '.gz')
                     scaler_input_list.append(scaler_input)
-                scaler_output = joblib.load('scaler_output.gz')
+                scaler_output = joblib.load('model_param/scaler_output.gz')
             except Exception as e:
                 print(e)
 
             # Initialise timestep array and array to store detected zernike coefficients
-            self.zern_coeffs_detect, zern_coeff_input = (np.zeros([config['tracking']['timestep_num'], config['AO']['control_coeff_num']]) for i in range(2))
+            self.zern_coeffs_detect = np.zeros([config['tracking']['timestep_num'], config['AO']['control_coeff_num']])
+            zern_coeff_input = np.zeros([config['tracking']['timestep_num'], config['tracking']['feature_num']])
             timestep_pos = [0, - config['tracking']['stride_length'], config['tracking']['stride_length']]
 
             self.message.emit('\nProcess started for surface tracking...')
@@ -2102,6 +2103,8 @@ class AO_Zernikes(QObject):
             voltages = np.zeros(self.actuator_num)
                        
             prev1 = time.perf_counter()
+
+            self.mirror.Reset()
 
             # Detect the wavefront for each timestep position
             for j in range(config['tracking']['timestep_num']):
@@ -2166,17 +2169,24 @@ class AO_Zernikes(QObject):
 
             # Normalise data input
             for i in range(config['tracking']['feature_num']):
-                zern_coeff_input(:, i) = scaler_input_list[i].transform(self.zern_coeffs_detect[:, config['tracking']['feature_indice'][i]].reshape(-1,1))
+                zern_coeff_input[:, i] = scaler_input_list[i].transform(self.zern_coeffs_detect[:, config['tracking']['feature_indice'][i]].reshape(-1,1)).ravel()
 
             # Reshape data input
-            zern_coeff_input = array(zern_coeff_input).reshape(1, config['tracking']['timestep_num'], config['tracking']['feature_num'])
+            zern_coeff_input = zern_coeff_input.reshape(1, config['tracking']['timestep_num'], config['tracking']['feature_num'])
 
             # Predict voltage output
-            voltage_output = loaded_model.predictzern_coeff_input, verbose = 1)
+            voltage_output = loaded_model.predict(zern_coeff_input, verbose = 1)
             voltage_output_inversed = scaler_output.inverse_transform(voltage_output).ravel()
+            # print(voltage_output_inversed)
 
             # Send voltages to mirror
             self.mirror.Send(voltage_output_inversed)
+            # time.sleep(5)
+
+            # Reset mirror
+            # self.mirror.Reset()
+
+            self.message.emit('\nSurface tracking process finished...')
 
             prev2 = time.perf_counter()
             print('Time for one tracking prodedure is: {} s'.format(prev2 - prev1))

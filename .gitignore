@@ -50,5 +50,8 @@ zern_volts/
 centroid_values/
 correction_voltages/
 
+# network model
+model_param/
+
 
 

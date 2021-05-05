@@ -11,17 +11,17 @@ import numpy as np
 
 from datetime import datetime
 
-from alpao.Lib import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
+from alpao.Lib64 import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
 from ximea import xiapi
-import mtidevice
-from mtidevice import MTIError, MTIAxes, MTIParam, MTIDataMode, MTISync, MTIDataFormat, MTIAvailableDevices
+# import mtidevice
+# from mtidevice import MTIError, MTIAxes, MTIParam, MTIDataMode, MTISync, MTIDataFormat, MTIAvailableDevices
 # from devwraps.ueye import uEye
 
 import log
 from config import config
 from sensor import SENSOR
 from mirror import MIRROR
-from scanner import SCANNER
+# from scanner import SCANNER
 from server import SERVER
 from gui.main import Main
 from SB_geometry import Setup_SB
@@ -142,50 +142,50 @@ class App(QApplication):
         self.devices['mirror'] = mirror
 
         # Add scanner
-        if config['dummy']:
-            scanner = SCANNER.get('debug')
-        else:
-            try:
-                scanner = mtidevice.MTIDevice()
-                table = scanner.GetAvailableDevices()
+        # if config['dummy']:
+        #     scanner = SCANNER.get('debug')
+        # else:
+        #     try:
+        #         scanner = mtidevice.MTIDevice()
+        #         table = scanner.GetAvailableDevices()
 
-                if table.NumDevices == 0:
-                    print('There are no devices available.')
-                    return None
+        #         if table.NumDevices == 0:
+        #             print('There are no devices available.')
+        #             return None
 
-                scanner.ListAvailableDevices(table)
-                portnumber = config['scanner']['portnumber']
+        #         scanner.ListAvailableDevices(table)
+        #         portnumber = config['scanner']['portnumber']
                 
-                if os.name == 'nt':
-                    portName = 'COM' + portnumber
-                else:
-                    portName = '/dev/ttyUSB' + portnumber
+        #         if os.name == 'nt':
+        #             portName = 'COM' + portnumber
+        #         else:
+        #             portName = '/dev/ttyUSB' + portnumber
 
-                scanner.ConnectDevice(portName)
+        #         scanner.ConnectDevice(portName)
 
-                # Initialise controller parameters
-                params = scanner.GetDeviceParams()
-                params.VdifferenceMax = 159
-                params.HardwareFilterBw = 500
-                params.Vbias = 80
-                params.SampleRate = 20000
-                scanner.SetDeviceParams(params)
+        #         # Initialise controller parameters
+        #         params = scanner.GetDeviceParams()
+        #         params.VdifferenceMax = 159
+        #         params.HardwareFilterBw = 500
+        #         params.Vbias = 80
+        #         params.SampleRate = 20000
+        #         scanner.SetDeviceParams(params)
 
-                params_temp = scanner.GetDeviceParams()
+        #         params_temp = scanner.GetDeviceParams()
 
-                # Set controller data mode
-                scanner.ResetDevicePosition()
-                scanner.StartDataStream()
+        #         # Set controller data mode
+        #         scanner.ResetDevicePosition()
+        #         scanner.StartDataStream()
 
-                # Turn the MEMS controller on
-                scanner.SetDeviceParam(MTIParam.MEMSDriverEnable, True)
+        #         # Turn the MEMS controller on
+        #         scanner.SetDeviceParam(MTIParam.MEMSDriverEnable, True)
 
-                print('Scanner load success.')
-            except Exception as e:
-                logger.warning('Scanner load error', e)
-                scanner = None
+        #         print('Scanner load success.')
+        #     except Exception as e:
+        #         logger.warning('Scanner load error', e)
+        #         scanner = None
 
-        self.devices['scanner'] = scanner
+        # self.devices['scanner'] = scanner
 
     def stop_server(self):
         """
@@ -1035,6 +1035,7 @@ class App(QApplication):
         """
         Handle end of surface tracking
         """
+        print('')
         self.threads['zern_AO_thread'].quit()
         self.threads['zern_AO_thread'].wait()
         self.main.ui.trackBtn.setChecked(False)

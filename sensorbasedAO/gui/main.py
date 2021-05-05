@@ -649,6 +649,13 @@ class Main(QMainWindow):
         if not btn.isChecked():
             btn.setChecked(False)
         else:
+            AO_settings = {}
+            AO_settings['loop_max'] = self.ui.loopMaxSpin.value()
+            AO_settings['focus_enable'] = 0
+            self.app.handle_AO_info(AO_settings)
+            self.app.write_AO_info()
+
+            # Start surface tracking
             self.app.handle_tracking_start()
             btn.setChecked(True)
 

@@ -135,9 +135,9 @@ zern_test:
   y_amp_small: 0.07  # Normalised voltage range for y scan, max/min +/-0.14V (100um) 0.124V (90um) 0.11V (80um) 0.098V (70um) 0.084V (60um) 0.07V (50um)
 
 RF_calib:
-  calib_step_num: 5  # Number of steps used in one direction during calibration of remote focusing
+  calib_step_num: 11  # Number of steps used in one direction during calibration of remote focusing
   calib_step_incre: 10  # Axial increment between each step during calibration of remote focusing/ um
-  calib_direct: 1  # Direction of calibration, 0-negative, 1-positive
+  calib_direct: 0  # Direction of calibration, 0-negative, 1-positive
 
 RF:
   step_incre: 0.1  # Axial increment between each step during actual remote focusing/ um
@@ -145,7 +145,7 @@ RF:
 
 tracking:
   timestep_num: 3  # Number of timesteps for surface tracking
-  stride_length: 35  # um, remote-focussing stride applied on DM between timesteps
+  stride_length: 30  # um, remote-focussing stride applied on DM between timesteps
   feature_num: 6  # Number of Zernike modes used as input features
   feature_indice: [2, 3, 4, 6, 7, 11]  # Zernike modes used as input features
 

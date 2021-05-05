@@ -115,7 +115,7 @@ class Calibration_RF(QObject):
                     elif c == 's':
                         data_file.close()
                         self.mirror.Reset()
-                        self.mirror_info['remote_focus_neg_voltages'] = self.calib_voltages
+                        # self.mirror_info['remote_focus_neg_voltages'] = self.calib_voltages
                         self.calib_RF_AO_info['calib_RF_neg_slope_x'] = self.calib_slope_x
                         self.calib_RF_AO_info['calib_RF_neg_slope_y'] = self.calib_slope_y
                         self.calib_RF_AO_info['calib_RF_neg_zern_coeff'] = self.calib_zern_coeff
@@ -145,10 +145,12 @@ class Calibration_RF(QObject):
                         try:
 
                             # Update mirror control voltages
-                            if l == 0 and i == 0:                     
+                            # if l == 0 and i == 0:                     
+                            #     voltages[:] = config['DM']['vol_bias']
+                            # elif l > 0 and i == 0:
+                            #     voltages = self.calib_voltages[:, l - 1].copy()
+                            if i == 0:
                                 voltages[:] = config['DM']['vol_bias']
-                            elif l > 0 and i == 0:
-                                voltages = self.calib_voltages[:, l - 1].copy()
                             elif i > 0:
                                 voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_slopes'], slope_err))
                             
@@ -172,10 +174,11 @@ class Calibration_RF(QObject):
                             # Append image to list
                             dset_append(data_set, 'real_calib_RF_img', AO_image)
 
-                            if i == 0:
-                                imsave('calib_RF/SH_images/calib_RF_neg_SH_spots_before_step' + str(l + 1) + '.tif', AO_image.astype(np.uint8))
-                            elif strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
-                                imsave('calib_RF/SH_images/calib_RF_neg_SH_spots_after_step' + str(l + 1) + '.tif', AO_image.astype(np.uint8))
+                            # if i == 0:
+                            #     imsave('calib_RF/SH_images/calib_RF_neg_SH_spots_before_step' + str(l + 1) + '.tif', AO_image.astype(np.uint8))
+                            # elif strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
+                            #     imsave('calib_RF/SH_images/calib_RF_neg_SH_spots_after_step' + str(l + 1) + '.tif', AO_image.astype(np.uint8))
+                            imsave('calib_RF/SH_images/calib_RF_neg_SH_spots_step' + str(l + 1) + '.tif', AO_image.astype(np.uint8))
 
                             # Calculate centroids of S-H spots
                             act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 11)
@@ -224,7 +227,7 @@ class Calibration_RF(QObject):
                                 self.calib_zern_coeff[2 * l + 1, :] = self.zern_coeff_detect[:config['AO']['control_coeff_num'], 0].T
                                 self.calib_rms_zern[l, 1] = rms_zern_part
                                 self.calib_strehl[l, 1] = strehl
-                                self.calib_voltages[:, l] = voltages
+                                # self.calib_voltages[:, l] = voltages
                                 break
 
                         except Exception as e:
@@ -240,7 +243,7 @@ class Calibration_RF(QObject):
             sp.io.savemat('calib_RF/calib_RF_neg_zern_coeff.mat', dict(calib_RF_neg_zern_coeff = self.calib_zern_coeff))
             sp.io.savemat('calib_RF/calib_RF_neg_rms_zern.mat', dict(calib_RF_neg_rms_zern = self.calib_rms_zern))
             sp.io.savemat('calib_RF/calib_RF_neg_strehl.mat', dict(calib_RF_neg_strehl = self.calib_strehl))
-            sp.io.savemat('calib_RF/calib_RF_neg_voltages.mat', dict(calib_RF_neg_voltages = self.calib_voltages))
+            # sp.io.savemat('calib_RF/calib_RF_neg_voltages.mat', dict(calib_RF_neg_voltages = self.calib_voltages))
 
             # Close HDF5 file
             data_file.close()
@@ -255,7 +258,7 @@ class Calibration_RF(QObject):
             """ 
             if self.log:
 
-                self.mirror_info['remote_focus_neg_voltages'] = self.calib_voltages
+                # self.mirror_info['remote_focus_neg_voltages'] = self.calib_voltages
                 self.calib_RF_AO_info['calib_RF_neg_slope_x'] = self.calib_slope_x
                 self.calib_RF_AO_info['calib_RF_neg_slope_y'] = self.calib_slope_y
                 self.calib_RF_AO_info['calib_RF_neg_zern_coeff'] = self.calib_zern_coeff
@@ -315,7 +318,7 @@ class Calibration_RF(QObject):
                     elif c == 's':
                         data_file.close()
                         self.mirror.Reset()
-                        self.mirror_info['remote_focus_pos_voltages'] = self.calib_voltages
+                        # self.mirror_info['remote_focus_pos_voltages'] = self.calib_voltages
                         self.calib_RF_AO_info['calib_RF_pos_slope_x'] = self.calib_slope_x
                         self.calib_RF_AO_info['calib_RF_pos_slope_y'] = self.calib_slope_y
                         self.calib_RF_AO_info['calib_RF_pos_zern_coeff'] = self.calib_zern_coeff
@@ -345,10 +348,12 @@ class Calibration_RF(QObject):
                         try:
 
                             # Update mirror control voltages
-                            if l == 0 and i == 0:                     
+                            # if l == 0 and i == 0:                     
+                            #     voltages[:] = config['DM']['vol_bias']
+                            # elif l > 0 and i == 0:
+                            #     voltages = self.calib_voltages[:, l - 1].copy()
+                            if i == 0:
                                 voltages[:] = config['DM']['vol_bias']
-                            elif l > 0 and i == 0:
-                                voltages = self.calib_voltages[:, l - 1].copy()
                             elif i > 0:
                                 voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_slopes'], slope_err))
                             
@@ -372,10 +377,11 @@ class Calibration_RF(QObject):
                             # Append image to list
                             dset_append(data_set, 'real_calib_RF_img', AO_image)
 
-                            if i == 0:
-                                imsave('calib_RF/SH_images/calib_RF_pos_SH_spots_before_step' + str(l + 1) + '.tif', AO_image.astype(np.uint8))
-                            elif strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
-                                imsave('calib_RF/SH_images/calib_RF_pos_SH_spots_after_step' + str(l + 1) + '.tif', AO_image.astype(np.uint8))
+                            # if i == 0:
+                            #     imsave('calib_RF/SH_images/calib_RF_pos_SH_spots_before_step' + str(l + 1) + '.tif', AO_image.astype(np.uint8))
+                            # elif strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
+                            #     imsave('calib_RF/SH_images/calib_RF_pos_SH_spots_after_step' + str(l + 1) + '.tif', AO_image.astype(np.uint8))
+                            imsave('calib_RF/SH_images/calib_RF_pos_SH_spots_step' + str(l + 1) + '.tif', AO_image.astype(np.uint8))
 
                             # Calculate centroids of S-H spots
                             act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 11)
@@ -424,7 +430,7 @@ class Calibration_RF(QObject):
                                 self.calib_zern_coeff[2 * l + 1, :] = self.zern_coeff_detect[:config['AO']['control_coeff_num'], 0].T
                                 self.calib_rms_zern[l, 1] = rms_zern_part
                                 self.calib_strehl[l, 1] = strehl
-                                self.calib_voltages[:, l] = voltages
+                                # self.calib_voltages[:, l] = voltages
                                 break
 
                         except Exception as e:
@@ -440,7 +446,7 @@ class Calibration_RF(QObject):
             sp.io.savemat('calib_RF/calib_RF_pos_zern_coeff.mat', dict(calib_RF_pos_zern_coeff = self.calib_zern_coeff))
             sp.io.savemat('calib_RF/calib_RF_pos_rms_zern.mat', dict(calib_RF_pos_rms_zern = self.calib_rms_zern))
             sp.io.savemat('calib_RF/calib_RF_pos_strehl.mat', dict(calib_RF_pos_strehl = self.calib_strehl))
-            sp.io.savemat('calib_RF/calib_RF_pos_voltages.mat', dict(calib_RF_pos_voltages = self.calib_voltages))
+            # sp.io.savemat('calib_RF/calib_RF_pos_voltages.mat', dict(calib_RF_pos_voltages = self.calib_voltages))
 
             # Close HDF5 file
             data_file.close()
@@ -455,7 +461,7 @@ class Calibration_RF(QObject):
             """ 
             if self.log:
 
-                self.mirror_info['remote_focus_pos_voltages'] = self.calib_voltages
+                # self.mirror_info['remote_focus_pos_voltages'] = self.calib_voltages
                 self.calib_RF_AO_info['calib_RF_pos_slope_x'] = self.calib_slope_x
                 self.calib_RF_AO_info['calib_RF_pos_slope_y'] = self.calib_slope_y
                 self.calib_RF_AO_info['calib_RF_pos_zern_coeff'] = self.calib_zern_coeff

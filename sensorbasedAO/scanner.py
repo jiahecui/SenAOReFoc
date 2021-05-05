@@ -2,8 +2,8 @@ import os
 import sys
 import time
 
-import mtidevice
-from mtidevice import MTIError, MTIAxes, MTIParam, MTIDataMode, MTISync, MTIDataFormat, MTIAvailableDevices
+# import mtidevice
+# from mtidevice import MTIError, MTIAxes, MTIParam, MTIDataMode, MTISync, MTIDataFormat, MTIAvailableDevices
 
 import log
 from config import config
