@@ -52,6 +52,7 @@ correction_voltages/
 
 # network model
 model_param/
+model_param_archive/
 
 
 

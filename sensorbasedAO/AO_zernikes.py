@@ -1968,11 +1968,22 @@ class AO_Zernikes(QObject):
                         slope_x -= np.mean(slope_x)
                         slope_y -= np.mean(slope_y)
 
+                        # Take care of obscured subapertures
+                        index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'] == 0)[1]
+                        index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
+                        slope_x = np.delete(slope_x, index_remove, axis = 1)
+                        slope_y = np.delete(slope_y, index_remove, axis = 1)
+                        act_cent_coord = np.delete(act_cent_coord, index_remove, axis = None)
+                        inf_matrix_slopes = np.delete(self.mirror_settings['inf_matrix_slopes'].copy(), index_remove_inf, axis = 0)
+                        conv_matrix = np.delete(self.mirror_settings['conv_matrix'].copy(), index_remove_inf, axis = 1)
+                        # print('Number of obscured subapertures:', np.size(index_remove))
+
                         # Concatenate slopes into one slope matrix
                         slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
 
                         # Get detected zernike coefficients from slope matrix
-                        self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
+                        # self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
+                        self.zern_coeff_detect = np.dot(conv_matrix, slope)
 
                         # Get residual zernike error and calculate root mean square (rms) error
                         zern_err, zern_err_part = (self.zern_coeff_detect.copy() for c in range(2))
