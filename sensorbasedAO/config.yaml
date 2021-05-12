@@ -144,6 +144,7 @@ RF:
   index_offset: 900  # Index offset in voltage lookup table
 
 tracking:
+  one_hot_encode: 1  # Whether to use one-hot encoded classification network for prediction
   timestep_num: 3  # Number of timesteps for surface tracking
   stride_length: 20  # um, remote-focussing stride applied on DM between timesteps
   feature_num: 6  # Number of Zernike modes used as input features

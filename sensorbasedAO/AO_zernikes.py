@@ -2099,7 +2099,13 @@ class AO_Zernikes(QObject):
                 for i in range(config['tracking']['feature_num']):
                     scaler_input = joblib.load('model_param/scaler_input' + str(i + 1) + '.gz')
                     scaler_input_list.append(scaler_input)
-                scaler_output = joblib.load('model_param/scaler_output.gz')
+                if not config['tracking']['one_hot_encode']:
+                    scaler_output = joblib.load('model_param/scaler_output.gz')
+
+                # Load prediction voltage LUT
+                if config['tracking']['one_hot_encode']:
+                    voltage_LUT = h5py.File('voltage_LUT.mat','r').get('voltage_LUT')
+                    voltage_LUT = np.array(voltage_LUT).T
             except Exception as e:
                 print(e)
 
@@ -2186,13 +2192,15 @@ class AO_Zernikes(QObject):
             zern_coeff_input = zern_coeff_input.reshape(1, config['tracking']['timestep_num'], config['tracking']['feature_num'])
 
             # Predict voltage output
-            voltage_output = loaded_model.predict(zern_coeff_input, verbose = 1)
-            voltage_output_inversed = scaler_output.inverse_transform(voltage_output).ravel()
-            # print(voltage_output_inversed)
-
-            # Send voltages to mirror
-            self.mirror.Send(voltage_output_inversed)
-            # time.sleep(5)
+            if not config['tracking']['one_hot_encode']:
+                voltage_output = loaded_model.predict(zern_coeff_input, verbose = 1)
+                voltage_output_inversed = scaler_output.inverse_transform(voltage_output).ravel()
+                self.mirror.Send(voltage_output_inversed)
+            else:
+                voltage_output_ind = loaded_model.predict(zern_coeff_input, verbose = 1)
+                voltage_output_ind = np.argmax(voltage_output_ind, axis = 1)
+                voltage_output = voltage_LUT(voltage_output_ind, :)
+                self.mirror.Send(voltage_output)
 
             # Reset mirror
             # self.mirror.Reset()
