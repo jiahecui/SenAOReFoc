@@ -2081,7 +2081,6 @@ class AO_Zernikes(QObject):
             get_dset(self.SB_settings, 'zern_AO_1', flag = 1)
             data_file = h5py.File('data_info.h5', 'a')
             data_set_1 = data_file['AO_img']['zern_AO_1']
-            data_set_2 = data_file['AO_info']['zern_AO_1']
 
             try:
                 # Load YAML and create model
@@ -2119,18 +2118,15 @@ class AO_Zernikes(QObject):
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
                        
-            prev1 = time.perf_counter()
-
             self.mirror.Reset()
+
+            prev1 = time.perf_counter()
 
             # Detect the wavefront for each timestep position
             for j in range(config['tracking']['timestep_num']):
 
-                try:
-                    RF_index = int(timestep_pos[j] // config['RF']['step_incre']) + config['RF']['index_offset']
-                    voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
-                except Exception as e:
-                    print(e)
+                RF_index = int(timestep_pos[j] // config['RF']['step_incre']) + config['RF']['index_offset']
+                voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
 
                 # Detect wavefront at different timestep positions
                 if self.loop:
@@ -2147,24 +2143,28 @@ class AO_Zernikes(QObject):
                         time.sleep(config['DM']['settling_time'])
 
                         # Acquire S-H spot image 
-                        self._image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                        self._image = np.mean(self._image_stack, axis = 2)
+                        self._image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                        # self._image = np.mean(self._image_stack, axis = 2)
 
                         # Image thresholding to remove background
                         self._image = self._image - config['image']['threshold'] * np.amax(self._image)
                         self._image[self._image < 0] = 0
                         self.image.emit(self._image)
 
+                        prev6 = time.perf_counter()
+
                         # Append image to list
                         dset_append(data_set_1, 'real_AO_img', self._image)
+
+                        prev7 = time.perf_counter()
+                        # print('Time for appending image is: {} s'.format(prev7 - prev6))
 
                         # Calculate centroids of S-H spots
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 3)
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
 
-                        # Draw actual S-H spot centroids on image layer
-                        self._image.ravel()[act_cent_coord.astype(int)] = 0
-                        self.image.emit(self._image)
+                        prev8 = time.perf_counter()
+                        # print('Time for centroiding is: {} s'.format(prev8 - prev7))
 
                         # Take tip\tilt off
                         slope_x -= np.mean(slope_x)
@@ -2184,6 +2184,9 @@ class AO_Zernikes(QObject):
 
                     self.done3.emit()
 
+            prev9 = time.perf_counter()
+            print('Time for timestep measurements is: {} s'.format(prev9 - prev1))
+
             # Normalise data input
             for i in range(config['tracking']['feature_num']):
                 zern_coeff_input[:, i] = scaler_input_list[i].transform(self.zern_coeffs_detect[:, config['tracking']['feature_indice'][i]].reshape(-1,1)).ravel()
@@ -2193,13 +2196,13 @@ class AO_Zernikes(QObject):
 
             # Predict voltage output
             if not config['tracking']['one_hot_encode']:
-                voltage_output = loaded_model.predict(zern_coeff_input, verbose = 1)
+                voltage_output = loaded_model(zern_coeff_input, training = False)
                 voltage_output_inversed = scaler_output.inverse_transform(voltage_output).ravel()
                 self.mirror.Send(voltage_output_inversed)
             else:
                 voltage_output_ind = loaded_model.predict(zern_coeff_input, verbose = 1)
                 voltage_output_ind = np.argmax(voltage_output_ind, axis = 1)
-                voltage_output = voltage_LUT(voltage_output_ind, :)
+                voltage_output = voltage_LUT[voltage_output_ind, :]
                 self.mirror.Send(voltage_output)
 
             # Reset mirror

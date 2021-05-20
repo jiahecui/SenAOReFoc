@@ -127,6 +127,9 @@ class App(QApplication):
                 sensor = None
 
         self.devices['sensor'] = sensor
+
+        # Start camera acquisition
+        self.devices['sensor'].start_acquisition()
         
         # Add deformable mirror
         if config['dummy']:

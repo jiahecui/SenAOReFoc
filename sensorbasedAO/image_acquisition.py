@@ -25,15 +25,16 @@ def acq_image(sensor, height, width, acq_mode = 0):
     # Create instance of Ximea Image to store image data and metadata
     img = xiapi.Image()
 
-    # Start data acquisition for each frame
-    sensor.start_acquisition()
-    
     if acq_mode == 0:
 
         # Acquire one image
-        try:           
+        try:
+            
+            # Trigger image acquisition
+            sensor.set_trigger_software(1)
+
             # Get data and pass them from camera to img
-            sensor.get_image(img, timeout = 1000)
+            sensor.get_image(img, timeout = 100)
 
             # Create numpy array with data from camera, dimensions are determined by imgdataformats
             dataimage = img.get_image_data_numpy()
@@ -55,8 +56,11 @@ def acq_image(sensor, height, width, acq_mode = 0):
         for i in range(config['camera']['frame_num']):
 
             try:
+                # Trigger image acquisition
+                sensor.set_trigger_software(1)
+
                 # Get data and pass them from camera to img
-                sensor.get_image(img, timeout = 1000)
+                sensor.get_image(img, timeout = 100)
 
                 # Create numpy array with data from camera, dimensions are determined by imgdataformats
                 dataimage = img.get_image_data_numpy()
@@ -76,9 +80,6 @@ def acq_image(sensor, height, width, acq_mode = 0):
                     raise
 
         # print('Length of data list is:', np.shape(data)[2])
-
-    # Stop data acquisition
-    sensor.stop_acquisition()
 
     if acq_mode == 0:
         return dataimage

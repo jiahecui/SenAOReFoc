@@ -20,6 +20,7 @@ camera:
   burst_mode: 0  # Flag for whether to use burst mode, 0-burst_mode off, 1-burst_mode on 
   burst_frames: 10
   acq_timing_mode: "XI_ACQ_TIMING_MODE_FRAME_RATE"
+  trigger_source: "XI_TRG_SOFTWARE"
   frame_rate: 20.0  # Hz  20, 3
   sensor_width: 2048  # pixels Ximea - 2048; IDS - 1024
   sensor_height: 2048  # pixels Ximea - 2048; IDS - 1024
@@ -144,7 +145,7 @@ RF:
   index_offset: 900  # Index offset in voltage lookup table
 
 tracking:
-  one_hot_encode: 1  # Whether to use one-hot encoded classification network for prediction
+  one_hot_encode: 0  # Whether to use one-hot encoded classification network for prediction
   timestep_num: 3  # Number of timesteps for surface tracking
   stride_length: 20  # um, remote-focussing stride applied on DM between timesteps
   feature_num: 6  # Number of Zernike modes used as input features

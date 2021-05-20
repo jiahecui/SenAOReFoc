@@ -41,6 +41,9 @@ class SENSOR_XIMEA(xiapi.Camera):
             self.sensor.set_acq_timing_mode(config['camera']['acq_timing_mode'])
             self.sensor.set_framerate(config['camera']['frame_rate'])
 
+        # Set camera trigger mode
+        self.sensor.set_trigger_source(config['camera']['trigger_source'])
+
         super().__init__()
 
 # class SENSOR_IDS(uEye):

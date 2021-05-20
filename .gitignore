@@ -51,8 +51,9 @@ centroid_values/
 correction_voltages/
 
 # network model
+ML_datasets/
+ML_results/
 model_param/
-model_param_archive/
 
 
 

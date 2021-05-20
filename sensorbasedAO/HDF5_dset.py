@@ -1,5 +1,6 @@
 import h5py
 import math
+import time
 import numpy as np
 import scipy as sp
 from scipy import ndimage
@@ -31,7 +32,7 @@ def get_dset(settings, name, flag = 0):
         """
         Function to create HDF5 dataset with specified shape
         """
-        group.create_dataset(name, (0,) + data.shape, maxshape = (3000,) + data.shape, dtype = data.dtype)
+        group.create_dataset(name, (0,) + data.shape, maxshape = (3000,) + data.shape, dtype = data.dtype, chunks = (1,) + data.shape)
 
     # Create dataset shape placeholders
     data_set_img = np.zeros([settings['sensor_height'], settings['sensor_width']])

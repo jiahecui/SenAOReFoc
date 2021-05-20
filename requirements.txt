@@ -14,6 +14,7 @@ h5py
 scikit-image
 Cython
 rpyc
-tensorflow
+tensorflow-gpu
 joblib
 sklearn
+pandas
