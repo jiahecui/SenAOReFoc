@@ -2082,29 +2082,66 @@ class AO_Zernikes(QObject):
             data_file = h5py.File('data_info.h5', 'a')
             data_set_1 = data_file['AO_img']['zern_AO_1']
 
+            # Load network model for central region
             try:
                 # Load YAML and create model
-                yaml_file = open('model_param/model.yaml', 'r')
+                yaml_file = open('model_param/stride20_extended_both_30epochs_model2/model.yaml', 'r')
                 loaded_model_yaml = yaml_file.read()
                 yaml_file.close()
-                loaded_model = model_from_yaml(loaded_model_yaml)
+                loaded_model_0 = model_from_yaml(loaded_model_yaml)
 
                 # Load weights into new model
-                loaded_model.load_weights("model_param/model.h5")
-                print('Model loaded from disk')
+                loaded_model_0.load_weights("model_param/stride20_extended_both_30epochs_model2/model.h5")
+                print('Model_0 loaded from disk')
 
                 # Load MinMaxScaler
-                scaler_input_list = []
+                scaler_input_list_0 = []
                 for i in range(config['tracking']['feature_num']):
-                    scaler_input = joblib.load('model_param/scaler_input' + str(i + 1) + '.gz')
-                    scaler_input_list.append(scaler_input)
-                if not config['tracking']['one_hot_encode']:
-                    scaler_output = joblib.load('model_param/scaler_output.gz')
+                    scaler_input = joblib.load('model_param/stride20_extended_both_30epochs_model2/scaler_input' + str(i + 1) + '.gz')
+                    scaler_input_list_0.append(scaler_input)
+                scaler_output_0 = joblib.load('model_param/stride20_extended_both_30epochs_model2/scaler_output.gz')
+            except Exception as e:
+                print(e)
 
-                # Load prediction voltage LUT
-                if config['tracking']['one_hot_encode']:
-                    voltage_LUT = h5py.File('voltage_LUT.mat','r').get('voltage_LUT')
-                    voltage_LUT = np.array(voltage_LUT).T
+            # Load network model for extended range towards negative axis
+            try:
+                # Load YAML and create model
+                yaml_file = open('model_param/stride20_extended_neg_50epochs_model1/model.yaml', 'r')
+                loaded_model_yaml = yaml_file.read()
+                yaml_file.close()
+                loaded_model_1 = model_from_yaml(loaded_model_yaml)
+
+                # Load weights into new model
+                loaded_model_1.load_weights("model_param/stride20_extended_neg_50epochs_model1/model.h5")
+                print('Model_1 loaded from disk')
+
+                # Load MinMaxScaler
+                scaler_input_list_1 = []
+                for i in range(config['tracking']['feature_num']):
+                    scaler_input = joblib.load('model_param/stride20_extended_neg_50epochs_model1/scaler_input' + str(i + 1) + '.gz')
+                    scaler_input_list_1.append(scaler_input)
+                scaler_output_1 = joblib.load('model_param/stride20_extended_neg_50epochs_model1/scaler_output.gz')
+            except Exception as e:
+                print(e)
+
+            # Load network model for extended range towards positive axis
+            try:
+                # Load YAML and create model
+                yaml_file = open('model_param/stride20_extended_pos_50epochs_model1/model.yaml', 'r')
+                loaded_model_yaml = yaml_file.read()
+                yaml_file.close()
+                loaded_model_2 = model_from_yaml(loaded_model_yaml)
+
+                # Load weights into new model
+                loaded_model_2.load_weights("model_param/stride20_extended_pos_50epochs_model1/model.h5")
+                print('Model_2 loaded from disk')
+
+                # Load MinMaxScaler
+                scaler_input_list_2 = []
+                for i in range(config['tracking']['feature_num']):
+                    scaler_input = joblib.load('model_param/stride20_extended_pos_50epochs_model1/scaler_input' + str(i + 1) + '.gz')
+                    scaler_input_list_2.append(scaler_input)
+                scaler_output_2 = joblib.load('model_param/stride20_extended_pos_50epochs_model1/scaler_output.gz')
             except Exception as e:
                 print(e)
 
@@ -2112,6 +2149,7 @@ class AO_Zernikes(QObject):
             self.zern_coeffs_detect = np.zeros([config['tracking']['timestep_num'], config['AO']['control_coeff_num']])
             zern_coeff_input = np.zeros([config['tracking']['timestep_num'], config['tracking']['feature_num']])
             timestep_pos = [0, - config['tracking']['stride_length'], config['tracking']['stride_length']]
+            timestep_pos_extended = [2 * config['tracking']['stride_length'], - 2 * config['tracking']['stride_length']]
 
             self.message.emit('\nProcess started for surface tracking...')
 
@@ -2151,19 +2189,19 @@ class AO_Zernikes(QObject):
                         self._image[self._image < 0] = 0
                         self.image.emit(self._image)
 
-                        prev6 = time.perf_counter()
+                        # prev6 = time.perf_counter()
 
                         # Append image to list
                         dset_append(data_set_1, 'real_AO_img', self._image)
 
-                        prev7 = time.perf_counter()
+                        # prev7 = time.perf_counter()
                         # print('Time for appending image is: {} s'.format(prev7 - prev6))
 
                         # Calculate centroids of S-H spots
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 3)
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
 
-                        prev8 = time.perf_counter()
+                        # prev8 = time.perf_counter()
                         # print('Time for centroiding is: {} s'.format(prev8 - prev7))
 
                         # Take tip\tilt off
@@ -2184,26 +2222,185 @@ class AO_Zernikes(QObject):
 
                     self.done3.emit()
 
-            prev9 = time.perf_counter()
-            print('Time for timestep measurements is: {} s'.format(prev9 - prev1))
-
             # Normalise data input
             for i in range(config['tracking']['feature_num']):
-                zern_coeff_input[:, i] = scaler_input_list[i].transform(self.zern_coeffs_detect[:, config['tracking']['feature_indice'][i]].reshape(-1,1)).ravel()
+                zern_coeff_input[:, i] = scaler_input_list_0[i].transform(self.zern_coeffs_detect[:, config['tracking']['feature_indice'][i]].reshape(-1,1)).ravel()
 
             # Reshape data input
             zern_coeff_input = zern_coeff_input.reshape(1, config['tracking']['timestep_num'], config['tracking']['feature_num'])
 
+            # Determine output model
+            loaded_model = loaded_model_0
+
+            # Determine scaler output
+            scaler_output = scaler_output_0
+
+            print('Got here 0')
+            print(self.zern_coeffs_detect[config['tracking']['timestep_num'] - 2, 3])
+            print(self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, 3])
+
+            # Determine whether a fourth timestep measurement is needed to feed into extended range network towards negative axis
+            if (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, 3] <= self.zern_coeffs_detect[config['tracking']['timestep_num'] - 3, 3]) \
+                and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 3, 3] <= self.zern_coeffs_detect[config['tracking']['timestep_num'] - 2, 3]) \
+                    and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 2, 3] <= 0.1) and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, 3] >= -0.05):
+
+                    print('Got here 1-0')
+
+                    # Take another timestep measurement in positive direction
+                    RF_index = int(timestep_pos_extended[0] // config['RF']['step_incre']) + config['RF']['index_offset']
+                    voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
+
+                    try:
+
+                        # Apply remote focusing voltages
+                        voltages[:] = config['DM']['vol_bias'] + voltages_defoc
+
+                        # Send voltages to mirror
+                        self.mirror.Send(voltages)
+
+                        # Wait for DM to settle
+                        time.sleep(config['DM']['settling_time'])
+
+                        # Acquire S-H spot image 
+                        self._image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                        # self._image = np.mean(self._image_stack, axis = 2)
+
+                        # Image thresholding to remove background
+                        self._image = self._image - config['image']['threshold'] * np.amax(self._image)
+                        self._image[self._image < 0] = 0
+                        self.image.emit(self._image)
+
+                        # prev6 = time.perf_counter()
+
+                        # Append image to list
+                        dset_append(data_set_1, 'real_AO_img', self._image)
+
+                        # prev7 = time.perf_counter()
+                        # print('Time for appending image is: {} s'.format(prev7 - prev6))
+
+                        # Calculate centroids of S-H spots
+                        act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 3)
+                        act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+
+                        # prev8 = time.perf_counter()
+                        # print('Time for centroiding is: {} s'.format(prev8 - prev7))
+
+                        # Take tip\tilt off
+                        slope_x -= np.mean(slope_x)
+                        slope_y -= np.mean(slope_y)
+
+                        # Concatenate slopes into one slope matrix
+                        slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+
+                        # Get detected zernike coefficients from slope matrix
+                        self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
+                        self.zern_coeffs_detect[config['tracking']['timestep_num'] - 2, :] = self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, :].copy()
+                        self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, :] = self.zern_coeff_detect[:config['AO']['control_coeff_num'], 0].T
+
+                    except Exception as e:
+                        print(e)
+
+                    # Normalise data input
+                    for i in range(config['tracking']['feature_num']):
+                        zern_coeff_input = np.zeros([config['tracking']['timestep_num'], config['tracking']['feature_num']])
+                        zern_coeff_input[:, i] = scaler_input_list_1[i].transform(self.zern_coeffs_detect[:, config['tracking']['feature_indice'][i]].reshape(-1,1)).ravel()
+
+                    # Reshape data input
+                    zern_coeff_input = zern_coeff_input.reshape(1, config['tracking']['timestep_num'], config['tracking']['feature_num'])
+
+                    # Determine output model
+                    loaded_model = loaded_model_1
+
+                    # Determine scaler output
+                    scaler_output = scaler_output_1
+
+                    print('Got here 1-1')     
+
+            # Determine whether a fourth timestep measurement is needed to feed into extended range network towards positive axis
+            if (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, 3] <= self.zern_coeffs_detect[config['tracking']['timestep_num'] - 3, 3]) \
+                and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 3, 3] <= self.zern_coeffs_detect[config['tracking']['timestep_num'] - 2, 3]) \
+                    and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, 3] >= 0) and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 2, 3] <= 0.3):
+
+                    print('Got here 2-0')
+
+                    # Take another timestep measurement in positive direction
+                    RF_index = int(timestep_pos_extended[1] // config['RF']['step_incre']) + config['RF']['index_offset']
+                    voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
+
+                    try:
+
+                        # Apply remote focusing voltages
+                        voltages[:] = config['DM']['vol_bias'] + voltages_defoc
+
+                        # Send voltages to mirror
+                        self.mirror.Send(voltages)
+
+                        # Wait for DM to settle
+                        time.sleep(config['DM']['settling_time'])
+
+                        # Acquire S-H spot image 
+                        self._image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
+                        # self._image = np.mean(self._image_stack, axis = 2)
+
+                        # Image thresholding to remove background
+                        self._image = self._image - config['image']['threshold'] * np.amax(self._image)
+                        self._image[self._image < 0] = 0
+                        self.image.emit(self._image)
+
+                        # prev6 = time.perf_counter()
+
+                        # Append image to list
+                        dset_append(data_set_1, 'real_AO_img', self._image)
+
+                        # prev7 = time.perf_counter()
+                        # print('Time for appending image is: {} s'.format(prev7 - prev6))
+
+                        # Calculate centroids of S-H spots
+                        act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 3)
+                        act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+
+                        # prev8 = time.perf_counter()
+                        # print('Time for centroiding is: {} s'.format(prev8 - prev7))
+
+                        # Take tip\tilt off
+                        slope_x -= np.mean(slope_x)
+                        slope_y -= np.mean(slope_y)
+
+                        # Concatenate slopes into one slope matrix
+                        slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+
+                        # Get detected zernike coefficients from slope matrix
+                        self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
+                        self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, :] = self.zern_coeff_detect[:config['AO']['control_coeff_num'], 0].T
+
+                    except Exception as e:
+                        print(e)
+
+                    # Normalise data input
+                    for i in range(config['tracking']['feature_num']):
+                        zern_coeff_input = np.zeros([config['tracking']['timestep_num'], config['tracking']['feature_num']])
+                        zern_coeff_input[:, i] = scaler_input_list_2[i].transform(self.zern_coeffs_detect[:, config['tracking']['feature_indice'][i]].reshape(-1,1)).ravel()
+
+                    # Reshape data input
+                    zern_coeff_input = zern_coeff_input.reshape(1, config['tracking']['timestep_num'], config['tracking']['feature_num'])
+
+                    # Determine output model
+                    loaded_model = loaded_model_2
+
+                    # Determine scaler output
+                    scaler_output = scaler_output_2
+
+                    print('Got here 2-1')
+
+            # prev9 = time.perf_counter()
+            # print('Time for timestep measurements is: {} s'.format(prev9 - prev1))
+
             # Predict voltage output
-            if not config['tracking']['one_hot_encode']:
-                voltage_output = loaded_model(zern_coeff_input, training = False)
-                voltage_output_inversed = scaler_output.inverse_transform(voltage_output).ravel()
-                self.mirror.Send(voltage_output_inversed)
-            else:
-                voltage_output_ind = loaded_model.predict(zern_coeff_input, verbose = 1)
-                voltage_output_ind = np.argmax(voltage_output_ind, axis = 1)
-                voltage_output = voltage_LUT[voltage_output_ind, :]
-                self.mirror.Send(voltage_output)
+            voltage_output = loaded_model(zern_coeff_input, training = False)
+            voltage_output_inversed = scaler_output.inverse_transform(voltage_output).ravel()
+            self.mirror.Send(voltage_output_inversed)
+
+            print('Got here 3')
 
             # Reset mirror
             # self.mirror.Reset()

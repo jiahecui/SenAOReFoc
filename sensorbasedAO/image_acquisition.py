@@ -34,7 +34,7 @@ def acq_image(sensor, height, width, acq_mode = 0):
             sensor.set_trigger_software(1)
 
             # Get data and pass them from camera to img
-            sensor.get_image(img, timeout = 100)
+            sensor.get_image(img, timeout = 1000)
 
             # Create numpy array with data from camera, dimensions are determined by imgdataformats
             dataimage = img.get_image_data_numpy()
@@ -60,7 +60,7 @@ def acq_image(sensor, height, width, acq_mode = 0):
                 sensor.set_trigger_software(1)
 
                 # Get data and pass them from camera to img
-                sensor.get_image(img, timeout = 100)
+                sensor.get_image(img, timeout = 1000)
 
                 # Create numpy array with data from camera, dimensions are determined by imgdataformats
                 dataimage = img.get_image_data_numpy()
