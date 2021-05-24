@@ -647,6 +647,7 @@ class Main(QMainWindow):
 
         # Start surface tracking via machine learning when pressed
         if not btn.isChecked():
+            self.app.handle_tracking_done()
             btn.setChecked(False)
         else:
             AO_settings = {}

@@ -293,8 +293,8 @@ class Setup_SB(QObject):
             self.done.emit()
 
         except Exception as e:
-            raise
             self.error.emit(e)
+            raise
 
     @Slot()
     def stop(self):

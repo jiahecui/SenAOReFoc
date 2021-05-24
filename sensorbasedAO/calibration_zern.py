@@ -123,8 +123,8 @@ class Calibration_Zern(QObject):
             self.done.emit()
 
         except Exception as e:
-            raise
             self.error.emit(e)
+            raise
 
     @Slot(object)
     def stop(self):

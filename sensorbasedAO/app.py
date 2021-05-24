@@ -212,8 +212,8 @@ class App(QApplication):
             self.devices['mirror'].Reset()
             self.stop_server()
         except Exception as e:
-            raise
             logger.warning("Error on RF stop: {}".format(e))
+            raise
 
     def setup_SB(self, mirror):
         """
@@ -741,7 +741,8 @@ class App(QApplication):
     def handle_SB_done(self):
         """
         Handle end of search block geometry setup
-        """       
+        """  
+        self.workers['SB_worker'].stop()    
         self.threads['SB_thread'].quit()
         self.threads['SB_thread'].wait()
         self.main.ui.initialiseBtn.setChecked(False)
@@ -756,6 +757,7 @@ class App(QApplication):
         """
         Handle end of search block posiioning
         """
+        self.workers['pos_worker'].stop() 
         self.threads['pos_thread'].quit()
         self.threads['pos_thread'].wait()
         self.main.ui.positionBtn.setChecked(False)
@@ -770,6 +772,7 @@ class App(QApplication):
         """
         Handle end of S-H spot centroid calculation
         """
+        self.workers['cent_worker'].stop() 
         self.threads['cent_thread'].quit()
         self.threads['cent_thread'].wait()
         self.main.ui.centroidBtn.setChecked(False)
@@ -784,6 +787,7 @@ class App(QApplication):
         """
         Handle end of deformable mirror calibration
         """
+        self.workers['calib_worker'].stop() 
         self.threads['calib_thread'].quit()
         self.threads['calib_thread'].wait()
         self.main.ui.calibrateBtn.setChecked(False)
@@ -798,6 +802,7 @@ class App(QApplication):
         """
         Handle end of slope - zernike conversion matrix generation
         """
+        self.workers['conv_worker'].stop() 
         self.threads['conv_thread'].quit()
         self.threads['conv_thread'].wait()
         self.main.ui.conversionBtn.setChecked(False)
@@ -812,6 +817,7 @@ class App(QApplication):
         """
         Handle end of deformable mirror calibration via zernikes
         """
+        self.workers['calib2_worker'].stop() 
         self.threads['calib2_thread'].quit()
         self.threads['calib2_thread'].wait()
         self.main.ui.calibrateBtn_2.setChecked(False)
@@ -843,6 +849,7 @@ class App(QApplication):
         """
         Handle end of closed-loop AO control test via Zernikes
         """
+        self.workers['zern_worker'].stop() 
         self.threads['zern_thread'].quit()
         self.threads['zern_thread'].wait()
         self.main.ui.ZernikeTestBtn.setChecked(False)
@@ -863,6 +870,7 @@ class App(QApplication):
         """
         Handle end of closed-loop control process via Zernikes
         """
+        self.workers['zern_AO_worker'].stop()
         self.threads['zern_AO_thread'].quit()
         self.threads['zern_AO_thread'].wait()
         if mode == 1:
@@ -890,6 +898,7 @@ class App(QApplication):
         """
         Handle end of closed-loop control process via slopes
         """
+        self.workers['slopes_AO_worker'].stop()
         self.threads['slopes_AO_thread'].quit()
         self.threads['slopes_AO_thread'].wait()
         if mode == 1:
@@ -936,6 +945,7 @@ class App(QApplication):
         """
         Handle end of SHWS image acquisition
         """
+        self.workers['acq_worker'].stop()
         self.threads['acq_thread'].quit()
         self.threads['acq_thread'].wait()
         self.main.ui.liveAcqBtn.setChecked(False)
@@ -984,6 +994,7 @@ class App(QApplication):
         """
         Handle calibration of remote focusing
         """
+        self.workers['calib_RF_worker'].stop()
         self.threads['calib_RF_thread'].quit()
         self.threads['calib_RF_thread'].wait()
         self.main.ui.calibrateRFBtn.setChecked(False)
@@ -1012,11 +1023,13 @@ class App(QApplication):
         Handle end of remote focusing
         """
         try:
+            self.workers['zern_AO_worker'].stop()
             self.threads['zern_AO_thread'].quit()
             self.threads['zern_AO_thread'].wait()
         except KeyError:
             pass
         try:
+            self.workers['slopes_AO_worker'].stop()
             self.threads['slopes_AO_thread'].quit()
             self.threads['slopes_AO_thread'].wait()
         except KeyError:
@@ -1038,10 +1051,14 @@ class App(QApplication):
         """
         Handle end of surface tracking
         """
-        print('')
+        print()
+        self.workers['zern_AO_worker'].stop()
         self.threads['zern_AO_thread'].quit()
         self.threads['zern_AO_thread'].wait()
+        self.devices['mirror'].Stop()
+        self.devices['mirror'].Reset()
         self.main.ui.trackBtn.setChecked(False)
+        print('Surface tracking function stopped.')
 
     def handle_RF_control(self, val = 0):
         """

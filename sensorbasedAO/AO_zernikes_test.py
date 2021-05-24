@@ -451,8 +451,8 @@ class AO_Zernikes_Test(QObject):
             self.done.emit()
 
         except Exception as e:
-            raise
             self.error.emit(e)
+            raise
 
     @Slot(object)
     def run1(self):
@@ -774,8 +774,8 @@ class AO_Zernikes_Test(QObject):
             self.done.emit()
 
         except Exception as e:
-            raise
             self.error.emit(e)
+            raise
 
     @Slot(object)
     def run2(self):
@@ -1130,8 +1130,8 @@ class AO_Zernikes_Test(QObject):
             self.done.emit()
 
         except Exception as e:
-            raise
             self.error.emit(e)
+            raise
 
     @Slot(object)
     def run3(self):
@@ -1490,8 +1490,8 @@ class AO_Zernikes_Test(QObject):
             self.done.emit()
 
         except Exception as e:
-            raise
             self.error.emit(e)
+            raise
 
     @Slot(object)
     def run4(self):
@@ -2253,8 +2253,8 @@ class AO_Zernikes_Test(QObject):
             self.done.emit()
 
         except Exception as e:
-            raise
             self.error.emit(e)
+            raise
 
     @Slot(object)
     def run5(self):
@@ -2471,8 +2471,8 @@ class AO_Zernikes_Test(QObject):
             self.done.emit()
 
         except Exception as e:
-            raise
             self.error.emit(e)
+            raise
 
     @Slot(object)
     def stop(self):

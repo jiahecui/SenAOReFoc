@@ -559,8 +559,8 @@ class AO_Slopes(QObject):
             self.done.emit(1)
 
         except Exception as e:
-            raise
             self.error.emit(e)
+            raise
 
     @Slot(object)
     def run2(self):
@@ -968,8 +968,8 @@ class AO_Slopes(QObject):
             self.done.emit(2)
 
         except Exception as e:
-            raise
             self.error.emit(e)
+            raise
 
     @Slot(object)
     def run3(self):
@@ -1426,8 +1426,8 @@ class AO_Slopes(QObject):
                 self.done2.emit(1)
 
         except Exception as e:
-            raise
             self.error.emit(e) 
+            raise
 
     @Slot(object)
     def run4(self):
@@ -1889,8 +1889,8 @@ class AO_Slopes(QObject):
                 self.done2.emit(1)
 
         except Exception as e:
-            raise
             self.error.emit(e)   
+            raise
 
     @Slot(object)
     def stop(self):

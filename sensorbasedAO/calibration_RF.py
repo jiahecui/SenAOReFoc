@@ -277,8 +277,8 @@ class Calibration_RF(QObject):
             self.done.emit()
 
         except Exception as e:
-            raise
             self.error.emit(e)
+            raise
 
     @Slot(object)
     def run1(self):
@@ -480,8 +480,8 @@ class Calibration_RF(QObject):
             self.done.emit()
 
         except Exception as e:
-            raise
             self.error.emit(e)
+            raise
 
     @Slot(object)
     def stop(self):

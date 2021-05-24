@@ -67,8 +67,8 @@ class Acquisition(QObject):
             self.done.emit()
 
         except Exception as e:
-            raise
             self.error.emit(e)
+            raise
 
     @Slot(object)
     def run1(self):
@@ -103,8 +103,8 @@ class Acquisition(QObject):
             self.done.emit()
 
         except Exception as e:
-            raise
             self.error.emit(e)
+            raise
 
     @Slot(object)
     def run2(self):
@@ -122,8 +122,8 @@ class Acquisition(QObject):
             self.done.emit()
 
         except Exception as e:
-            raise
             self.error.emit(e)
+            raise
 
     @Slot(object)
     def stop(self):
