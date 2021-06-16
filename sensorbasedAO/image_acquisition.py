@@ -30,14 +30,25 @@ def acq_image(sensor, height, width, acq_mode = 0):
         # Acquire one image
         try:
             
+            # t0 = time.perf_counter()
+
             # Trigger image acquisition
             sensor.set_trigger_software(1)
+
+            # t1 = time.perf_counter()
+            # print('Time for software trigger is: {} s'.format(t1 - t0))
 
             # Get data and pass them from camera to img
             sensor.get_image(img, timeout = 1000)
 
+            # t2 = time.perf_counter()
+            # print('Time for get_image is: {} s'.format(t2 - t1))
+
             # Create numpy array with data from camera, dimensions are determined by imgdataformats
             dataimage = img.get_image_data_numpy()
+
+            # t3 = time.perf_counter()
+            # print('Time for converting to numpy array is: {} s'.format(t3 - t2))
 
             # Bin numpy arrays by cropping central region of sensor to fit on viewer
             start_1 = (np.shape(dataimage)[0] - height) // 2

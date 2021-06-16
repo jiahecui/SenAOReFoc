@@ -2085,72 +2085,71 @@ class AO_Zernikes(QObject):
             # Load network model for central region
             try:
                 # Load YAML and create model
-                yaml_file = open('model_param/stride30_model1/model.yaml', 'r')
+                yaml_file = open('model_param/stride25_5feat_model2/model.yaml', 'r')
                 loaded_model_yaml = yaml_file.read()
                 yaml_file.close()
                 loaded_model_0 = model_from_yaml(loaded_model_yaml)
 
                 # Load weights into new model
-                loaded_model_0.load_weights("model_param/stride30_model1/model.h5")
+                loaded_model_0.load_weights("model_param/stride25_5feat_model2/model.h5")
                 print('Model_0 loaded from disk')
 
                 # Load MinMaxScaler
                 scaler_input_list_0 = []
                 for i in range(config['tracking']['feature_num']):
-                    scaler_input = joblib.load('model_param/stride30_model1/scaler_input' + str(i + 1) + '.gz')
+                    scaler_input = joblib.load('model_param/stride25_5feat_model2/scaler_input' + str(i + 2) + '.gz')
                     scaler_input_list_0.append(scaler_input)
-                scaler_output_0 = joblib.load('model_param/stride30_model1/scaler_output.gz')
+                scaler_output_0 = joblib.load('model_param/stride25_5feat_model2/scaler_output.gz')
             except Exception as e:
                 print(e)
 
             # Load network model for extended range towards negative axis
             try:
                 # Load YAML and create model
-                yaml_file = open('model_param/stride30_extended_neg_50epochs_model1/model.yaml', 'r')
+                yaml_file = open('model_param/stride25_extended_neg_70epochs_5feat_model2/model.yaml', 'r')
                 loaded_model_yaml = yaml_file.read()
                 yaml_file.close()
                 loaded_model_1 = model_from_yaml(loaded_model_yaml)
 
                 # Load weights into new model
-                loaded_model_1.load_weights("model_param/stride30_extended_neg_50epochs_model1/model.h5")
+                loaded_model_1.load_weights("model_param/stride25_extended_neg_70epochs_5feat_model2/model.h5")
                 print('Model_1 loaded from disk')
 
                 # Load MinMaxScaler
                 scaler_input_list_1 = []
                 for i in range(config['tracking']['feature_num']):
-                    scaler_input = joblib.load('model_param/stride30_extended_neg_50epochs_model1/scaler_input' + str(i + 1) + '.gz')
+                    scaler_input = joblib.load('model_param/stride25_extended_neg_70epochs_5feat_model2/scaler_input' + str(i + 2) + '.gz')
                     scaler_input_list_1.append(scaler_input)
-                scaler_output_1 = joblib.load('model_param/stride30_extended_neg_50epochs_model1/scaler_output.gz')
+                scaler_output_1 = joblib.load('model_param/stride25_extended_neg_70epochs_5feat_model2/scaler_output.gz')
             except Exception as e:
                 print(e)
 
             # Load network model for extended range towards positive axis
             try:
                 # Load YAML and create model
-                yaml_file = open('model_param/stride30_extended_pos_50epochs_model1/model.yaml', 'r')
+                yaml_file = open('model_param/stride25_extended_pos_70epochs_5feat_model2/model.yaml', 'r')
                 loaded_model_yaml = yaml_file.read()
                 yaml_file.close()
                 loaded_model_2 = model_from_yaml(loaded_model_yaml)
 
                 # Load weights into new model
-                loaded_model_2.load_weights("model_param/stride30_extended_pos_50epochs_model1/model.h5")
+                loaded_model_2.load_weights("model_param/stride25_extended_pos_70epochs_5feat_model2/model.h5")
                 print('Model_2 loaded from disk')
 
                 # Load MinMaxScaler
                 scaler_input_list_2 = []
                 for i in range(config['tracking']['feature_num']):
-                    scaler_input = joblib.load('model_param/stride30_extended_pos_50epochs_model1/scaler_input' + str(i + 1) + '.gz')
+                    scaler_input = joblib.load('model_param/stride25_extended_pos_70epochs_5feat_model2/scaler_input' + str(i + 2) + '.gz')
                     scaler_input_list_2.append(scaler_input)
-                scaler_output_2 = joblib.load('model_param/stride30_extended_pos_50epochs_model1/scaler_output.gz')
+                scaler_output_2 = joblib.load('model_param/stride25_extended_pos_70epochs_5feat_model2/scaler_output.gz')
             except Exception as e:
                 print(e)
 
-            # Initialise timestep array and array to store detected zernike coefficients
+            # Initialise timestep array to store detected zernike coefficients
             self.zern_coeffs_detect = np.zeros([config['tracking']['timestep_num'], config['AO']['control_coeff_num']])
             zern_coeff_input = np.zeros([config['tracking']['timestep_num'], config['tracking']['feature_num']])
             timestep_pos = [0, - config['tracking']['stride_length'], config['tracking']['stride_length']]
             timestep_pos_extended = [2 * config['tracking']['stride_length'], - 2 * config['tracking']['stride_length']]
-            timestep_pos_extended = [50, - 50]
 
             self.message.emit('\nProcess started for surface tracking...')
 
@@ -2181,9 +2180,14 @@ class AO_Zernikes(QObject):
                         # Wait for DM to settle
                         time.sleep(config['DM']['settling_time'])
 
+                        # prev4 = time.perf_counter()
+
                         # Acquire S-H spot image 
                         self._image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
                         # self._image = np.mean(self._image_stack, axis = 2)
+
+                        # prev5 = time.perf_counter()
+                        # print('Time for acquiring image is: {} s'.format(prev5 - prev4))
 
                         # Image thresholding to remove background
                         self._image = self._image - config['image']['threshold'] * np.amax(self._image)
@@ -2220,6 +2224,7 @@ class AO_Zernikes(QObject):
                         print(e)
 
                 # Normalise data input
+                zern_coeff_input = np.zeros([config['tracking']['timestep_num'], config['tracking']['feature_num']])
                 for i in range(config['tracking']['feature_num']):
                     zern_coeff_input[:, i] = scaler_input_list_0[i].transform(self.zern_coeffs_detect[:, config['tracking']['feature_indice'][i]].reshape(-1,1)).ravel()
 
@@ -2239,7 +2244,7 @@ class AO_Zernikes(QObject):
                 # Determine whether a fourth timestep measurement is needed to feed into extended range network towards negative axis
                 if (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, 3] <= self.zern_coeffs_detect[config['tracking']['timestep_num'] - 3, 3]) \
                     and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 3, 3] <= self.zern_coeffs_detect[config['tracking']['timestep_num'] - 2, 3]) \
-                        and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 2, 3] <= 0.1) and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, 3] >= -0.15):
+                        and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 2, 3] <= 0.1) and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, 3] >= -0.35):
 
                         print('Got here 1-0')
 
@@ -2298,8 +2303,8 @@ class AO_Zernikes(QObject):
                             print(e)
 
                         # Normalise data input
+                        zern_coeff_input = np.zeros([config['tracking']['timestep_num'], config['tracking']['feature_num']])
                         for i in range(config['tracking']['feature_num']):
-                            zern_coeff_input = np.zeros([config['tracking']['timestep_num'], config['tracking']['feature_num']])
                             zern_coeff_input[:, i] = scaler_input_list_1[i].transform(self.zern_coeffs_detect[:, config['tracking']['feature_indice'][i]].reshape(-1,1)).ravel()
 
                         # Reshape data input
@@ -2316,7 +2321,7 @@ class AO_Zernikes(QObject):
                 # Determine whether a fourth timestep measurement is needed to feed into extended range network towards positive axis
                 if (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, 3] <= self.zern_coeffs_detect[config['tracking']['timestep_num'] - 3, 3]) \
                     and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 3, 3] <= self.zern_coeffs_detect[config['tracking']['timestep_num'] - 2, 3]) \
-                        and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, 3] >= 0) and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 2, 3] <= 0.6):
+                        and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, 3] >= 0) and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 2, 3] <= 0.75):
 
                         print('Got here 2-0')
 
@@ -2374,8 +2379,8 @@ class AO_Zernikes(QObject):
                             print(e)
 
                         # Normalise data input
+                        zern_coeff_input = np.zeros([config['tracking']['timestep_num'], config['tracking']['feature_num']])
                         for i in range(config['tracking']['feature_num']):
-                            zern_coeff_input = np.zeros([config['tracking']['timestep_num'], config['tracking']['feature_num']])
                             zern_coeff_input[:, i] = scaler_input_list_2[i].transform(self.zern_coeffs_detect[:, config['tracking']['feature_indice'][i]].reshape(-1,1)).ravel()
 
                         # Reshape data input
@@ -2399,7 +2404,7 @@ class AO_Zernikes(QObject):
 
                 print('Got here 3')
 
-                # time.sleep(1)
+                time.sleep(1)
 
             # Reset mirror
             # self.mirror.Reset()

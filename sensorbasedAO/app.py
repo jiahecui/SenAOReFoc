@@ -1055,8 +1055,8 @@ class App(QApplication):
         self.workers['zern_AO_worker'].stop()
         self.threads['zern_AO_thread'].quit()
         self.threads['zern_AO_thread'].wait()
-        self.devices['mirror'].Stop()
-        self.devices['mirror'].Reset()
+        # self.devices['mirror'].Stop()
+        # self.devices['mirror'].Reset()
         self.main.ui.trackBtn.setChecked(False)
         print('Surface tracking function stopped.')
 

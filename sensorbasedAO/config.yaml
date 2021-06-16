@@ -148,8 +148,8 @@ tracking:
   one_hot_encode: 0  # Whether to use one-hot encoded classification network for prediction
   timestep_num: 3  # Number of timesteps for surface tracking
   stride_length: 25  # um, remote-focussing stride applied on DM between timesteps
-  feature_num: 6  # Number of Zernike modes used as input features
-  feature_indice: [2, 3, 4, 6, 7, 11]  # Zernike modes used as input features
+  feature_num: 5  # Number of Zernike modes used as input features
+  feature_indice: [3, 4, 6, 7, 11]  # Zernike modes used as input features
 
 reflect_prof:
   samp_num: 33  # Flag for choosing the working sample
