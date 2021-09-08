@@ -14,9 +14,6 @@ from ximea import xiapi
 import log
 from config import config
 from image_acquisition import acq_image
-from HDF5_dset import get_mat_dset
-from common import fft_spot_from_phase
-from zernike_phase import zern_phase
 
 logger = log.get_logger(__name__)
 
@@ -81,29 +78,9 @@ class Positioning(QObject):
                 # Acquire image
                 if config['dummy']:
 
-                    # Option 1: Load real phase profile from .mat file
-                    if config['real_phase']:
-
-                        # Retrieve real phase data and S-H spot image
-                        phase = get_mat_dset(self.SB_settings, flag = 1)
-
-                        # Get simulated S-H spots
-                        self._image, self.spot_cent_x, self.spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
-
-                    # Option 2: Leave blank if generate real zernike phase profile using DM control matrix or ideal zernike phase profile
-                    else:
-
-                        self._image = np.zeros([self.sensor_height, self.sensor_width])
-                        self._image[0, 0] = self.outline_int
-
-                        # Retrieve zernike phase map and S-H spot image
-                        # zern_array = self.SB_settings['zernike_array_test']
-
-                        # Generate ideal zernike phase profile
-                        # phase = zern_phase(self.SB_settings, zern_array)
-
-                        # Get simulated S-H spots
-                        # self._image, self.spot_cent_x, self.spot_cent_y = fft_spot_from_phase(self.SB_settings, phase) 
+                    # Leave blank if dummy run
+                    self._image = np.zeros([self.sensor_height, self.sensor_width])
+                    self._image[0, 0] = self.outline_int
 
                 else:
 
@@ -180,7 +157,9 @@ class Positioning(QObject):
                     # Display actual search blocks as they move
                     self.SB_layer_2D_temp = self.SB_layer_2D.copy()
                     self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
-                    if not config['dummy']:
+                    if config['dummy']:
+                        pass
+                    else:
                         self._image_stack = acq_image(self.sensor, self.sensor_height, self.sensor_width, acq_mode = 1)
                         self._image = np.mean(self._image_stack, axis = 2)
                         self._image = self._image - config['image']['threshold'] * np.amax(self._image)
@@ -209,7 +188,9 @@ class Positioning(QObject):
                 # Display original search block positions from previous calibration
                 self.SB_layer_2D_temp = self.SB_layer_2D.copy()
                 self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
-                if not config['dummy']:
+                if config['dummy']:
+                    pass
+                else:
                     self._image_stack = acq_image(self.sensor, self.sensor_height, self.sensor_width, acq_mode = 1)
                     self._image = np.mean(self._image_stack, axis = 2)
                     self._image = self._image - config['image']['threshold'] * np.amax(self._image)

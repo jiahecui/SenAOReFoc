@@ -21,7 +21,7 @@ def get_dset(settings, name, flag = 0):
     Function to update datasets in existing subgroups
 
     Args:
-        flag = 0 for AO_zernikes_test
+        flag = 0 for data_collection
         flag = 1 for AO_zernikes
         flag = 2 for AO_slopes
         flag = 3 for centroiding
@@ -122,25 +122,8 @@ def get_mat_dset(settings, flag = 1):
         flag = 2 - retrieve S-H spot slopes from phase data
     """
     # Retrieve phase data from .mat file
-    # f = h5py.File('sensorbasedAO/UnwrappedPhase_IMG_Blastocyte1_Bottom.mat','r')
-    # f = h5py.File('sensorbasedAO/UnwrappedPhase_IMG_Blastocyte1_Top.mat','r')
-    # f = h5py.File('sensorbasedAO/UnwrappedPhase_IMG_Blastocyte2_Bottom.mat','r')
-    # f = h5py.File('sensorbasedAO/UnwrappedPhase_IMG_Blastocyte2_Top.mat','r')
-    # f = h5py.File('sensorbasedAO/UnwrappedPhase_IMG_Brain30Gly_Bottom.mat','r')
-    f = h5py.File('sensorbasedAO/UnwrappedPhase_IMG_Brain90PBS_Bottom.mat','r')
-    # f = h5py.File('sensorbasedAO/UnwrappedPhase_IMG_MouseOocyte.mat','r')
-    
+    f = h5py.File('exec_files/extracted_phase/UnwrappedPhase_IMG_Blastocyte1_Bottom.mat','r')
     data = f.get('UnwrappedPhase')
-
-    # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte1_Bottom.mat','r')
-    # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte1_Top.mat','r')
-    # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte2_Bottom.mat','r')
-    # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Blastocyte2_Top.mat','r')
-    # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Brain30Gly_Bottom.mat','r')
-    # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_Brain90PBS_Bottom.mat','r')
-    # f = h5py.File('sensorbasedAO/WrappedPhase_IMG_MouseOocyte.mat','r')
-
-    # data = f.get('WrappedPhase')
 
     # Choose working DM along with its parameters
     if config['DM']['DM_num'] == 0:
@@ -149,7 +132,7 @@ def get_mat_dset(settings, flag = 1):
         pupil_diam = config['search_block']['pupil_diam_1']
     
     # Interpolate to suitable size
-    data = np.array(data[130,...]) * config['AO']['lambda'] / (2 * np.pi)  
+    data = np.array(data[20,...]) * config['AO']['lambda'] / (2 * np.pi)  
     mag_fac = pupil_diam / 7.216 * 4
     data_interp = sp.ndimage.zoom(data, mag_fac).T 
     

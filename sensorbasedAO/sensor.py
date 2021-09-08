@@ -62,24 +62,21 @@ class SENSOR_XIMEA(xiapi.Camera):
 #         self.sensor.open(config['camera']['SN'])
 
 #         # Get sensor shape upon initialisation
-#         shape = self.sensor.shape()
-#         print('Shape of sensor upon initialisation is', shape)
+#         print('Shape of sensor is %i' % self.sensor.shape())
 
 #         # Get sensor frame rate upon initialisation and frame rate range 
-#         # frame_rate = self.sensor.get_framerate()
-#         # frame_rate_range = self.sensor.get_framerate_range()
-#         # print('Frame rate of sensor upon initialisation is', frame_rate)
-#         # print('Frame rate range of sensor is', frame_rate_range)
+#         print('Frame rate of sensor is %i', self.sensor.get_framerate())
+#         print('Frame rate range of sensor is %i', self.sensor.get_framerate_range())
 
-#         # Set sensor exposure time (ms)
-#         self.sensor.set_exposure(10.0)
-#         # exp_time = self.sensor.get_exposure()
-#         # print('Exposure time of sensor is', exp_time)
+#         # Set sensor exposure time
+#         self.sensor.set_exposure(config['camera']['exposure'])
+
+#         print('Exposure set to %i us' % self.sensor.get_exposure())
 
 #         # Set sensor auto gain
 #         self.sensor.set_auto_gain(1)
-#         # auto_gain = self.sensor.get_auto_gain()
-#         # print('Auto gain of sensor is', auto_gain)
+
+#         print('Auto gain of sensor is %i', self.sensor.get_auto_gain())
 
 #         super().__init__()
 
@@ -93,12 +90,12 @@ class SENSOR():
 
     @staticmethod
     def get(type = config['camera']['SN']):
-        if type.lower() == '26883050':
+        if type.lower() == config['camera']['SN1']:
             try:
                 sensor = SENSOR_XIMEA()
             except:
                 logger.warning('Unable to load Ximea camera')
-        elif type.lower() == '4002885218':
+        elif type.lower() == config['camera']['SN2']:
             try:
                 sensor = SENSOR_IDS()
             except:
@@ -114,13 +111,3 @@ class SENSOR():
 class SENSOR_dummy():
     def __init__(self):
         logger.info('Dummy sensor loaded')
-
-
-if __name__ == '__main__':
-    main()
-
-
-
-    
-
-

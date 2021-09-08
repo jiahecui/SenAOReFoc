@@ -1,0 +1,1 @@
+To use scanner: setup 32-bit python env

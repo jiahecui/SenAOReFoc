@@ -35,7 +35,7 @@ class Main(QMainWindow):
         self.ui.conversionBtn.clicked.connect(self.on_conversion)
         self.ui.calibrateBtn_2.clicked.connect(self.on_calibrate_zern)
         self.ui.ZernikeOKBtn.clicked.connect(self.get_zernike_settings)
-        self.ui.ZernikeTestBtn.clicked.connect(self.on_zern_test)
+        self.ui.DataCollectBtn.clicked.connect(self.on_data_collect)
         self.ui.ZernikeAOBtn_1.clicked.connect(self.on_zern_AO_1)
         self.ui.ZernikeAOBtn_2.clicked.connect(self.on_zern_AO_2)
         self.ui.ZernikeAOBtn_3.clicked.connect(self.on_zern_AO_3)
@@ -63,7 +63,6 @@ class Main(QMainWindow):
         self.ui.trackBtn.clicked.connect(self.on_track)
         self.ui.serverBtn.clicked.connect(self.on_server)
         self.ui.RFSlider.valueChanged.connect(self.on_control_RF)
-        self.ui.MLDataBtn.clicked.connect(self.on_ML_dataset)
         self.ui.stopBtn.clicked.connect(self.on_stop)
         self.ui.quitBtn.clicked.connect(self.on_quit)
 
@@ -259,13 +258,13 @@ class Main(QMainWindow):
                     btn.setChecked(False)       
                     self.app.handle_message_disp('\nInput too long. Please try again.')
 
-    def on_zern_test(self, checked):
+    def on_data_collect(self, checked):
         """
-        Closed-loop AO control via Zernikes test handler
+        Automated data collection handler
         """
         btn = self.sender()
 
-        # Test closed-loop AO control via Zernikes if pressed
+        # Start data collection if pressed
         if not btn.isChecked():
             btn.setChecked(False)
         else:
@@ -275,8 +274,8 @@ class Main(QMainWindow):
             self.app.handle_AO_info(AO_settings)
             self.app.write_AO_info()
 
-            # Start zern_test
-            self.app.handle_zern_test_start(mode = config['zern_test']['zern_test_mode'])
+            # Start data_collect
+            self.app.handle_data_collect_start(mode = config['data_collect']['data_collect_mode'])
             btn.setChecked(True)
 
     def on_zern_AO_1(self, checked):
@@ -687,20 +686,6 @@ class Main(QMainWindow):
 
         # Control remote focusing if value changed
         self.app.handle_RF_control(RF_val)
-
-    def on_ML_dataset(self, checked):
-        """
-        Generate ML dataset handler
-        """
-        btn = self.sender()
-
-        # Generate ML dataset if pressed
-        if not btn.isChecked():
-            btn.setChecked(False)
-        else:
-            # Start ML_dataset
-            self.app.handle_ML_dataset_start()
-            btn.setChecked(True)
 
     def on_stop(self):
         """

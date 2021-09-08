@@ -1,6 +1,0 @@
-recursive-include site *
-recursive-include samples *
-include eula.md
-include readme.rst
-include index.html
-prune test

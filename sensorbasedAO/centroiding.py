@@ -8,11 +8,8 @@ import time
 import h5py
 import numpy as np
 
-from ximea import xiapi
-
 import log
 from config import config
-from sensor import SENSOR
 from HDF5_dset import dset_append, get_dset
 from image_acquisition import acq_image
 from centroid_acquisition import acq_centroid
@@ -80,7 +77,7 @@ class Centroiding(QObject):
 
             # Select system aberration calibration mode
             if config['sys_calib']['sys_calib_mode'] == 1:
-                voltages = h5py.File('flat_volts_1.mat','r').get('flat_volts')
+                voltages = h5py.File('exec_files/flat_volts_1.mat','r').get('flat_volts')
                 voltages = np.ravel(np.array(voltages))
                 self.mirror.Send(voltages)
 

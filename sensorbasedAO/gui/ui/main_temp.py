@@ -3,13 +3,16 @@
 ################################################################################
 ## Form generated from reading UI file 'main.ui'
 ##
-## Created by: Qt User Interface Compiler version 5.15.2
+## Created by: Qt User Interface Compiler version 5.15.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide2.QtCore import *
-from PySide2.QtGui import *
+from PySide2.QtCore import (QCoreApplication, QDate, QDateTime, QMetaObject,
+    QObject, QPoint, QRect, QSize, QTime, QUrl, Qt)
+from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont,
+    QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter,
+    QPixmap, QRadialGradient)
 from PySide2.QtWidgets import *
 
 from sensorbasedAO.gui.SHViewer import SHViewer
@@ -145,6 +148,7 @@ class Ui_MainWindow(object):
         self.ZernikeOKBtn = QPushButton(self.centralwidget)
         self.ZernikeOKBtn.setObjectName(u"ZernikeOKBtn")
         self.ZernikeOKBtn.setMinimumSize(QSize(0, 20))
+        self.ZernikeOKBtn.setFont(font1)
         self.ZernikeOKBtn.setCheckable(True)
 
         self.gridLayout.addWidget(self.ZernikeOKBtn, 2, 1, 1, 1)
@@ -225,18 +229,18 @@ class Ui_MainWindow(object):
 
         self.gridLayout_2.addWidget(self.slopeAOBtn_1, 0, 1, 1, 1)
 
-        self.ZernikeTestBtn = QPushButton(self.centralwidget)
-        self.ZernikeTestBtn.setObjectName(u"ZernikeTestBtn")
+        self.DataCollectBtn = QPushButton(self.centralwidget)
+        self.DataCollectBtn.setObjectName(u"DataCollectBtn")
         sizePolicy2 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         sizePolicy2.setHorizontalStretch(130)
         sizePolicy2.setVerticalStretch(30)
-        sizePolicy2.setHeightForWidth(self.ZernikeTestBtn.sizePolicy().hasHeightForWidth())
-        self.ZernikeTestBtn.setSizePolicy(sizePolicy2)
-        self.ZernikeTestBtn.setMinimumSize(QSize(130, 30))
-        self.ZernikeTestBtn.setFont(font1)
-        self.ZernikeTestBtn.setCheckable(True)
+        sizePolicy2.setHeightForWidth(self.DataCollectBtn.sizePolicy().hasHeightForWidth())
+        self.DataCollectBtn.setSizePolicy(sizePolicy2)
+        self.DataCollectBtn.setMinimumSize(QSize(130, 30))
+        self.DataCollectBtn.setFont(font1)
+        self.DataCollectBtn.setCheckable(True)
 
-        self.gridLayout_2.addWidget(self.ZernikeTestBtn, 2, 2, 1, 1)
+        self.gridLayout_2.addWidget(self.DataCollectBtn, 2, 2, 1, 1)
 
         self.ZernikeFullBtn = QPushButton(self.centralwidget)
         self.ZernikeFullBtn.setObjectName(u"ZernikeFullBtn")
@@ -599,14 +603,6 @@ class Ui_MainWindow(object):
 
         self.mainContentLayout.addLayout(self.horizontalLayout_3)
 
-        self.MLDataBtn = QPushButton(self.centralwidget)
-        self.MLDataBtn.setObjectName(u"MLDataBtn")
-        self.MLDataBtn.setMinimumSize(QSize(0, 30))
-        self.MLDataBtn.setFont(font1)
-        self.MLDataBtn.setCheckable(True)
-
-        self.mainContentLayout.addWidget(self.MLDataBtn)
-
         self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
         self.mainContentLayout.addItem(self.verticalSpacer_2)
@@ -697,7 +693,7 @@ class Ui_MainWindow(object):
         self.slopeAOBtn_2.setText(QCoreApplication.translate("MainWindow", u"Slope AO 2", None))
         self.ZernikeAOBtn_1.setText(QCoreApplication.translate("MainWindow", u"Zernike AO 1", None))
         self.slopeAOBtn_1.setText(QCoreApplication.translate("MainWindow", u"Slope AO 1", None))
-        self.ZernikeTestBtn.setText(QCoreApplication.translate("MainWindow", u"Zernike Test", None))
+        self.DataCollectBtn.setText(QCoreApplication.translate("MainWindow", u"Data Collection", None))
         self.ZernikeFullBtn.setText(QCoreApplication.translate("MainWindow", u"Zernike Full", None))
         self.slopeFullBtn.setText(QCoreApplication.translate("MainWindow", u"Slope Full", None))
         self.imageAcqLbl.setText(QCoreApplication.translate("MainWindow", u"Image Acquisition", None))
@@ -726,7 +722,6 @@ class Ui_MainWindow(object):
         self.scanBtn.setText(QCoreApplication.translate("MainWindow", u"SCAN", None))
         self.trackBtn.setText(QCoreApplication.translate("MainWindow", u"TRACK SURFACE", None))
         self.serverBtn.setText(QCoreApplication.translate("MainWindow", u"START SERVER", None))
-        self.MLDataBtn.setText(QCoreApplication.translate("MainWindow", u"ML Dataset", None))
         self.displayBox.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Sensorbased AO Software", None))
         self.stopBtn.setText(QCoreApplication.translate("MainWindow", u"STOP", None))
         self.quitBtn.setText(QCoreApplication.translate("MainWindow", u"QUIT", None))

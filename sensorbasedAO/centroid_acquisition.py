@@ -34,7 +34,7 @@ def acq_centroid(settings, flag = 0):
 
     subgroup_options = {0 : data_file['centroiding_img'],
                         1 : data_file['calibration_img'],
-                        2 : data_file['AO_img']['zern_test'],
+                        2 : data_file['AO_img']['data_collect'],
                         3 : data_file['AO_img']['zern_AO_1'],
                         4 : data_file['AO_img']['slope_AO_1'],
                         5 : data_file['AO_img']['zern_AO_2'],

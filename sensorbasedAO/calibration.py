@@ -7,7 +7,6 @@ import os
 import argparse
 import time
 import h5py
-from PIL import Image
 import numpy as np
 
 import log
@@ -15,7 +14,6 @@ from config import config
 from HDF5_dset import dset_append, get_dset
 from image_acquisition import acq_image
 from centroid_acquisition import acq_centroid
-from gaussian_inf import inf_diff
 
 logger = log.get_logger(__name__)
 
@@ -136,8 +134,10 @@ class Calibration(QObject):
             if config['dummy']:
 
                 """
-                Get DM control matrix via slopes by modeling influence function of each actuator as a Gaussian function
+                Get real DM calibration functions
                 """
+                self.message.emit('\nDM calibration process started...')
+                
                 # Get diameter spacing of one actuator
                 act_diam = self.pupil_diam / self.aperture * self.pitch / self.SB_settings['pixel_size']
 
@@ -147,74 +147,15 @@ class Calibration(QObject):
                 elif config['DM']['DM_num'] == 1:
                     xc, yc = self.act_coord_2(act_diam)
 
-                # Get size of individual elements within each search block
-                self.elem_size = self.SB_settings['SB_diam'] / config['search_block']['div_elem']
+                s = np.array(h5py.File('exec_files/real_calib_func/inf_matrix_slopes_SV.mat','r').get('inf_matrix_slopes_SV')).T
+                self.inf_matrix_slopes = np.array(h5py.File('exec_files/real_calib_func/inf_matrix_slopes.mat','r').get('inf_matrix_slopes')).T
+                self.control_matrix_slopes = np.array(h5py.File('exec_files/real_calib_func/control_matrix_slopes.mat','r').get('control_matrix_slopes')).T
+                self.slope_x = np.array(h5py.File('exec_files/real_calib_func/calib_slope_x.mat','r').get('calib_slope_x')).T
+                self.slope_y = np.array(h5py.File('exec_files/real_calib_func/calib_slope_y.mat','r').get('calib_slope_y')).T
+                svd_check_slopes = np.array(h5py.File('exec_files/real_calib_func/svd_check_slopes.mat','r').get('svd_check_slopes')).T
 
-                # Get reference centroid coordinates with pupil centre as zero coordinate
-                self.centred_ref_cent_coord_x = self.SB_settings['act_ref_cent_coord_x'] - \
-                    self.SB_settings['sensor_width'] // 2 - self.SB_settings['act_SB_offset_x']
-                self.centred_ref_cent_coord_y = self.SB_settings['act_ref_cent_coord_y'] - \
-                    self.SB_settings['sensor_height'] // 2 - self.SB_settings['act_SB_offset_y']
-
-                # Start calibrating DM by calculating averaged derivatives of Gaussian distribution actuator influence function
-                if self.calibrate:
-
-                    self.message.emit('\nDM calibration process started...')
-                    for i in range(self.SB_settings['act_ref_cent_num']):
-
-                        # Get reference centroid coords of each element
-                        elem_ref_cent_coord_x = np.arange(self.centred_ref_cent_coord_x[i] - self.SB_settings['SB_rad'] + self.elem_size / 2, \
-                            self.centred_ref_cent_coord_x[i] + self.SB_settings['SB_rad'] - self.elem_size / 2, self.elem_size)
-                        elem_ref_cent_coord_y = np.arange(self.centred_ref_cent_coord_y[i] - self.SB_settings['SB_rad'] + self.elem_size / 2, \
-                            self.centred_ref_cent_coord_y[i] + self.SB_settings['SB_rad'] - self.elem_size / 2, self.elem_size)
-
-                        elem_ref_cent_coord_xx, elem_ref_cent_coord_yy = np.meshgrid(elem_ref_cent_coord_x, elem_ref_cent_coord_y)
-
-                        # Get averaged derivatives of the modeled Gaussian influence function
-                        for j in range(self.actuator_num):                          
-                            
-                            self.inf_matrix_slopes[i, j] = inf_diff(elem_ref_cent_coord_xx, elem_ref_cent_coord_yy, xc, yc, j, act_diam, True)
-                            self.inf_matrix_slopes[i + self.SB_settings['act_ref_cent_num'], j] = \
-                                inf_diff(elem_ref_cent_coord_xx, elem_ref_cent_coord_yy, xc, yc, j, act_diam, False)
-                           
-                    # Take pixel size and lenslet focal length into account
-                    self.inf_matrix_slopes = self.inf_matrix_slopes / self.SB_settings['pixel_size'] * config['lenslet']['lenslet_focal_length']
-
-                    # print('Influence function is:', self.inf_matrix_slopes)
-
-                    # Calculate singular value decomposition of influence function matrix
-                    u, s, vh = np.linalg.svd(self.inf_matrix_slopes, full_matrices = False)
-
-                    # print('u: {}, s: {}, vh: {}'.format(u, s, vh))
-                    # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
-
-                    # Calculate pseudo inverse of influence function matrix to get final control matrix
-                    self.control_matrix_slopes = np.linalg.pinv(self.inf_matrix_slopes)
-
-                    svd_check_slopes = np.dot(self.control_matrix_slopes, self.inf_matrix_slopes)
-
-                    # Get corresponding slope values generated with a unit voltage and calculated influence function matrix
-                    voltages = np.zeros(self.actuator_num)
-                    self.slope_x, self.slope_y = (np.zeros([2 * self.actuator_num, self.SB_settings['act_ref_cent_num']]) for i in range(2))
-
-                    for i in range(self.actuator_num):
-
-                        voltages_temp = voltages.copy()
-
-                        voltages_temp[i] = config['DM']['vol_max']
-                        self.slope_x[2 * i, :] = np.dot(self.inf_matrix_slopes, voltages_temp)[:self.SB_settings['act_ref_cent_num']]
-                        self.slope_y[2 * i, :] = np.dot(self.inf_matrix_slopes, voltages_temp)[self.SB_settings['act_ref_cent_num']:]
-
-                        voltages_temp[i] = config['DM']['vol_min']
-                        self.slope_x[2 * i + 1, :] = np.dot(self.inf_matrix_slopes, voltages_temp)[:self.SB_settings['act_ref_cent_num']]
-                        self.slope_y[2 * i + 1, :] = np.dot(self.inf_matrix_slopes, voltages_temp)[self.SB_settings['act_ref_cent_num']:]
-
-                    print('Largest and smallest slope value for unit voltage along x axis: {}, {}'.format(np.amax(self.slope_x), np.amin(self.slope_x)))
-                    print('Largest and smallest slope value for unit voltage along y axis: {}, {}'.format(np.amax(self.slope_y), np.amin(self.slope_y)))
-
-                    self.message.emit('\nDM calibration process finished.')
-                    # print('Control matrix is:', self.control_matrix_slopes)
-                    # print('Shape of control matrix is:', np.shape(self.control_matrix_slopes))
+                self.message.emit('\nDM calibration process finished.')
+                    
             else:
 
                 """
@@ -358,7 +299,7 @@ class Calibration(QObject):
                 self.mirror_info['calib_slope_x'] = self.slope_x
                 self.mirror_info['calib_slope_y'] = self.slope_y
                 self.mirror_info['svd_check_slopes'] = svd_check_slopes
-                
+
                 if config['dummy']:
                     self.mirror_info['act_pos_x'] = xc
                     self.mirror_info['act_pos_y'] = yc

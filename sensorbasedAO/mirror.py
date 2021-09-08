@@ -53,8 +53,3 @@ class MIRROR():
 class MIRROR_dummy():
     def __init__(self):
         logger.info('Dummy mirror loaded.')
-
-
-if __name__ == '__main__':
-    main()
-

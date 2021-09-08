@@ -8,12 +8,6 @@
 # HDF5
 *.h5
 
-# mat
-*.mat
-
-# xlsx
-*.xlsx
-
 # markdown
 *.md
 
@@ -21,39 +15,17 @@
 venv/
 venv32/
 
-# datafile
-data/
-
-# sample data
-MatlabCodeForExtractPhase/
-
 # pyinstaller
 build/
-*.pyo
-
-# sample file
-sensorbasedAO/sample_ML/
-
-# mems documental files
-MEMS-Python/
+*.pyos
 
 # tiff
 *.tif
 *.tiff
 
-# data folders
-xy_scan_aberr_meas/
-zern_gen_det_cor/
-zern_gen_det_cor_full/
-zern_gen_det_cor_mult_full/
-zern_volts/
-centroid_values/
-correction_voltages/
-
 # network model
 ML_datasets/
 ML_results/
-model_param/
 
 
 

@@ -1,0 +1,301 @@
+backend: tensorflow
+class_name: Sequential
+config:
+  layers:
+  - class_name: InputLayer
+    config:
+      batch_input_shape: !!python/tuple
+      - null
+      - 3
+      - 5
+      dtype: float32
+      name: bidirectional_12_input
+      ragged: false
+      sparse: false
+  - class_name: Bidirectional
+    config:
+      batch_input_shape: !!python/tuple
+      - null
+      - 3
+      - 5
+      dtype: float32
+      layer:
+        class_name: LSTM
+        config:
+          activation: relu
+          activity_regularizer: null
+          bias_constraint: null
+          bias_initializer:
+            class_name: Zeros
+            config: {}
+          bias_regularizer: null
+          dropout: 0.0
+          dtype: float32
+          go_backwards: false
+          implementation: 2
+          kernel_constraint: null
+          kernel_initializer:
+            class_name: HeUniform
+            config:
+              seed: null
+          kernel_regularizer: null
+          name: lstm_12
+          recurrent_activation: sigmoid
+          recurrent_constraint: null
+          recurrent_dropout: 0.0
+          recurrent_initializer:
+            class_name: Orthogonal
+            config:
+              gain: 1.0
+              seed: null
+          recurrent_regularizer: null
+          return_sequences: true
+          return_state: false
+          stateful: false
+          time_major: false
+          trainable: true
+          unit_forget_bias: true
+          units: 128
+          unroll: false
+          use_bias: true
+      merge_mode: concat
+      name: bidirectional_12
+      trainable: true
+  - class_name: BatchNormalization
+    config:
+      axis: !!python/object/apply:tensorflow.python.training.tracking.data_structures.ListWrapper
+      - - 2
+      beta_constraint: null
+      beta_initializer:
+        class_name: Zeros
+        config: {}
+      beta_regularizer: null
+      center: true
+      dtype: float32
+      epsilon: 0.001
+      gamma_constraint: null
+      gamma_initializer:
+        class_name: Ones
+        config: {}
+      gamma_regularizer: null
+      momentum: 0.99
+      moving_mean_initializer:
+        class_name: Zeros
+        config: {}
+      moving_variance_initializer:
+        class_name: Ones
+        config: {}
+      name: batch_normalization_9
+      scale: true
+      trainable: true
+  - class_name: Bidirectional
+    config:
+      dtype: float32
+      layer:
+        class_name: LSTM
+        config:
+          activation: relu
+          activity_regularizer: null
+          bias_constraint: null
+          bias_initializer:
+            class_name: Zeros
+            config: {}
+          bias_regularizer: null
+          dropout: 0.0
+          dtype: float32
+          go_backwards: false
+          implementation: 2
+          kernel_constraint: null
+          kernel_initializer:
+            class_name: HeUniform
+            config:
+              seed: null
+          kernel_regularizer: null
+          name: lstm_13
+          recurrent_activation: sigmoid
+          recurrent_constraint: null
+          recurrent_dropout: 0.0
+          recurrent_initializer:
+            class_name: Orthogonal
+            config:
+              gain: 1.0
+              seed: null
+          recurrent_regularizer: null
+          return_sequences: true
+          return_state: false
+          stateful: false
+          time_major: false
+          trainable: true
+          unit_forget_bias: true
+          units: 128
+          unroll: false
+          use_bias: true
+      merge_mode: concat
+      name: bidirectional_13
+      trainable: true
+  - class_name: BatchNormalization
+    config:
+      axis: !!python/object/apply:tensorflow.python.training.tracking.data_structures.ListWrapper
+      - - 2
+      beta_constraint: null
+      beta_initializer:
+        class_name: Zeros
+        config: {}
+      beta_regularizer: null
+      center: true
+      dtype: float32
+      epsilon: 0.001
+      gamma_constraint: null
+      gamma_initializer:
+        class_name: Ones
+        config: {}
+      gamma_regularizer: null
+      momentum: 0.99
+      moving_mean_initializer:
+        class_name: Zeros
+        config: {}
+      moving_variance_initializer:
+        class_name: Ones
+        config: {}
+      name: batch_normalization_10
+      scale: true
+      trainable: true
+  - class_name: Bidirectional
+    config:
+      dtype: float32
+      layer:
+        class_name: LSTM
+        config:
+          activation: relu
+          activity_regularizer: null
+          bias_constraint: null
+          bias_initializer:
+            class_name: Zeros
+            config: {}
+          bias_regularizer: null
+          dropout: 0.0
+          dtype: float32
+          go_backwards: false
+          implementation: 2
+          kernel_constraint: null
+          kernel_initializer:
+            class_name: HeUniform
+            config:
+              seed: null
+          kernel_regularizer: null
+          name: lstm_14
+          recurrent_activation: sigmoid
+          recurrent_constraint: null
+          recurrent_dropout: 0.0
+          recurrent_initializer:
+            class_name: Orthogonal
+            config:
+              gain: 1.0
+              seed: null
+          recurrent_regularizer: null
+          return_sequences: true
+          return_state: false
+          stateful: false
+          time_major: false
+          trainable: true
+          unit_forget_bias: true
+          units: 128
+          unroll: false
+          use_bias: true
+      merge_mode: concat
+      name: bidirectional_14
+      trainable: true
+  - class_name: BatchNormalization
+    config:
+      axis: !!python/object/apply:tensorflow.python.training.tracking.data_structures.ListWrapper
+      - - 2
+      beta_constraint: null
+      beta_initializer:
+        class_name: Zeros
+        config: {}
+      beta_regularizer: null
+      center: true
+      dtype: float32
+      epsilon: 0.001
+      gamma_constraint: null
+      gamma_initializer:
+        class_name: Ones
+        config: {}
+      gamma_regularizer: null
+      momentum: 0.99
+      moving_mean_initializer:
+        class_name: Zeros
+        config: {}
+      moving_variance_initializer:
+        class_name: Ones
+        config: {}
+      name: batch_normalization_11
+      scale: true
+      trainable: true
+  - class_name: Bidirectional
+    config:
+      dtype: float32
+      layer:
+        class_name: LSTM
+        config:
+          activation: relu
+          activity_regularizer: null
+          bias_constraint: null
+          bias_initializer:
+            class_name: Zeros
+            config: {}
+          bias_regularizer: null
+          dropout: 0.0
+          dtype: float32
+          go_backwards: false
+          implementation: 2
+          kernel_constraint: null
+          kernel_initializer:
+            class_name: HeUniform
+            config:
+              seed: null
+          kernel_regularizer: null
+          name: lstm_15
+          recurrent_activation: sigmoid
+          recurrent_constraint: null
+          recurrent_dropout: 0.0
+          recurrent_initializer:
+            class_name: Orthogonal
+            config:
+              gain: 1.0
+              seed: null
+          recurrent_regularizer: null
+          return_sequences: false
+          return_state: false
+          stateful: false
+          time_major: false
+          trainable: true
+          unit_forget_bias: true
+          units: 128
+          unroll: false
+          use_bias: true
+      merge_mode: concat
+      name: bidirectional_15
+      trainable: true
+  - class_name: Dense
+    config:
+      activation: linear
+      activity_regularizer: null
+      bias_constraint: null
+      bias_initializer:
+        class_name: Zeros
+        config: {}
+      bias_regularizer: null
+      dtype: float32
+      kernel_constraint: null
+      kernel_initializer:
+        class_name: HeUniform
+        config:
+          seed: null
+      kernel_regularizer: null
+      name: dense_3
+      trainable: true
+      units: 69
+      use_bias: true
+  name: sequential_3
+keras_version: 2.4.0

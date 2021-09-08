@@ -289,6 +289,11 @@
               <height>20</height>
              </size>
             </property>
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
             <property name="text">
              <string>OK</string>
             </property>
@@ -491,7 +496,7 @@
            </widget>
           </item>
           <item row="2" column="2">
-           <widget class="QPushButton" name="ZernikeTestBtn">
+           <widget class="QPushButton" name="DataCollectBtn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>130</horstretch>
@@ -510,7 +515,7 @@
              </font>
             </property>
             <property name="text">
-             <string>Zernike Test</string>
+             <string>Data Collection</string>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -1334,27 +1339,6 @@
          </layout>
         </item>
         <item>
-         <widget class="QPushButton" name="MLDataBtn">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>30</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>ML Dataset</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
          <spacer name="verticalSpacer_2">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -1416,7 +1400,7 @@
             <property name="minimumSize">
              <size>
               <width>300</width>
-              <height>50</height>
+              <height>30</height>
              </size>
             </property>
             <property name="font">
@@ -1442,7 +1426,7 @@
             <property name="minimumSize">
              <size>
               <width>300</width>
-              <height>50</height>
+              <height>30</height>
              </size>
             </property>
             <property name="font">

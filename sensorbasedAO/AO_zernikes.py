@@ -2,8 +2,6 @@ from PySide2.QtCore import QThread, QObject, Signal, Slot
 from PySide2.QtWidgets import QApplication
 
 from tensorflow.keras.models import model_from_yaml
-from tensorflow.keras.models import Model
-from sklearn.preprocessing import MinMaxScaler
 
 import logging
 import joblib
@@ -26,7 +24,6 @@ from centroid_acquisition import acq_centroid
 from gaussian_inf import inf
 from common import fft_spot_from_phase
 from zernike_phase import zern_phase
-from reflectance_process import reflect_process
 
 logger = log.get_logger(__name__)
 
@@ -65,19 +62,19 @@ class AO_Zernikes(QObject):
         self.main = main
 
         # Get voltages for remote focusing
-        self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_full_01um_1501.mat','r').get('interp_volts')
+        self.remote_focus_voltages = h5py.File('exec_files/RF_calib_volts_interp_full_01um_1501.mat','r').get('interp_volts')
         self.remote_focus_voltages = np.array(self.remote_focus_voltages).T
         
         # Get voltages for generating Zernike modes in one shot
         if config['AO']['zern_gen'] == 2:
             if config['AO']['gen_volts_flag'] == 0:
-                self.zern_volts = h5py.File('zern_volts_6_0.05_-v7.3.mat','r').get('zern_volts')
+                self.zern_volts = h5py.File('exec_files/zern_volts/zern_volts_6_0.05_-v7.3.mat','r').get('zern_volts')
                 self.incre_amp = config['AO']['incre_amp_0']
             elif config['AO']['gen_volts_flag'] == 1:
-                self.zern_volts = h5py.File('zern_volts_15_0.02_-v7.3.mat','r').get('zern_volts')
+                self.zern_volts = h5py.File('exec_files/zern_volts/zern_volts_15_0.02_-v7.3.mat','r').get('zern_volts')
                 self.incre_amp = config['AO']['incre_amp_1']
             elif config['AO']['gen_volts_flag'] == 2:
-                self.zern_volts = h5py.File('zern_volts_10_0.02_6-v7.3.mat','r').get('zern_volts')
+                self.zern_volts = h5py.File('exec_files/zern_volts/zern_volts_10_0.02_6-v7.3.mat','r').get('zern_volts')
                 self.incre_amp = config['AO']['incre_amp_2']
 
         # Initialise Zernike coefficient array
@@ -104,33 +101,6 @@ class AO_Zernikes(QObject):
         self.voltages = np.zeros([self.actuator_num, self.AO_settings['loop_max'] + 1])
 
         super().__init__()
-
-    def strehl_calc(self, phase):
-        """
-        Calculates the strehl ratio of a given phase profile
-        """
-        # Get meshgrid of coordinates within phase image
-        coord_xx, coord_yy = self.get_coord_mesh(self.SB_settings['sensor_width'])
-
-        # Get boolean pupil mask
-        pupil_mask = self.get_pupil_mask(coord_xx, coord_yy)
-
-        # Get average phase and phase deviation across pupil aperture
-        phase_ave = np.mean(phase[pupil_mask])
-        phase_std = np.std(phase[pupil_mask])
-        phase_delta = (phase - phase_ave) * pupil_mask
-
-        # print('Max and min values in phase before subtracting average phase: {}, {}'.format(np.amax(phase), np.amin(phase)))
-        # print('Max and min values in phase after subtracting average phase: {}, {}'.format(np.amax(phase_delta), np.amin(phase_delta)))
-        print('Average of phase is:', phase_ave)
-        print('Standard deviation of phase is:', phase_std)
-
-        # Calculate Strehl ratio estimated using only the statistics of the phase deviation, according to Mahajan
-        phase_delta_2 = phase_delta ** 2 * pupil_mask
-        sigma_2 = np.mean(phase_delta_2[pupil_mask])
-        strehl = np.exp(-(2 * np.pi / config['AO']['lambda']) ** 2 * sigma_2)
-
-        return strehl
 
     def phase_calc(self, voltages):
         """
@@ -222,21 +192,12 @@ class AO_Zernikes(QObject):
                                 zern_array[:len(zern_array_temp), 0] = zern_array_temp
 
                                 mode_index = np.nonzero(zern_array)[0][0]
-                                # mode_index_0 = np.nonzero(zern_array)[0][0]
-                                # mode_index_1 = np.nonzero(zern_array)[0][1]
-                                # mode_index_2 = np.nonzero(zern_array)[0][2]
-                                # mode_index_3 = np.nonzero(zern_array)[0][3]
-                                # print('mode_index_0:', mode_index_0)
-                                # print('mode_index_1:', mode_index_1)
-                                # print('mode_index_2:', mode_index_2)
-                                # print('mode_index_3:', mode_index_3)
 
                                 # Determine initial loop gain for generation of each Zernike mode
                                 if zern_array[mode_index, 0] <= 0.2:
                                     loop_gain_gen = 0.2
                                 elif zern_array[mode_index, 0] > 0.2:
                                     loop_gain_gen = 0.3
-                                # loop_gain_gen = 0.2
 
                                 # Run closed-loop to generate a precise amount of Zernike modes using DM
                                 for j in range(config['AO']['loop_max_gen']):
@@ -288,10 +249,6 @@ class AO_Zernikes(QObject):
                                     zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
                                     print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
-                                    # print('Detected amplitude of mode {} is {} um'.format(mode_index_0 + 1, zern_array_det[mode_index_0, 0]))
-                                    # print('Detected amplitude of mode {} is {} um'.format(mode_index_1 + 1, zern_array_det[mode_index_1, 0]))
-                                    # print('Detected amplitude of mode {} is {} um'.format(mode_index_2 + 1, zern_array_det[mode_index_2, 0]))
-                                    # print('Detected amplitude of mode {} is {} um'.format(mode_index_3 + 1, zern_array_det[mode_index_3, 0]))
 
                                     if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.075:
                                         break
@@ -370,28 +327,7 @@ class AO_Zernikes(QObject):
                                     # Retrieve real phase profile
                                     phase_init = get_mat_dset(self.SB_settings, flag = 1)
 
-                                # Option 2: Generate real zernike phase profile using DM control matrix
-                                elif config['real_zernike']:
-
-                                    # Retrieve input zernike coefficient array
-                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
-
-                                    # Pad zernike coefficient array to length of control_coeff_num
-                                    zern_array = np.zeros(config['AO']['control_coeff_num'])
-                                    zern_array[:len(zern_array_temp)] = zern_array_temp
-
-                                    # Retrieve actuator voltages from zernike coefficient array
-                                    voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
-                                        [:,:config['AO']['control_coeff_num']], zern_array))
-                                    
-                                    # Generate zernike phase profile from DM
-                                    phase_init = self.phase_calc(voltages)
-
-                                    # Check whether need to incorporate sample reflectance process
-                                    if config['reflect_on'] == 1:
-                                        phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam)
-                                    
-                                # Option 3: Generate ideal zernike phase profile
+                                # Option 2: Generate ideal zernike phase profile
                                 else:
                                     
                                     # Retrieve input zernike coefficient array
@@ -400,13 +336,8 @@ class AO_Zernikes(QObject):
                                     # Generate ideal zernike phase profile
                                     phase_init = zern_phase(self.SB_settings, zern_array)
 
-                                    # Check whether need to incorporate sample reflectance process
-                                    if config['reflect_on'] == 1:
-                                        phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam) 
-
                                 # Display initial phase
                                 self.image.emit(phase_init)
-                                # time.sleep(60)
 
                                 print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
 
@@ -488,15 +419,10 @@ class AO_Zernikes(QObject):
 
                         strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
                         self.strehl[i] = strehl
-                        if config['dummy']:
-                            strehl_2 = self.strehl_calc(phase)
-                            self.strehl_2[i] = strehl_2
 
                         print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
                         print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
                         print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
-                        if config['dummy']:
-                            print('Strehl ratio {} from phase profile is: {} \n'.format(i, strehl_2))
 
                         # Append data to list
                         if config['dummy']:
@@ -520,8 +446,6 @@ class AO_Zernikes(QObject):
 
                     self.done.emit(1)
 
-            sp.io.savemat('correction_voltages/zern_AO_1_voltages.mat', dict(correction_voltages = self.voltages))
-
             # Close HDF5 file
             data_file.close()
 
@@ -540,8 +464,6 @@ class AO_Zernikes(QObject):
                 self.AO_info['zern_AO_1']['residual_phase_err_zern'] = self.loop_rms_zern
                 self.AO_info['zern_AO_1']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['zern_AO_1']['strehl_ratio'] = self.strehl
-                if config['dummy']:
-                    self.AO_info['zern_AO_1']['strehl_ratio_2'] = self.strehl_2
 
                 self.info.emit(self.AO_info)
                 self.write.emit()
@@ -584,6 +506,9 @@ class AO_Zernikes(QObject):
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
 
+            # Initialise control matrix
+            control_matrix_zern = self.mirror_settings['control_matrix_zern']
+
             prev1 = time.perf_counter()
 
             # Run closed-loop control until tolerance value or maximum loop iteration is reached
@@ -605,21 +530,12 @@ class AO_Zernikes(QObject):
                                 zern_array[:len(zern_array_temp), 0] = zern_array_temp
 
                                 mode_index = np.nonzero(zern_array)[0][0]
-                                # mode_index_0 = np.nonzero(zern_array)[0][0]
-                                # mode_index_1 = np.nonzero(zern_array)[0][1]
-                                # mode_index_2 = np.nonzero(zern_array)[0][2]
-                                # mode_index_3 = np.nonzero(zern_array)[0][3]
-                                # print('mode_index_0:', mode_index_0)
-                                # print('mode_index_1:', mode_index_1)
-                                # print('mode_index_2:', mode_index_2)
-                                # print('mode_index_3:', mode_index_3)
 
                                 # Determine initial loop gain for generation of each Zernike mode
                                 if zern_array[mode_index, 0] <= 0.2:
                                     loop_gain_gen = 0.2
                                 elif zern_array[mode_index, 0] > 0.2:
                                     loop_gain_gen = 0.3
-                                # loop_gain_gen = 0.2
 
                                 # Run closed-loop to generate a precise amount of Zernike modes using DM
                                 for j in range(config['AO']['loop_max_gen']):
@@ -671,10 +587,6 @@ class AO_Zernikes(QObject):
                                     zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
                                     print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
-                                    # print('Detected amplitude of mode {} is {} um'.format(mode_index_0 + 1, zern_array_det[mode_index_0, 0]))
-                                    # print('Detected amplitude of mode {} is {} um'.format(mode_index_1 + 1, zern_array_det[mode_index_1, 0]))
-                                    # print('Detected amplitude of mode {} is {} um'.format(mode_index_2 + 1, zern_array_det[mode_index_2, 0]))
-                                    # print('Detected amplitude of mode {} is {} um'.format(mode_index_3 + 1, zern_array_det[mode_index_3, 0]))
 
                                     if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.075:
                                         break
@@ -734,7 +646,7 @@ class AO_Zernikes(QObject):
                                 voltages[:] = config['DM']['vol_bias']
                         else:
 
-                            voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                            voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(control_matrix_zern\
                                 [:,:config['AO']['control_coeff_num']], zern_err[:config['AO']['control_coeff_num']]))
 
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
@@ -749,29 +661,8 @@ class AO_Zernikes(QObject):
 
                                     # Retrieve real phase profile
                                     phase_init = get_mat_dset(self.SB_settings, flag = 1)
-
-                                # Option 2: Generate real zernike phase profile using DM control matrix
-                                elif config['real_zernike']:
-
-                                    # Retrieve input zernike coefficient array
-                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
-
-                                    # Pad zernike coefficient array to length of control_coeff_num
-                                    zern_array = np.zeros(config['AO']['control_coeff_num'])
-                                    zern_array[:len(zern_array_temp)] = zern_array_temp
-
-                                    # Retrieve actuator voltages from zernike coefficient array
-                                    voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
-                                        [:,:config['AO']['control_coeff_num']], zern_array))
                                     
-                                    # Generate zernike phase profile from DM
-                                    phase_init = self.phase_calc(voltages)
-
-                                    # Check whether need to incorporate sample reflectance process
-                                    if config['reflect_on'] == 1:
-                                        phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam)
-                                    
-                                # Option 3: Generate ideal zernike phase profile
+                                # Option 2: Generate ideal zernike phase profile
                                 else:
                                     
                                     # Retrieve input zernike coefficient array
@@ -779,10 +670,6 @@ class AO_Zernikes(QObject):
                                     
                                     # Generate ideal zernike phase profile
                                     phase_init = zern_phase(self.SB_settings, zern_array)
-
-                                    # Check whether need to incorporate sample reflectance process
-                                    if config['reflect_on'] == 1:
-                                        phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam) 
 
                                 # Display initial phase
                                 self.image.emit(phase_init)
@@ -848,23 +735,17 @@ class AO_Zernikes(QObject):
                             index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'].astype(int) + 1 == 0)[1]
                         else:
                             index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'] == 0)[1]
+
                         print('Number of obscured subapertures:', np.size(index_remove))
                         print('Index of obscured subapertures:', index_remove)
+
                         index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
-                        # print('Shape index_remove_inf:', np.shape(index_remove_inf))
-                        # print('index_remove_inf:', index_remove_inf)
                         slope_x = np.delete(slope_x, index_remove, axis = 1)
                         slope_y = np.delete(slope_y, index_remove, axis = 1)
-                        # print('Shape slope_x:', np.shape(slope_x))
-                        # print('Shape slope_y:', np.shape(slope_y))
                         act_cent_coord = np.delete(act_cent_coord, index_remove, axis = None)
-                        # print('Shape act_cent_coord:', np.shape(act_cent_coord))
                         zern_matrix = np.delete(self.mirror_settings['zern_matrix'].copy(), index_remove, axis = 0)
-                        # print('Shape zern_matrix:', np.shape(zern_matrix))
                         inf_matrix_slopes = np.delete(self.mirror_settings['inf_matrix_slopes'].copy(), index_remove_inf, axis = 0)
-                        # print('Shape inf_matrix_slopes:', np.shape(inf_matrix_slopes))
                         diff_matrix = np.delete(self.mirror_settings['diff_matrix'].copy(), index_remove_inf, axis = 0)
-                        # print('Shape diff_matrix:', np.shape(diff_matrix))
 
                         # Draw actual S-H spot centroids on image layer
                         AO_image.ravel()[act_cent_coord.astype(int)] = 0
@@ -876,16 +757,12 @@ class AO_Zernikes(QObject):
                         # Check whether p_matrix is a lower or upper triangular matrix, if lower -> transpose to upper
                         if np.allclose(p_matrix, np.tril(p_matrix)):
                             p_matrix = p_matrix.T
-                            # print('p_matrix is lower triangular matrix')
-                        # print('Shape p_matrix:', np.shape(p_matrix))
 
                         # Recalculate conversion matrix
                         conv_matrix = np.dot(p_matrix, np.linalg.pinv(diff_matrix))
-                        # print('Shape conv_matrix:', np.shape(conv_matrix))
 
                         # Recalculate influence function via zernikes
                         inf_matrix_zern = np.dot(conv_matrix, inf_matrix_slopes)[:config['AO']['control_coeff_num'], :]
-                        # print('Shape inf_matrix_zern:', np.shape(inf_matrix_zern))
 
                         # Get singular value decomposition of influence function matrix
                         u, s, vh = np.linalg.svd(inf_matrix_zern, full_matrices = False)
@@ -917,15 +794,10 @@ class AO_Zernikes(QObject):
 
                         strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
                         self.strehl[i] = strehl
-                        if config['dummy']:
-                            strehl_2 = self.strehl_calc(phase)
-                            self.strehl_2[i] = strehl_2
 
                         print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
                         print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
                         print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
-                        if config['dummy']:
-                            print('Strehl ratio {} from phase profile is: {} \n'.format(i, strehl_2)) 
 
                         # Append data to list
                         if config['dummy']:
@@ -961,8 +833,6 @@ class AO_Zernikes(QObject):
                 self.AO_info['zern_AO_2']['residual_phase_err_zern'] = self.loop_rms_zern
                 self.AO_info['zern_AO_2']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['zern_AO_2']['strehl_ratio'] = self.strehl
-                if config['dummy']:
-                    self.AO_info['zern_AO_2']['strehl_ratio_2'] = self.strehl_2
 
                 self.info.emit(self.AO_info)
                 self.write.emit()
@@ -1044,21 +914,12 @@ class AO_Zernikes(QObject):
                                     zern_array[:len(zern_array_temp), 0] = zern_array_temp
                                     
                                     mode_index = np.nonzero(zern_array)[0][0]
-                                    # mode_index_0 = np.nonzero(zern_array)[0][0]
-                                    # mode_index_1 = np.nonzero(zern_array)[0][1]
-                                    # mode_index_2 = np.nonzero(zern_array)[0][2]
-                                    # mode_index_3 = np.nonzero(zern_array)[0][3]
-                                    # print('mode_index_0:', mode_index_0)
-                                    # print('mode_index_1:', mode_index_1)
-                                    # print('mode_index_2:', mode_index_2)
-                                    # print('mode_index_3:', mode_index_3)
 
                                     # Determine initial loop gain for generation of each Zernike mode
                                     if zern_array[mode_index, 0] <= 0.2:
                                         loop_gain_gen = 0.2
                                     elif zern_array[mode_index, 0] > 0.2:
                                         loop_gain_gen = 0.3
-                                    # loop_gain_gen = 0.2
                                     
                                     # Run closed-loop to generate a precise amount of Zernike modes using DM
                                     for j in range(config['AO']['loop_max_gen']):
@@ -1110,10 +971,6 @@ class AO_Zernikes(QObject):
                                         zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
                                         print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
-                                        # print('Detected amplitude of mode {} is {} um'.format(mode_index_0 + 1, zern_array_det[mode_index_0, 0]))
-                                        # print('Detected amplitude of mode {} is {} um'.format(mode_index_1 + 1, zern_array_det[mode_index_1, 0]))
-                                        # print('Detected amplitude of mode {} is {} um'.format(mode_index_2 + 1, zern_array_det[mode_index_2, 0]))
-                                        # print('Detected amplitude of mode {} is {} um'.format(mode_index_3 + 1, zern_array_det[mode_index_3, 0]))
 
                                         if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.075:
                                             break
@@ -1197,29 +1054,8 @@ class AO_Zernikes(QObject):
 
                                         # Apply defocus to real phase profile
                                         phase_init += phase_defoc
-
-                                    # Option 2: Generate real zernike phase profile using DM control matrix
-                                    elif config['real_zernike']:
-
-                                        # Retrieve input zernike coefficient array
-                                        zern_array_temp = self.SB_settings['zernike_array_test']
-
-                                        # Pad zernike coefficient array to length of control_coeff_num
-                                        zern_array = np.zeros(config['AO']['control_coeff_num'])
-                                        zern_array[:len(zern_array_temp)] = zern_array_temp
-
-                                        # Retrieve actuator voltages from zernike coefficient array + defocus component 
-                                        voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
-                                            [:,:config['AO']['control_coeff_num']], zern_array)) + voltages_defoc
                                         
-                                        # Generate zernike + defocus phase profile from DM
-                                        phase_init = self.phase_calc(voltages)
-
-                                        # Check whether need to incorporate sample reflectance process
-                                        if config['reflect_on'] == 1:
-                                            phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam)
-                                        
-                                    # Option 3: Generate ideal zernike phase profile
+                                    # Option 2: Generate ideal zernike phase profile
                                     else:
                                         
                                         # Retrieve input zernike coefficient array + defocus component
@@ -1234,10 +1070,6 @@ class AO_Zernikes(QObject):
                                         
                                         # Generate ideal zernike phase profile
                                         phase_init = zern_phase(self.SB_settings, zern_array)
-
-                                        # Check whether need to incorporate sample reflectance process
-                                        if config['reflect_on'] == 1:
-                                            phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam) 
 
                                     # Display initial phase
                                     self.image.emit(phase_init)
@@ -1322,15 +1154,10 @@ class AO_Zernikes(QObject):
 
                             strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
                             self.strehl[i,j] = strehl
-                            if config['dummy']:
-                                strehl_2 = self.strehl_calc(phase)
-                                self.strehl_2[i,j] = strehl_2
 
                             print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
                             print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
-                            print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
-                            if config['dummy']:
-                                print('Strehl ratio {} from phase profile is: {} \n'.format(i, strehl_2))                     
+                            print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))                 
 
                             # Append data to list
                             if config['dummy']:
@@ -1358,8 +1185,6 @@ class AO_Zernikes(QObject):
                             self.done2.emit(0)
                         elif self.focus_settings['focus_mode_flag'] == 1:
                             self.done2.emit(1)
-
-                sp.io.savemat('correction_voltages/zern_AO_3_voltages.mat', dict(correction_voltages = self.voltages))
 
                 print('Final root mean square error of detected wavefront is: {} um'.format(rms_zern))
 
@@ -1437,6 +1262,9 @@ class AO_Zernikes(QObject):
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
 
+            # Initialise control matrix
+            control_matrix_zern = self.mirror_settings['control_matrix_zern']
+
             prev1 = time.perf_counter()
 
             # Run correction for each focus depth
@@ -1473,21 +1301,12 @@ class AO_Zernikes(QObject):
                                     zern_array[:len(zern_array_temp), 0] = zern_array_temp
                                     
                                     mode_index = np.nonzero(zern_array)[0][0]
-                                    # mode_index_0 = np.nonzero(zern_array)[0][0]
-                                    # mode_index_1 = np.nonzero(zern_array)[0][1]
-                                    # mode_index_2 = np.nonzero(zern_array)[0][2]
-                                    # mode_index_3 = np.nonzero(zern_array)[0][3]
-                                    # print('mode_index_0:', mode_index_0)
-                                    # print('mode_index_1:', mode_index_1)
-                                    # print('mode_index_2:', mode_index_2)
-                                    # print('mode_index_3:', mode_index_3)
 
                                     # Determine initial loop gain for generation of each Zernike mode
                                     if zern_array[mode_index, 0] <= 0.2:
                                         loop_gain_gen = 0.2
                                     elif zern_array[mode_index, 0] > 0.2:
                                         loop_gain_gen = 0.3
-                                    # loop_gain_gen = 0.2
 
                                     # Run closed-loop to generate a precise amount of Zernike modes using DM
                                     for j in range(config['AO']['loop_max_gen']):
@@ -1539,10 +1358,6 @@ class AO_Zernikes(QObject):
                                         zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
                                         print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
-                                        # print('Detected amplitude of mode {} is {} um'.format(mode_index_0 + 1, zern_array_det[mode_index_0, 0]))
-                                        # print('Detected amplitude of mode {} is {} um'.format(mode_index_1 + 1, zern_array_det[mode_index_1, 0]))
-                                        # print('Detected amplitude of mode {} is {} um'.format(mode_index_2 + 1, zern_array_det[mode_index_2, 0]))
-                                        # print('Detected amplitude of mode {} is {} um'.format(mode_index_3 + 1, zern_array_det[mode_index_3, 0]))
 
                                         if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.075:
                                             break
@@ -1602,7 +1417,7 @@ class AO_Zernikes(QObject):
                                     voltages[:] = config['DM']['vol_bias'] + voltages_defoc
                             else:
 
-                                voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(control_matrix_zern\
                                 [:,:config['AO']['control_coeff_num']], zern_err_part[:config['AO']['control_coeff_num']]))
 
                                 print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
@@ -1623,29 +1438,8 @@ class AO_Zernikes(QObject):
 
                                         # Apply defocus to real phase profile
                                         phase_init += phase_defoc
-
-                                    # Option 2: Generate real zernike phase profile using DM control matrix
-                                    elif config['real_zernike']:
-
-                                        # Retrieve input zernike coefficient array
-                                        zern_array_temp = self.SB_settings['zernike_array_test']
-
-                                        # Pad zernike coefficient array to length of control_coeff_num
-                                        zern_array = np.zeros(config['AO']['control_coeff_num'])
-                                        zern_array[:len(zern_array_temp)] = zern_array_temp
-
-                                        # Retrieve actuator voltages from zernike coefficient array + defocus component 
-                                        voltages = np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
-                                            [:,:config['AO']['control_coeff_num']], zern_array)) + voltages_defoc
                                         
-                                        # Generate zernike + defocus phase profile from DM
-                                        phase_init = self.phase_calc(voltages)
-
-                                        # Check whether need to incorporate sample reflectance process
-                                        if config['reflect_on'] == 1:
-                                            phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam)
-                                        
-                                    # Option 3: Generate ideal zernike phase profile
+                                    # Option 2: Generate ideal zernike phase profile
                                     else:
                                         
                                         # Retrieve input zernike coefficient array + defocus component
@@ -1660,10 +1454,6 @@ class AO_Zernikes(QObject):
                                         
                                         # Generate ideal zernike phase profile
                                         phase_init = zern_phase(self.SB_settings, zern_array) 
-
-                                        # Check whether need to incorporate sample reflectance process
-                                        if config['reflect_on'] == 1:
-                                            phase_init = reflect_process(self.SB_settings, phase_init, self.pupil_diam)
 
                                     # Display initial phase
                                     self.image.emit(phase_init)
@@ -1729,23 +1519,17 @@ class AO_Zernikes(QObject):
                                 index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'].astype(int) + 1 == 0)[1]
                             else:
                                 index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'] == 0)[1]
+
                             print('Number of obscured subapertures:', np.size(index_remove))
                             print('Index of obscured subapertures:', index_remove)
+
                             index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
-                            # print('Shape index_remove_inf:', np.shape(index_remove_inf))
-                            # print('index_remove_inf:', index_remove_inf)
                             slope_x = np.delete(slope_x, index_remove, axis = 1)
                             slope_y = np.delete(slope_y, index_remove, axis = 1)
-                            # print('Shape slope_x:', np.shape(slope_x))
-                            # print('Shape slope_y:', np.shape(slope_y))
                             act_cent_coord = np.delete(act_cent_coord, index_remove, axis = None)
-                            # print('Shape act_cent_coord:', np.shape(act_cent_coord))
                             zern_matrix = np.delete(self.mirror_settings['zern_matrix'].copy(), index_remove, axis = 0)
-                            # print('Shape zern_matrix:', np.shape(zern_matrix))
                             inf_matrix_slopes = np.delete(self.mirror_settings['inf_matrix_slopes'].copy(), index_remove_inf, axis = 0)
-                            # print('Shape inf_matrix_slopes:', np.shape(inf_matrix_slopes))
                             diff_matrix = np.delete(self.mirror_settings['diff_matrix'].copy(), index_remove_inf, axis = 0)
-                            # print('Shape diff_matrix:', np.shape(diff_matrix))
 
                             # Draw actual S-H spot centroids on image layer
                             AO_image.ravel()[act_cent_coord.astype(int)] = 0
@@ -1757,16 +1541,12 @@ class AO_Zernikes(QObject):
                             # Check whether p_matrix is a lower or upper triangular matrix, if lower -> transpose to upper
                             if np.allclose(p_matrix, np.tril(p_matrix)):
                                 p_matrix = p_matrix.T
-                                # print('p_matrix is lower triangular matrix')
-                            # print('Shape p_matrix:', np.shape(p_matrix))
 
                             # Recalculate conversion matrix
                             conv_matrix = np.dot(p_matrix, np.linalg.pinv(diff_matrix))
-                            # print('Shape conv_matrix:', np.shape(conv_matrix))
 
                             # Recalculate influence function via zernikes
                             inf_matrix_zern = np.dot(conv_matrix, inf_matrix_slopes)[:config['AO']['control_coeff_num'], :]
-                            # print('Shape inf_matrix_zern:', np.shape(inf_matrix_zern))
 
                             # Get singular value decomposition of influence function matrix
                             u, s, vh = np.linalg.svd(inf_matrix_zern, full_matrices = False)
@@ -1798,15 +1578,10 @@ class AO_Zernikes(QObject):
 
                             strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
                             self.strehl[i,j] = strehl
-                            if config['dummy']:
-                                strehl_2 = self.strehl_calc(phase)
-                                self.strehl_2[i,j] = strehl_2
 
                             print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
                             print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
-                            print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
-                            if config['dummy']:
-                                print('Strehl ratio {} from phase profile is: {} \n'.format(i, strehl_2))                  
+                            print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))               
 
                             # Append data to list
                             if config['dummy']:
@@ -1848,8 +1623,6 @@ class AO_Zernikes(QObject):
                 self.AO_info['zern_AO_full']['residual_phase_err_zern'] = self.loop_rms_zern
                 self.AO_info['zern_AO_full']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['zern_AO_full']['strehl_ratio'] = self.strehl
-                if config['dummy']:
-                    self.AO_info['zern_AO_full']['strehl_ratio_2'] = self.strehl_2
 
                 self.info.emit(self.AO_info)
                 self.write.emit()
@@ -1894,7 +1667,6 @@ class AO_Zernikes(QObject):
             get_dset(self.SB_settings, 'zern_AO_1', flag = 1)
             data_file = h5py.File('data_info.h5', 'a')
             data_set_1 = data_file['AO_img']['zern_AO_1']
-            data_set_2 = data_file['AO_info']['zern_AO_1']
 
             # Initialise array to store generated voltages for wavefront detection process
             self.voltages_detect = np.zeros([self.correct_num, self.actuator_num])
@@ -1973,8 +1745,6 @@ class AO_Zernikes(QObject):
                         index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
                         slope_x = np.delete(slope_x, index_remove, axis = 1)
                         slope_y = np.delete(slope_y, index_remove, axis = 1)
-                        act_cent_coord = np.delete(act_cent_coord, index_remove, axis = None)
-                        inf_matrix_slopes = np.delete(self.mirror_settings['inf_matrix_slopes'].copy(), index_remove_inf, axis = 0)
                         conv_matrix = np.delete(self.mirror_settings['conv_matrix'].copy(), index_remove_inf, axis = 1)
                         # print('Number of obscured subapertures:', np.size(index_remove))
 
@@ -1982,13 +1752,11 @@ class AO_Zernikes(QObject):
                         slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
 
                         # Get detected zernike coefficients from slope matrix
-                        # self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
                         self.zern_coeff_detect = np.dot(conv_matrix, slope)
 
                         # Get residual zernike error and calculate root mean square (rms) error
-                        zern_err, zern_err_part = (self.zern_coeff_detect.copy() for c in range(2))
+                        zern_err_part = self.zern_coeff_detect.copy()
                         zern_err_part[[0, 1], 0] = 0
-                        rms_zern = np.sqrt((zern_err ** 2).sum())
                         rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
 
                         strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
@@ -2039,12 +1807,12 @@ class AO_Zernikes(QObject):
             self.mirror.Reset()
 
             # Save data to file
-            sp.io.savemat('ML_training_data/slope_x_detect.mat', dict(slope_x_detect = self.slope_x_detect))
-            sp.io.savemat('ML_training_data/slope_y_detect.mat', dict(slope_y_detect = self.slope_y_detect))
-            sp.io.savemat('ML_training_data/zern_coeffs_detect.mat', dict(zern_coeffs_detect = self.zern_coeffs_detect))
-            sp.io.savemat('ML_training_data/rms_zern_detect.mat', dict(rms_zern_detect = self.rms_zern_detect))
-            sp.io.savemat('ML_training_data/strehl_detect.mat', dict(strehl_detect = self.strehl_detect))
-            sp.io.savemat('ML_training_data/voltages_detect.mat', dict(voltages_detect = self.voltages_detect))
+            sp.io.savemat('data/ML_training_data/slope_x_detect.mat', dict(slope_x_detect = self.slope_x_detect))
+            sp.io.savemat('data/ML_training_data/slope_y_detect.mat', dict(slope_y_detect = self.slope_y_detect))
+            sp.io.savemat('data/ML_training_data/zern_coeffs_detect.mat', dict(zern_coeffs_detect = self.zern_coeffs_detect))
+            sp.io.savemat('data/ML_training_data/rms_zern_detect.mat', dict(rms_zern_detect = self.rms_zern_detect))
+            sp.io.savemat('data/ML_training_data/strehl_detect.mat', dict(strehl_detect = self.strehl_detect))
+            sp.io.savemat('data/ML_training_data/voltages_detect.mat', dict(voltages_detect = self.voltages_detect))
             
             self.message.emit('\nWavefront detection process complete.')
 
@@ -2072,12 +1840,12 @@ class AO_Zernikes(QObject):
             self.start.emit()
 
             """
-            Perform surface tracking via machine learning
+            Perform autofocusing via machine learning
             """
-            # Initialise AO information parameter (reuse zern_AO_1)
+            # Initialise AO information parameter
             self.AO_info = {'zern_AO_1': {}}
 
-            # Create new datasets in HDF5 file to store SH images (reuse zern_AO_1)
+            # Create new datasets in HDF5 file to store SH images
             get_dset(self.SB_settings, 'zern_AO_1', flag = 1)
             data_file = h5py.File('data_info.h5', 'a')
             data_set_1 = data_file['AO_img']['zern_AO_1']
@@ -2085,63 +1853,63 @@ class AO_Zernikes(QObject):
             # Load network model for central region
             try:
                 # Load YAML and create model
-                yaml_file = open('model_param/stride25_5feat_model2/model.yaml', 'r')
+                yaml_file = open('exec_files/model_param/stride25_5feat_model2/model.yaml', 'r')
                 loaded_model_yaml = yaml_file.read()
                 yaml_file.close()
                 loaded_model_0 = model_from_yaml(loaded_model_yaml)
 
                 # Load weights into new model
-                loaded_model_0.load_weights("model_param/stride25_5feat_model2/model.h5")
+                loaded_model_0.load_weights("exec_files/model_param/stride25_5feat_model2/model.h5")
                 print('Model_0 loaded from disk')
 
                 # Load MinMaxScaler
                 scaler_input_list_0 = []
                 for i in range(config['tracking']['feature_num']):
-                    scaler_input = joblib.load('model_param/stride25_5feat_model2/scaler_input' + str(i + 2) + '.gz')
+                    scaler_input = joblib.load('exec_files/model_param/stride25_5feat_model2/scaler_input' + str(i + 2) + '.gz')
                     scaler_input_list_0.append(scaler_input)
-                scaler_output_0 = joblib.load('model_param/stride25_5feat_model2/scaler_output.gz')
+                scaler_output_0 = joblib.load('exec_files/model_param/stride25_5feat_model2/scaler_output.gz')
             except Exception as e:
                 print(e)
 
             # Load network model for extended range towards negative axis
             try:
                 # Load YAML and create model
-                yaml_file = open('model_param/stride25_extended_neg_70epochs_5feat_model2/model.yaml', 'r')
+                yaml_file = open('exec_files/model_param/stride25_extended_neg_70epochs_5feat_model2/model.yaml', 'r')
                 loaded_model_yaml = yaml_file.read()
                 yaml_file.close()
                 loaded_model_1 = model_from_yaml(loaded_model_yaml)
 
                 # Load weights into new model
-                loaded_model_1.load_weights("model_param/stride25_extended_neg_70epochs_5feat_model2/model.h5")
+                loaded_model_1.load_weights("exec_files/model_param/stride25_extended_neg_70epochs_5feat_model2/model.h5")
                 print('Model_1 loaded from disk')
 
                 # Load MinMaxScaler
                 scaler_input_list_1 = []
                 for i in range(config['tracking']['feature_num']):
-                    scaler_input = joblib.load('model_param/stride25_extended_neg_70epochs_5feat_model2/scaler_input' + str(i + 2) + '.gz')
+                    scaler_input = joblib.load('exec_files/model_param/stride25_extended_neg_70epochs_5feat_model2/scaler_input' + str(i + 2) + '.gz')
                     scaler_input_list_1.append(scaler_input)
-                scaler_output_1 = joblib.load('model_param/stride25_extended_neg_70epochs_5feat_model2/scaler_output.gz')
+                scaler_output_1 = joblib.load('exec_files/model_param/stride25_extended_neg_70epochs_5feat_model2/scaler_output.gz')
             except Exception as e:
                 print(e)
 
             # Load network model for extended range towards positive axis
             try:
                 # Load YAML and create model
-                yaml_file = open('model_param/stride25_extended_pos_70epochs_5feat_model2/model.yaml', 'r')
+                yaml_file = open('exec_files/model_param/stride25_extended_pos_70epochs_5feat_model2/model.yaml', 'r')
                 loaded_model_yaml = yaml_file.read()
                 yaml_file.close()
                 loaded_model_2 = model_from_yaml(loaded_model_yaml)
 
                 # Load weights into new model
-                loaded_model_2.load_weights("model_param/stride25_extended_pos_70epochs_5feat_model2/model.h5")
+                loaded_model_2.load_weights("exec_files/model_param/stride25_extended_pos_70epochs_5feat_model2/model.h5")
                 print('Model_2 loaded from disk')
 
                 # Load MinMaxScaler
                 scaler_input_list_2 = []
                 for i in range(config['tracking']['feature_num']):
-                    scaler_input = joblib.load('model_param/stride25_extended_pos_70epochs_5feat_model2/scaler_input' + str(i + 2) + '.gz')
+                    scaler_input = joblib.load('exec_files/model_param/stride25_extended_pos_70epochs_5feat_model2/scaler_input' + str(i + 2) + '.gz')
                     scaler_input_list_2.append(scaler_input)
-                scaler_output_2 = joblib.load('model_param/stride25_extended_pos_70epochs_5feat_model2/scaler_output.gz')
+                scaler_output_2 = joblib.load('exec_files/model_param/stride25_extended_pos_70epochs_5feat_model2/scaler_output.gz')
             except Exception as e:
                 print(e)
 
@@ -2180,34 +1948,21 @@ class AO_Zernikes(QObject):
                         # Wait for DM to settle
                         time.sleep(config['DM']['settling_time'])
 
-                        # prev4 = time.perf_counter()
-
                         # Acquire S-H spot image 
                         self._image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
                         # self._image = np.mean(self._image_stack, axis = 2)
-
-                        # prev5 = time.perf_counter()
-                        # print('Time for acquiring image is: {} s'.format(prev5 - prev4))
 
                         # Image thresholding to remove background
                         self._image = self._image - config['image']['threshold'] * np.amax(self._image)
                         self._image[self._image < 0] = 0
                         self.image.emit(self._image)
 
-                        # prev6 = time.perf_counter()
-
                         # Append image to list
                         dset_append(data_set_1, 'real_AO_img', self._image)
-
-                        # prev7 = time.perf_counter()
-                        # print('Time for appending image is: {} s'.format(prev7 - prev6))
 
                         # Calculate centroids of S-H spots
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 3)
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
-
-                        # prev8 = time.perf_counter()
-                        # print('Time for centroiding is: {} s'.format(prev8 - prev7))
 
                         # Take tip\tilt off
                         slope_x -= np.mean(slope_x)
@@ -2237,7 +1992,6 @@ class AO_Zernikes(QObject):
                 # Determine scaler output
                 scaler_output = scaler_output_0
 
-                print('Got here 0')
                 print(self.zern_coeffs_detect[config['tracking']['timestep_num'] - 2, 3])
                 print(self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, 3])
 
@@ -2272,20 +2026,12 @@ class AO_Zernikes(QObject):
                             self._image[self._image < 0] = 0
                             self.image.emit(self._image)
 
-                            # prev6 = time.perf_counter()
-
                             # Append image to list
                             dset_append(data_set_1, 'real_AO_img', self._image)
-
-                            # prev7 = time.perf_counter()
-                            # print('Time for appending image is: {} s'.format(prev7 - prev6))
 
                             # Calculate centroids of S-H spots
                             act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 3)
                             act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
-
-                            # prev8 = time.perf_counter()
-                            # print('Time for centroiding is: {} s'.format(prev8 - prev7))
 
                             # Take tip\tilt off
                             slope_x -= np.mean(slope_x)
@@ -2349,20 +2095,12 @@ class AO_Zernikes(QObject):
                             self._image[self._image < 0] = 0
                             self.image.emit(self._image)
 
-                            # prev6 = time.perf_counter()
-
                             # Append image to list
                             dset_append(data_set_1, 'real_AO_img', self._image)
-
-                            # prev7 = time.perf_counter()
-                            # print('Time for appending image is: {} s'.format(prev7 - prev6))
 
                             # Calculate centroids of S-H spots
                             act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 3)
                             act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
-
-                            # prev8 = time.perf_counter()
-                            # print('Time for centroiding is: {} s'.format(prev8 - prev7))
 
                             # Take tip\tilt off
                             slope_x -= np.mean(slope_x)
@@ -2393,9 +2131,6 @@ class AO_Zernikes(QObject):
                         scaler_output = scaler_output_2
 
                         print('Got here 2-1')
-
-                # prev9 = time.perf_counter()
-                # print('Time for timestep measurements is: {} s'.format(prev9 - prev1))
 
                 # Predict voltage output
                 voltage_output = loaded_model(zern_coeff_input, training = False)

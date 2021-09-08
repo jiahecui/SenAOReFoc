@@ -1,0 +1,1 @@
+BlastoCyte data all use 20x 0.5NA, mouse oocyte and brain data all use 63x 1.2NA

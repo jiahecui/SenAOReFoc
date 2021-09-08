@@ -1,7 +1,7 @@
 numpy
 Pillow
-nifpga
-PySide2
+nifpga==19.0.0
+PySide2==5.15.0
 qimage2ndarray
 tifffile
 imageio
@@ -9,12 +9,12 @@ pytest
 pytest-qt
 pyyaml
 Click
-scipy
-h5py
+scipy==1.5.4
+h5py==2.9.0
 scikit-image
 Cython
 rpyc
-tensorflow-gpu
+tensorflow-gpu==2.5.0
 joblib
 sklearn
 pandas

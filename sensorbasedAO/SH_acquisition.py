@@ -89,9 +89,9 @@ class Acquisition(QObject):
                     for i in range(np.shape(self._image_stack)[2]):
 
                         # Image thresholding to remove background
-                        self._image_stack[:,:,i] = self._image_stack[:,:,i] - config['image']['threshold'] * np.amax(self._image_stack[:,:,i])
-                        self._image_stack[self._image_stack[:,:,i] < 0] = 0
-                        self.image.emit(self._image_stack[:,:,i])
+                        self._image_stack[:, :, i] = self._image_stack[:, :, i] - config['image']['threshold'] * np.amax(self._image_stack[:, :, i])
+                        self._image_stack[self._image_stack[:, :, i] < 0] = 0
+                        self.image.emit(self._image_stack[:, :, i])
 
                         time.sleep(config['camera']['sleep_time'])
 
@@ -109,7 +109,7 @@ class Acquisition(QObject):
     @Slot(object)
     def run2(self):
         try:
-            # Acquire SH image
+            # Acquire single SH image
             self._image = acq_image(self.sensor, self.sensor_height, self.sensor_width, acq_mode = 0)
 
             # Image thresholding to remove background

@@ -8,7 +8,6 @@ from ximea import xiapi
 
 import log
 from config import config
-from sensor import SENSOR
 
 logger = log.get_logger(__name__)
 
@@ -29,26 +28,15 @@ def acq_image(sensor, height, width, acq_mode = 0):
 
         # Acquire one image
         try:
-            
-            # t0 = time.perf_counter()
 
             # Trigger image acquisition
             sensor.set_trigger_software(1)
 
-            # t1 = time.perf_counter()
-            # print('Time for software trigger is: {} s'.format(t1 - t0))
-
             # Get data and pass them from camera to img
-            sensor.get_image(img, timeout = 1000)
+            sensor.get_image(img, timeout = config['camera']['timeout'])
 
-            # t2 = time.perf_counter()
-            # print('Time for get_image is: {} s'.format(t2 - t1))
-
-            # Create numpy array with data from camera, dimensions are determined by imgdataformats
+            # Create numpy array with data from camera
             dataimage = img.get_image_data_numpy()
-
-            # t3 = time.perf_counter()
-            # print('Time for converting to numpy array is: {} s'.format(t3 - t2))
 
             # Bin numpy arrays by cropping central region of sensor to fit on viewer
             start_1 = (np.shape(dataimage)[0] - height) // 2
@@ -71,9 +59,9 @@ def acq_image(sensor, height, width, acq_mode = 0):
                 sensor.set_trigger_software(1)
 
                 # Get data and pass them from camera to img
-                sensor.get_image(img, timeout = 1000)
+                sensor.get_image(img, timeout = config['camera']['timeout'])
 
-                # Create numpy array with data from camera, dimensions are determined by imgdataformats
+                # Create numpy array with data from camera
                 dataimage = img.get_image_data_numpy()
 
                 # Bin numpy arrays by cropping central region of sensor to fit on viewer
@@ -82,15 +70,13 @@ def acq_image(sensor, height, width, acq_mode = 0):
                 dataimage = dataimage[start_1 : start_1 + height, start_2 : start_2 + width]
 
                 # Append dataimage to data
-                data[:,:,i] = dataimage
+                data[:, :, i] = dataimage
         
             except xiapi.Xi_error as err:
                 if err.status == 10:
                     print('Timeout error occurred.')
                 else:
                     raise
-
-        # print('Length of data list is:', np.shape(data)[2])
 
     if acq_mode == 0:
         return dataimage

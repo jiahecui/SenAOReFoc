@@ -5,23 +5,17 @@ import logging
 import sys
 import os
 import argparse
-import time
 import h5py
 import numpy as np
 
-from datetime import datetime
-
-from alpao.Lib64 import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
-from ximea import xiapi
 # import mtidevice
-# from mtidevice import MTIError, MTIAxes, MTIParam, MTIDataMode, MTISync, MTIDataFormat, MTIAvailableDevices
-# from devwraps.ueye import uEye
+# from mtidevice import MTIParam
 
 import log
 from config import config
 from sensor import SENSOR
 from mirror import MIRROR
-# from scanner import SCANNER
+from scanner import SCANNER
 from server import SERVER
 from gui.main import Main
 from SB_geometry import Setup_SB
@@ -31,11 +25,10 @@ from calibration import Calibration
 from conversion import Conversion
 from calibration_zern import Calibration_Zern
 from calibration_RF import Calibration_RF
-from AO_zernikes_test import AO_Zernikes_Test
+from data_collection import Data_Collection
 from AO_zernikes import AO_Zernikes
 from AO_slopes import AO_Slopes
 from SH_acquisition import Acquisition
-from ML_dataset_gen import ML_Dataset_Gen
 
 logger = log.get_logger(__name__)
 
@@ -67,7 +60,7 @@ class App(QApplication):
         # Initialise dictionary for storing data info throughout processing of software
         self.data_info = {'SB_info': {}, 'mirror_info': {}, 'centroiding_info': {}, 'AO_info': {}, 'centroiding_img': {}, \
             'calibration_img': {}, 'calibration_RF_img': {}, 'calibration_RF_info': {}, 'AO_img': {}, 'focusing_info': {}}
-        self.AO_group = {'zern_test': {}, 'zern_AO_1': {}, 'zern_AO_2': {}, 'zern_AO_3': {}, 'zern_AO_full': {}, \
+        self.AO_group = {'data_collect': {}, 'zern_AO_1': {}, 'zern_AO_2': {}, 'zern_AO_3': {}, 'zern_AO_full': {}, \
             'slope_AO_1': {}, 'slope_AO_2': {}, 'slope_AO_3': {}, 'slope_AO_full': {}}
 
         # Initialise output HDF5 file
@@ -89,7 +82,7 @@ class App(QApplication):
         self.main.show()
 
         # Initialise remote focusing voltages
-        self.remote_focus_voltages = h5py.File('RF_calib_volts_interp_full_01um_1501.mat','r').get('interp_volts')
+        self.remote_focus_voltages = h5py.File('exec_files/RF_calib_volts_interp_full_01um_1501.mat','r').get('interp_volts')
         self.remote_focus_voltages = np.array(self.remote_focus_voltages).T
 
     def add_server(self):
@@ -129,7 +122,8 @@ class App(QApplication):
         self.devices['sensor'] = sensor
 
         # Start camera acquisition
-        self.devices['sensor'].start_acquisition()
+        if not config['dummy']:
+            self.devices['sensor'].start_acquisition()
         
         # Add deformable mirror
         if config['dummy']:
@@ -145,50 +139,48 @@ class App(QApplication):
         self.devices['mirror'] = mirror
 
         # Add scanner
-        # if config['dummy']:
-        #     scanner = SCANNER.get('debug')
-        # else:
-        #     try:
-        #         scanner = mtidevice.MTIDevice()
-        #         table = scanner.GetAvailableDevices()
+        if config['data_collect']['zern_gen'] in [4, 5]:
+            if config['dummy']:
+                scanner = SCANNER.get('debug')
+            else:
+                try:
 
-        #         if table.NumDevices == 0:
-        #             print('There are no devices available.')
-        #             return None
+                    scanner = mtidevice.MTIDevice()
+                    table = scanner.GetAvailableDevices()
 
-        #         scanner.ListAvailableDevices(table)
-        #         portnumber = config['scanner']['portnumber']
-                
-        #         if os.name == 'nt':
-        #             portName = 'COM' + portnumber
-        #         else:
-        #             portName = '/dev/ttyUSB' + portnumber
+                    if table.NumDevices == 0:
+                        print('There are no devices available.')
+                        return None
 
-        #         scanner.ConnectDevice(portName)
+                    scanner.ListAvailableDevices(table)
+                    portnumber = config['scanner']['portnumber']
+                    
+                    if os.name == 'nt':
+                        portName = 'COM' + portnumber
 
-        #         # Initialise controller parameters
-        #         params = scanner.GetDeviceParams()
-        #         params.VdifferenceMax = 159
-        #         params.HardwareFilterBw = 500
-        #         params.Vbias = 80
-        #         params.SampleRate = 20000
-        #         scanner.SetDeviceParams(params)
+                    scanner.ConnectDevice(portName)
 
-        #         params_temp = scanner.GetDeviceParams()
+                    # Initialise controller parameters
+                    params = scanner.GetDeviceParams()
+                    params.VdifferenceMax = 159
+                    params.HardwareFilterBw = 500
+                    params.Vbias = 80
+                    params.SampleRate = 20000
+                    scanner.SetDeviceParams(params)
 
-        #         # Set controller data mode
-        #         scanner.ResetDevicePosition()
-        #         scanner.StartDataStream()
+                    # Set controller data mode
+                    scanner.ResetDevicePosition()
+                    scanner.StartDataStream()
 
-        #         # Turn the MEMS controller on
-        #         scanner.SetDeviceParam(MTIParam.MEMSDriverEnable, True)
+                    # Turn the MEMS controller on
+                    scanner.SetDeviceParam(MTIParam.MEMSDriverEnable, True)
 
-        #         print('Scanner load success.')
-        #     except Exception as e:
-        #         logger.warning('Scanner load error', e)
-        #         scanner = None
+                    print('Scanner load success.')
+                except Exception as e:
+                    logger.warning('Scanner load error', e)
+                    scanner = None
 
-        # self.devices['scanner'] = scanner
+            self.devices['scanner'] = scanner
 
     def stop_server(self):
         """
@@ -369,43 +361,43 @@ class App(QApplication):
         # Start calibration thread
         calib2_thread.start()
 
-    def control_zern_test(self, sensor, mirror, data_info, mode, scanner):
+    def control_data_collect(self, sensor, mirror, data_info, mode, scanner):
         """
-        Closed-loop AO control via Zernikes test run
+        Perform automated data collection
         """
-        # Create Zernike AO worker and thread
-        zern_thread = QThread()
-        zern_thread.setObjectName('zern_thread')
-        zern_worker = AO_Zernikes_Test(sensor, mirror, data_info, scanner)
-        zern_worker.moveToThread(zern_thread)
+        # Create data collection worker and thread
+        data_collect_thread = QThread()
+        data_collect_thread.setObjectName('data_collect_thread')
+        data_collect_worker = Data_Collection(sensor, mirror, data_info, scanner)
+        data_collect_worker.moveToThread(data_collect_thread)
 
         # Connect to signals
         if mode == 0:
-            zern_thread.started.connect(zern_worker.run0)
+            data_collect_thread.started.connect(data_collect_worker.run0)
         elif mode == 1:
-            zern_thread.started.connect(zern_worker.run1)
+            data_collect_thread.started.connect(data_collect_worker.run1)
         elif mode == 2:
-            zern_thread.started.connect(zern_worker.run2)
+            data_collect_thread.started.connect(data_collect_worker.run2)
         elif mode == 3:
-            zern_thread.started.connect(zern_worker.run3)
+            data_collect_thread.started.connect(data_collect_worker.run3)
         elif mode == 4:
-            zern_thread.started.connect(zern_worker.run4)
+            data_collect_thread.started.connect(data_collect_worker.run4)
         elif mode == 5:
-            zern_thread.started.connect(zern_worker.run5)
+            data_collect_thread.started.connect(data_collect_worker.run5)
 
-        zern_worker.done.connect(self.handle_zern_test_done)
-        zern_worker.image.connect(lambda obj: self.handle_image_disp(obj))   
-        zern_worker.message.connect(lambda obj: self.handle_message_disp(obj))
-        zern_worker.info.connect(lambda obj: self.handle_AO_info(obj))
-        zern_worker.write.connect(self.write_AO_info)
-        zern_worker.error.connect(lambda obj: self.handle_error(obj))
+        data_collect_worker.done.connect(self.handle_data_collect_done)
+        data_collect_worker.image.connect(lambda obj: self.handle_image_disp(obj))   
+        data_collect_worker.message.connect(lambda obj: self.handle_message_disp(obj))
+        data_collect_worker.info.connect(lambda obj: self.handle_AO_info(obj))
+        data_collect_worker.write.connect(self.write_AO_info)
+        data_collect_worker.error.connect(lambda obj: self.handle_error(obj))
 
-        # Store Zernike AO worker and thread
-        self.workers['zern_worker'] = zern_worker
-        self.threads['zern_thread'] = zern_thread
+        # Store data collection worker and thread
+        self.workers['data_collect_worker'] = data_collect_worker
+        self.threads['data_collect_thread'] = data_collect_thread
 
-        # Start Zernike AO thread
-        zern_thread.start()
+        # Start data collection thread
+        data_collect_thread.start()
 
     def control_zern_AO(self, sensor, mirror, data_info, mode):
         """
@@ -545,30 +537,6 @@ class App(QApplication):
 
         # Start calib_RF thread
         calib_RF_thread.start()
-
-    def ML_dataset_gen(self, sensor, mirror, data_info):
-        """
-        Generate ML dataset
-        """
-        # Create ML dataset worker and thread
-        ML_thread = QThread()
-        ML_thread.setObjectName('ML_thread')
-        ML_worker = ML_Dataset_Gen(sensor, mirror, data_info)
-        ML_worker.moveToThread(ML_thread)
-
-        # Connect to signals
-        ML_thread.started.connect(ML_worker.run)
-        ML_worker.done.connect(self.handle_ML_dataset_done)
-        ML_worker.message.connect(lambda obj: self.handle_message_disp(obj))
-        ML_worker.error.connect(lambda obj: self.handle_error(obj))
-        ML_worker.image.connect(lambda obj: self.handle_image_disp(obj))
-
-        # Store Zernike AO worker and thread
-        self.workers['ML_worker'] = ML_worker
-        self.threads['ML_thread'] = ML_thread
-
-        # Start Zernike AO thread
-        ML_thread.start()
 
     #========== Signal handlers ==========#
     def HDF5_init(self):
@@ -822,37 +790,35 @@ class App(QApplication):
         self.threads['calib2_thread'].wait()
         self.main.ui.calibrateBtn_2.setChecked(False)
 
-    def handle_zern_test_start(self, mode = 0):
+    def handle_data_collect_start(self, mode = 0):
         """
-        Handle start of Zernike Test button functions
+        Handle start of automated data collection
 
         Args:
             mode = 0 - Run closed-loop AO correction for each generated zernike mode aberration via Zernike control for 
                        all 'control_coeff_num' modes and multiple amplitudes of incremental steps
             mode = 1 - Run closed-loop AO correction for each generated zernike mode aberration via slopes control for 
                        all 'control_coeff_num' modes and multiple amplitudes of incremental steps
-            mode = 2 - Run closed-loop AO correction for some specific zernike mode aberrations via Zernike control with
-                       a fixed amplitude
-            mode = 3 - Run closed-loop AO correction for some specific zernike mode aberrations via slopes control with
-                       a fixed amplitude
+            mode = 2 - Run closed-loop AO correction for certain combinations of zernike mode aberrations via Zernike control
+            mode = 3 - Run closed-loop AO correction for certain combinations of zernike mode aberrations via slopes control
             mode = 4 - Perform a number of line scans on specimen and retrieve zernike coefficients from each scan point
                        with / without aberrations applied on DM 
             mode = 5 - Retrieve zernike coefficients with scanner scanning over full frame exposure time with / without
                        aberrations applied on DM 
         """
         if mode == 4:
-            self.control_zern_test(self.devices['sensor'], self.devices['mirror'], self.data_info, mode, self.devices['scanner'])
+            self.control_data_collect(self.devices['sensor'], self.devices['mirror'], self.data_info, mode, self.devices['scanner'])
         else:
-            self.control_zern_test(self.devices['sensor'], self.devices['mirror'], self.data_info, mode)
+            self.control_data_collect(self.devices['sensor'], self.devices['mirror'], self.data_info, mode)
 
-    def handle_zern_test_done(self):
+    def handle_data_collect_done(self):
         """
-        Handle end of closed-loop AO control test via Zernikes
+        Handle end of automated data collection
         """
-        self.workers['zern_worker'].stop() 
-        self.threads['zern_thread'].quit()
-        self.threads['zern_thread'].wait()
-        self.main.ui.ZernikeTestBtn.setChecked(False)
+        self.workers['data_collect_worker'].stop() 
+        self.threads['data_collect_thread'].quit()
+        self.threads['data_collect_thread'].wait()
+        self.main.ui.DataCollectBtn.setChecked(False)
 
     def handle_zern_AO_start(self, mode = 1):
         """
@@ -1075,20 +1041,6 @@ class App(QApplication):
         self.devices['mirror'].Send(voltages)
 
         print('Focus position: {} um'.format(val))       
-
-    def handle_ML_dataset_start(self):
-        """
-        Handle start of generating ML dataset
-        """
-        self.ML_dataset_gen(self.devices['sensor'], self.devices['mirror'], self.data_info)
-
-    def handle_ML_dataset_done(self):
-        """
-        Handle start of generating ML dataset
-        """
-        self.threads['ML_thread'].quit()
-        self.threads['ML_thread'].wait()
-        self.main.ui.MLDataBtn.setChecked(False)
 
     def stop(self):
         """
