@@ -23,6 +23,7 @@ class Main(QMainWindow):
         self.ui.setupUi(self)
         self.ui.serverSpin.hide()
         self.ui.stopRFSpin.hide()
+        self.ui.serverBtn.hide()
 
         # Initialise instance variables
         self.prev_settings = {}

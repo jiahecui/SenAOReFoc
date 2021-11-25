@@ -1,9 +1,4 @@
-import os
-import sys
-import time
-
 from ximea import xiapi
-# from devwraps.ueye import uEye
 
 import log
 from config import config
@@ -46,40 +41,6 @@ class SENSOR_XIMEA(xiapi.Camera):
 
         super().__init__()
 
-# class SENSOR_IDS(uEye):
-#     """
-#     Create an instance of the uEye class to access its methods, attributes, and the target device at serial port.
-#     """
-#     def __init__(self):
-
-#         # Create uEye instance
-#         self.sensor = uEye()
-
-#         # Get uEye device
-#         self.sensor.get_devices()
-
-#         # Open uEye device
-#         self.sensor.open(config['camera']['SN'])
-
-#         # Get sensor shape upon initialisation
-#         print('Shape of sensor is %i' % self.sensor.shape())
-
-#         # Get sensor frame rate upon initialisation and frame rate range 
-#         print('Frame rate of sensor is %i', self.sensor.get_framerate())
-#         print('Frame rate range of sensor is %i', self.sensor.get_framerate_range())
-
-#         # Set sensor exposure time
-#         self.sensor.set_exposure(config['camera']['exposure'])
-
-#         print('Exposure set to %i us' % self.sensor.get_exposure())
-
-#         # Set sensor auto gain
-#         self.sensor.set_auto_gain(1)
-
-#         print('Auto gain of sensor is %i', self.sensor.get_auto_gain())
-
-#         super().__init__()
-
 
 class SENSOR():
     """
@@ -95,11 +56,6 @@ class SENSOR():
                 sensor = SENSOR_XIMEA()
             except:
                 logger.warning('Unable to load Ximea camera')
-        elif type.lower() == config['camera']['SN2']:
-            try:
-                sensor = SENSOR_IDS()
-            except:
-                logger.warning('Unable to load IDS sensor')
         elif type.lower() == 'debug':
             sensor = SENSOR_dummy()
         else:

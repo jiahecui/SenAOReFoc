@@ -1,7 +1,3 @@
-import sys
-import os
-import argparse
-import time
 import numpy as np
 
 from ximea import xiapi

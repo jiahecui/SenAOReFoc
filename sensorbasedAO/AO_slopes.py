@@ -1,16 +1,9 @@
-from PySide2.QtCore import QThread, QObject, Signal, Slot
-from PySide2.QtWidgets import QApplication
+from PySide2.QtCore import QObject, Signal, Slot
 
-import logging
-import sys
-import os
-import argparse
 import time
 import click
 import h5py
-from scipy import io
 import numpy as np
-import scipy as sp
 
 import log
 from config import config
@@ -36,7 +29,10 @@ class AO_Slopes(QObject):
     message = Signal(object)
     info = Signal(object)
 
-    def __init__(self, sensor, mirror, settings):
+    def __init__(self, sensor, mirror, settings, debug = False):
+
+        # Get debug status
+        self.debug = debug
 
         # Get search block settings
         self.SB_settings = settings['SB_info']
@@ -177,7 +173,7 @@ class AO_Slopes(QObject):
                         if i == 0:
 
                             # Determine whether to generate Zernike modes using DM
-                            if not config['dummy'] and config['AO']['zern_gen'] == 1:
+                            if not self.debug and config['AO']['zern_gen'] == 1:
 
                                 # Retrieve input zernike coefficient array
                                 zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
@@ -258,7 +254,7 @@ class AO_Slopes(QObject):
 
                                     c = click.getchar()
 
-                            elif not config['dummy'] and config['AO']['zern_gen'] == 2:
+                            elif not self.debug and config['AO']['zern_gen'] == 2:
 
                                 # Retrieve input zernike coefficient array
                                 zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
@@ -306,7 +302,7 @@ class AO_Slopes(QObject):
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
                             print('Sum of voltages {} is: {}'.format(i, voltages.sum()))
 
-                        if config['dummy']:
+                        if self.debug:
 
                             # Update phase profile and retrieve S-H spot image 
                             if i == 0:
@@ -376,7 +372,7 @@ class AO_Slopes(QObject):
                         self.image.emit(AO_image)
 
                         # Append image to list
-                        if config['dummy']:
+                        if self.debug:
                             dset_append(data_set_1, 'dummy_AO_img', AO_image)
                         else:
                             dset_append(data_set_1, 'real_AO_img', AO_image)
@@ -427,7 +423,7 @@ class AO_Slopes(QObject):
                             print('Detected amount of mode {} is {}'.format(mode_index, zern_err[mode_index - 1, 0]))
 
                         # Append data to list
-                        if config['dummy']:
+                        if self.debug:
                             dset_append(data_set_2, 'dummy_spot_slope_x', slope_x)
                             dset_append(data_set_2, 'dummy_spot_slope_y', slope_y)
                             dset_append(data_set_2, 'dummy_spot_slope', slope)
@@ -524,7 +520,7 @@ class AO_Slopes(QObject):
                         if i == 0:
 
                             # Determine whether to generate Zernike modes using DM
-                            if not config['dummy'] and config['AO']['zern_gen'] == 1:
+                            if not self.debug and config['AO']['zern_gen'] == 1:
 
                                 # Retrieve input zernike coefficient array
                                 zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
@@ -605,7 +601,7 @@ class AO_Slopes(QObject):
 
                                     c = click.getchar()
 
-                            elif not config['dummy'] and config['AO']['zern_gen'] == 2:
+                            elif not self.debug and config['AO']['zern_gen'] == 2:
 
                                 # Retrieve input zernike coefficient array
                                 zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
@@ -652,7 +648,7 @@ class AO_Slopes(QObject):
 
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
-                        if config['dummy']:
+                        if self.debug:
                             
                             # Update phase profile and retrieve S-H spot image 
                             if i == 0:
@@ -732,7 +728,7 @@ class AO_Slopes(QObject):
                         # print('slope_y:', slope_y)
 
                         # Remove corresponding elements from slopes and rows from influence function matrix
-                        if config['dummy'] == 1:
+                        if self.debug == 1:
                             index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'].astype(int) + 1 == 0)[1]
                         else:
                             index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'] == 0)[1]
@@ -792,7 +788,7 @@ class AO_Slopes(QObject):
                         print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))                      
 
                         # Append data to list
-                        if config['dummy']:
+                        if self.debug:
                             dset_append(data_set_2, 'dummy_spot_zern_err', zern_err)
                         else:
                             dset_append(data_set_2, 'real_spot_zern_err', zern_err)
@@ -911,7 +907,7 @@ class AO_Slopes(QObject):
                             if i == 0:
 
                                 # Determine whether to generate Zernike modes using DM
-                                if not config['dummy'] and config['AO']['zern_gen'] == 1:
+                                if not self.debug and config['AO']['zern_gen'] == 1:
 
                                     # Retrieve input zernike coefficient array
                                     zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
@@ -992,7 +988,7 @@ class AO_Slopes(QObject):
 
                                         c = click.getchar()
 
-                                elif not config['dummy'] and config['AO']['zern_gen'] == 2:
+                                elif not self.debug and config['AO']['zern_gen'] == 2:
 
                                     # Retrieve input zernike coefficient array
                                     zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
@@ -1040,7 +1036,7 @@ class AO_Slopes(QObject):
                                 print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
                                 print('Sum of voltages {} is: {}'.format(i, voltages.sum()))
 
-                            if config['dummy']:
+                            if self.debug:
                                 
                                 # Update phase profile and retrieve S-H spot image 
                                 if i == 0:
@@ -1169,7 +1165,7 @@ class AO_Slopes(QObject):
                             print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))                            
 
                             # Append data to list
-                            if config['dummy']:
+                            if self.debug:
                                 dset_append(data_set_2, 'dummy_spot_slope_x', slope_x)
                                 dset_append(data_set_2, 'dummy_spot_slope_y', slope_y)
                                 dset_append(data_set_2, 'dummy_spot_slope', slope)
@@ -1303,7 +1299,7 @@ class AO_Slopes(QObject):
                             if i == 0:
 
                                 # Determine whether to generate Zernike modes using DM
-                                if not config['dummy'] and config['AO']['zern_gen'] == 1:
+                                if not self.debug and config['AO']['zern_gen'] == 1:
 
                                     # Retrieve input zernike coefficient array
                                     zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
@@ -1384,7 +1380,7 @@ class AO_Slopes(QObject):
 
                                         c = click.getchar()
 
-                                elif not config['dummy'] and config['AO']['zern_gen'] == 2:
+                                elif not self.debug and config['AO']['zern_gen'] == 2:
 
                                     # Retrieve input zernike coefficient array
                                     zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
@@ -1431,7 +1427,7 @@ class AO_Slopes(QObject):
 
                                 print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
-                            if config['dummy']:
+                            if self.debug:
                                 
                                 # Update phase profile and retrieve S-H spot image 
                                 if i == 0:
@@ -1524,7 +1520,7 @@ class AO_Slopes(QObject):
                             # print('slope_y:', slope_y)
 
                             # Remove corresponding elements from slopes and rows from influence function matrix
-                            if config['dummy'] == 1:
+                            if self.debug == 1:
                                 index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'].astype(int) + 1 == 0)[1]
                             else:
                                 index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'] == 0)[1]
@@ -1588,7 +1584,7 @@ class AO_Slopes(QObject):
                             print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))                      
                             
                             # Append data to list
-                            if config['dummy']:
+                            if self.debug:
                                 dset_append(data_set_2, 'dummy_spot_zern_err', zern_err)
                             else:
                                 dset_append(data_set_2, 'real_spot_zern_err', zern_err)
@@ -1631,7 +1627,7 @@ class AO_Slopes(QObject):
                 self.AO_info['slope_AO_full']['residual_phase_err_zern'] = self.loop_rms_zern
                 self.AO_info['slope_AO_full']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['slope_AO_full']['strehl_ratio'] = self.strehl
-                if config['dummy']:
+                if self.debug:
                     self.AO_info['slope_AO_full']['strehl_ratio_2'] = self.strehl_2
 
                 self.info.emit(self.AO_info)

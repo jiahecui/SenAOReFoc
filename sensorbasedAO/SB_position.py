@@ -1,15 +1,8 @@
-from PySide2.QtCore import QThread, QObject, Signal, Slot
-from PySide2.QtWidgets import QApplication
+from PySide2.QtCore import QObject, Signal, Slot
 
-import sys
-import os
-import argparse
-import time
 import click
 import h5py
 import numpy as np
-
-from ximea import xiapi
 
 import log
 from config import config
@@ -30,7 +23,10 @@ class Positioning(QObject):
     SB_info = Signal(object)
     mirror_info = Signal(object)
     
-    def __init__(self, device, settings):
+    def __init__(self, device, settings, debug = False):
+
+        # Get debug status
+        self.debug = debug
 
         # Get search block settings
         self.SB_settings = settings
@@ -76,14 +72,15 @@ class Positioning(QObject):
             if self.acquire:
 
                 # Acquire image
-                if config['dummy']:
+                if self.debug:
 
-                    # Leave blank if dummy run
+                    # Display search block centre if debug mode
                     self._image = np.zeros([self.sensor_height, self.sensor_width])
-                    self._image[0, 0] = self.outline_int
+                    self._image[self.SB_settings['act_ref_cent_coord_y'].astype(int), self.SB_settings['act_ref_cent_coord_x'].astype(int)] = self.outline_int
 
                 else:
 
+                    # Else acquire image
                     self._image_stack = acq_image(self.sensor, self.sensor_height, self.sensor_width, acq_mode = 1)
                     self._image = np.mean(self._image_stack, axis = 2)               
                             
@@ -157,8 +154,9 @@ class Positioning(QObject):
                     # Display actual search blocks as they move
                     self.SB_layer_2D_temp = self.SB_layer_2D.copy()
                     self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
-                    if config['dummy']:
-                        pass
+                    if self.debug:
+                        self._image = self.SB_layer_2D.copy()
+                        self._image[self.SB_settings['act_ref_cent_coord_y'].astype(int), self.SB_settings['act_ref_cent_coord_x'].astype(int)] = self.outline_int
                     else:
                         self._image_stack = acq_image(self.sensor, self.sensor_height, self.sensor_width, acq_mode = 1)
                         self._image = np.mean(self._image_stack, axis = 2)
@@ -188,8 +186,9 @@ class Positioning(QObject):
                 # Display original search block positions from previous calibration
                 self.SB_layer_2D_temp = self.SB_layer_2D.copy()
                 self.SB_layer_2D_temp.ravel()[self.SB_settings['act_SB_coord']] = self.outline_int
-                if config['dummy']:
-                    pass
+                if self.debug:
+                    self._image = self.SB_layer_2D.copy()
+                    self._image[self.SB_settings['act_ref_cent_coord_y'].astype(int), self.SB_settings['act_ref_cent_coord_x'].astype(int)] = self.outline_int
                 else:
                     self._image_stack = acq_image(self.sensor, self.sensor_height, self.sensor_width, acq_mode = 1)
                     self._image = np.mean(self._image_stack, axis = 2)

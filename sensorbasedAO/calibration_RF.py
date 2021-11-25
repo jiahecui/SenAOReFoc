@@ -1,16 +1,11 @@
-from PySide2.QtCore import QThread, QObject, Signal, Slot
-from PySide2.QtWidgets import QApplication
+from PySide2.QtCore import QObject, Signal, Slot
 
-import sys
-import os
-import argparse
 import time
 import click
 import h5py
+from scipy import io
 import numpy as np
 import scipy as sp
-from scipy import io
-from tifffile import imsave
 
 import log
 from config import config

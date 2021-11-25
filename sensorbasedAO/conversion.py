@@ -1,11 +1,5 @@
-from PySide2.QtCore import QThread, QObject, Signal, Slot
-from PySide2.QtWidgets import QApplication
+from PySide2.QtCore import QObject, Signal, Slot
 
-import logging
-import sys
-import os
-import argparse
-import time
 import numpy as np
 
 import log
@@ -69,8 +63,6 @@ class Conversion(QObject):
 
                 # Get size of each individual element in unit circle
                 self.elem_size = self.SB_settings['SB_diam'] / config['search_block']['div_elem'] * self.rescale
-
-                # print('Rescale: {}, norm_rad: {}, elem_size: {}'.format(self.rescale, self.norm_rad, self.elem_size))
                 
                 # Get reference centroid coordinates for unit circle
                 self.norm_ref_cent_coord_x = (self.SB_settings['act_ref_cent_coord_x'] - \
@@ -78,12 +70,7 @@ class Conversion(QObject):
                 self.norm_ref_cent_coord_y = (self.SB_settings['act_ref_cent_coord_y'] - \
                     self.SB_settings['sensor_height'] // 2 - self.SB_settings['act_SB_offset_y']) * self.rescale
 
-                # print('self.norm_ref_cent_coord_x:', self.norm_ref_cent_coord_x)
-                # print('self.norm_ref_cent_coord_y:', self.norm_ref_cent_coord_y)
-
                 # Take account of odd number of relays and mirrors between DM and lenslet
-                # If an odd no of lens relays the y slopes will have the wrong sign, otherwise the x slopes will be the wrong sign?
-                # If an odd no of mirrors the x slopes will have the wrong sign in the case of odd lens relays, but the right sign for even relays?
                 if config['relay']['mirror_odd']:
                     self.norm_ref_cent_coord_x = -self.norm_ref_cent_coord_x
 
@@ -91,8 +78,6 @@ class Conversion(QObject):
                     self.norm_ref_cent_coord_x = -self.norm_ref_cent_coord_x
                     self.norm_ref_cent_coord_y = -self.norm_ref_cent_coord_y
 
-                # print('Norm_ref_cent_coord_x:', self.norm_ref_cent_coord_x)
-                # print('Norm_ref_cent_coord_y:', self.norm_ref_cent_coord_y)
             else:
 
                 self.done.emit()
@@ -102,7 +87,7 @@ class Conversion(QObject):
             """
             if self.calculate:
 
-                self.message.emit('\nRetrieving zernike matrix and slope - zernike conversion matrix...')
+                self.message.emit('\nRetrieving zernike matrix and slope - Zernike conversion matrix...')
                 for i in range(self.SB_settings['act_ref_cent_num']):
 
                     # Get reference centroid coords of each element
@@ -110,9 +95,6 @@ class Conversion(QObject):
                         self.norm_ref_cent_coord_x[i] + self.norm_rad, self.elem_size)
                     elem_ref_cent_coord_y = np.arange(self.norm_ref_cent_coord_y[i] - self.norm_rad + self.elem_size / 2, \
                         self.norm_ref_cent_coord_y[i] + self.norm_rad, self.elem_size)
-
-                    # print('Elem_ref_cent_coord_x:', elem_ref_cent_coord_x)
-                    # print('Elem_ref_cent_coord_y:', elem_ref_cent_coord_y)
 
                     elem_ref_cent_coord_xx, elem_ref_cent_coord_yy = np.meshgrid(elem_ref_cent_coord_x, elem_ref_cent_coord_y)
 
@@ -141,9 +123,7 @@ class Conversion(QObject):
                 # Convert zern_matrix from radians to um
                 self.zern_matrix = self.zern_matrix * config['AO']['lambda'] / (2 * np.pi)   
 
-                self.message.emit('\nZernike matrix and slope - zernike conversion matrix retrieved.')
-                # print('Conversion matrix is:', self.conv_matrix)
-                # print('Shape of conversion matrix is:', np.shape(self.conv_matrix))
+                self.message.emit('\nZernike matrix and slope - Zernike conversion matrix retrieved.')
             else:
 
                 self.done.emit()

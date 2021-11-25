@@ -2,12 +2,9 @@ import rpyc
 import rpyc.lib
 from rpyc.utils.server import ThreadedServer
 from threading import Thread
-import os
-import sys
 import time
 
 import log
-from config import config
 
 logger = log.get_logger(__name__)
 rpyc.lib.setup_logger()

@@ -1,9 +1,7 @@
 import h5py
 import math
-import time
 import numpy as np
 import scipy as sp
-from scipy import ndimage
 from config import config
 from common import get_slope_from_phase
 
@@ -150,22 +148,3 @@ def get_mat_dset(settings, flag = 1):
         return data_pad 
     else:
         return get_slope_from_phase(settings, data_pad)
-
-    """
-    Notes regarding amplitude and frequency of aberrations at different sample positions for UnwrappedPhase_IMG_Blastocyte1_Bottom:
-
-        1) 1, 16, 17, 20, 78, 141, 220 is good for demonstrating both AO_zernikes and AO_slopes (small and smooth);
-        2) 14, 220 is also good for demonstrating how tip, tilt, defocus are the dominant aberrations such that the DM doesn't need to
-            apply any corrections; 
-        2) 80 is good for demonstrating AO_zernikes strehl ratio = 0.796, but not reaching 0.8, therefore not breaking from the loop;
-        3) 100, 220 is good for demonstrating how the final rms slope error differs between AO_slopes_1 and AO_slopes_3 (1 < 3);
-        4) 54 is strongly aberrated in amplitude and gives obscured subapertures;
-        5) 58 brings the spots back well, but strehl ratio is limited to 0.758 due to a strong diagonal aberration;
-        6) 91, 92 are so strongly aberrated that the spots are scattered all over the place;
-        7) 176 is good for demonstrating how AO_slopes brings strehl ratio to 0.82, but AO_zernikes only reaches 0.79;
-        8) 99, 100 is good for demonstration of large but smooth amplitude phase variation -> correctable to 0.81;
-        9) 102 is good for demonstration of relatively small and smooth phase variation -> only correctable to 0.55 for AO_zernikes,
-            0.51 for AO_slopes
-        10) Many turbid positions can demonstrate that AO_zernikes_2 is very robust and could bring the strehl ratio back to > 0.81, 
-            while AO_slopes_2 can't (strehl < 0.4?): 91, 92, 176, 102, 49, 50, 54, 57
-    """

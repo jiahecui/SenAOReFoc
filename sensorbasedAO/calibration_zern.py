@@ -1,11 +1,4 @@
-from PySide2.QtCore import QThread, QObject, Signal, Slot
-from PySide2.QtWidgets import QApplication
-
-import logging
-import sys
-import os
-import argparse
-import time
+from PySide2.QtCore import QObject, Signal, Slot
 import numpy as np
 
 import log
@@ -89,16 +82,9 @@ class Calibration_Zern(QObject):
                 # Calculate pseudo inverse of influence function matrix to get final control matrix
                 self.control_matrix_zern = np.linalg.pinv(self.inf_matrix_zern, rcond = 0.01)
 
-                # u1, s1, vh1 = np.linalg.svd(self.control_matrix_zern, full_matrices = False)
-                # print('u1: {}, s1: {}, vh1: {}'.format(u1, s1, vh1))
-
                 svd_check_zern = np.dot(self.inf_matrix_zern, self.control_matrix_zern)
 
-                print('Largest Zernike amplitude for unit actuator voltage: {}\n'.format(np.amax(self.inf_matrix_zern)))
-
                 self.message.emit('\nZernike control matrix retrieved.')
-                # print('Control matrix is:', self.control_matrix_zern)
-                # print('Shape of control matrix is:', np.shape(self.control_matrix_zern))
             else:
 
                 self.done.emit()

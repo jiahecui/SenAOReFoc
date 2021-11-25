@@ -9,19 +9,17 @@ setup(name='sensorbasedAO',
       python_requires='>=3.6',
       install_requires=[
             'numpy', 
-            'Pillow', 
-            'nifpga', 
-            'PySide2', 
-            'qtawesome',
+            'PySide2==5.15.0', 
             'qimage2ndarray', 
-            'tifffile', 
-            'imageio', 
-            'pyyaml',
-            'pyserial'
-            ],
-      extras_require={
-            'test': ['pytest', 'pytest-qt']
-      },
+            'Click',
+            'scipy==1.5.4',
+            'h5py==2.9.0',
+            'Cython',
+            'rpyc',
+            'tensorflow-gpu==2.5.0',
+            'joblib',
+            'sklearn',
+            'pandas'],
       entry_points={
             'console_scripts': [
                   'sensorbasedAO=sensorbasedAO.app:main',

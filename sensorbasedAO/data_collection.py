@@ -1,14 +1,8 @@
-from PySide2.QtCore import QThread, QObject, Signal, Slot
-from PySide2.QtWidgets import QApplication
+from PySide2.QtCore import QObject, Signal, Slot
 
-import logging
-import sys
-import os
-import argparse
 import time
 import h5py
 from scipy import io
-from tifffile import imsave
 import numpy as np
 import scipy as sp
 
@@ -35,7 +29,10 @@ class Data_Collection(QObject):
     message = Signal(object)
     info = Signal(object)
 
-    def __init__(self, sensor, mirror, settings, scanner = None):
+    def __init__(self, sensor, mirror, settings, scanner = None, debug = False):
+
+        # Get debug status
+        self.debug = debug
 
         # Get search block settings
         self.SB_settings = settings['SB_info']
@@ -185,7 +182,7 @@ class Data_Collection(QObject):
                                     # Update mirror control voltages
                                     if i == 0:
 
-                                        if not config['dummy']:
+                                        if not self.debug:
 
                                             # Generate one Zernike mode on DM for correction each time
                                             self.zern_coeff[j + 2, 0] = zern_amp_gen
@@ -255,7 +252,7 @@ class Data_Collection(QObject):
 
                                         # print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
-                                    if config['dummy']:
+                                    if self.debug:
 
                                         # Update phase profile and retrieve S-H spot image 
                                         if i == 0:
@@ -480,7 +477,7 @@ class Data_Collection(QObject):
                                     # Update mirror control voltages
                                     if i == 0:
 
-                                        if not config['dummy']:
+                                        if not self.debug:
 
                                             # Generate one Zernike mode on DM for correction each time
                                             self.zern_coeff[j + 2, 0] = zern_amp_gen
@@ -549,7 +546,7 @@ class Data_Collection(QObject):
 
                                         # print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
-                                    if config['dummy']:
+                                    if self.debug:
 
                                         # Update phase profile and retrieve S-H spot image 
                                         if i == 0:
@@ -773,7 +770,7 @@ class Data_Collection(QObject):
                                 # Update mirror control voltages
                                 if i == 0:
 
-                                    if not config['dummy']:
+                                    if not self.debug:
 
                                         # Generate one Zernike modes on DM for correction
                                         if config['data_collect']['mult_mode_gen']:
@@ -840,7 +837,7 @@ class Data_Collection(QObject):
 
                                     print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
-                                if config['dummy']:
+                                if self.debug:
 
                                     # Update phase profile and retrieve S-H spot image 
                                     if i == 0:
@@ -1076,7 +1073,7 @@ class Data_Collection(QObject):
                                 # Update mirror control voltages
                                 if i == 0:
 
-                                    if not config['dummy']:
+                                    if not self.debug:
 
                                         # Generate one Zernike modes on DM for correction
                                         if config['data_collect']['mult_mode_gen']:
@@ -1142,7 +1139,7 @@ class Data_Collection(QObject):
 
                                     print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
 
-                                if config['dummy']:
+                                if self.debug:
 
                                     # Update phase profile and retrieve S-H spot image 
                                     if i == 0:
@@ -1382,7 +1379,7 @@ class Data_Collection(QObject):
                     x_line_pos = np.array([0.0])
                     y_line_pos = np.array([0.0])
 
-                if not config['dummy'] and config['data_collect']['zern_gen'] == 0:
+                if not self.debug and config['data_collect']['zern_gen'] == 0:
                     
                     for n in range(config['data_collect']['run_num']):
 
@@ -1531,7 +1528,7 @@ class Data_Collection(QObject):
                         # Close HDF5 file
                         data_file.close()
 
-                if not config['dummy'] and config['data_collect']['zern_gen'] == 1:
+                if not self.debug and config['data_collect']['zern_gen'] == 1:
 
                     # Get array of zernike modes to generate
                     mode_num_array = config['data_collect']['mode_num_array']
@@ -1731,7 +1728,7 @@ class Data_Collection(QObject):
                     x_line_pos = np.array([0.0])
                     y_line_pos = np.array([0.0])
 
-                if not config['dummy'] and config['data_collect']['zern_gen'] == 0:
+                if not self.debug and config['data_collect']['zern_gen'] == 0:
 
                     for n in range(config['data_collect']['run_num']):
 
@@ -1880,7 +1877,7 @@ class Data_Collection(QObject):
                         # Close HDF5 file
                         data_file.close()
 
-                if not config['dummy'] and config['data_collect']['zern_gen'] == 1:
+                if not self.debug and config['data_collect']['zern_gen'] == 1:
 
                     # Get array of zernike modes to generate
                     mode_num_array = config['data_collect']['mode_num_array']
@@ -2149,7 +2146,7 @@ class Data_Collection(QObject):
                         try:
 
                             # Update mirror control voltages
-                            if not config['dummy']:
+                            if not self.debug:
 
                                 # Acquire S-H spots using camera
                                 AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
@@ -2217,7 +2214,7 @@ class Data_Collection(QObject):
                                 try:
 
                                     # Update mirror control voltages
-                                    if not config['dummy']:
+                                    if not self.debug:
 
                                         # Get voltages from file
                                         voltages[:] = self.zern_volts[amp_num, mode_num, :]

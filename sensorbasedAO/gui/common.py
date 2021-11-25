@@ -1,7 +1,6 @@
 from PySide2.QtWidgets import QApplication, QWidget, QGraphicsScene, QGraphicsView, QVBoxLayout
 from PySide2.QtGui import QPixmap, QTransform
 from PySide2.QtCore import QRectF, QPointF, Qt, Signal
-from qimage2ndarray import array2qimage, gray2qimage
 
 class ImageView(QGraphicsView):
     clicked = Signal(QPointF)
@@ -54,7 +53,6 @@ class ImageView(QGraphicsView):
             zoom = 0.9
 
         self.zoom(zoom)
-
 
     def zoom(self, factor):
         self.zoom_factor = factor

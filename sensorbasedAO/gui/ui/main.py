@@ -13,7 +13,7 @@ from PySide2 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1760, 1080)
+        MainWindow.resize(1580, 1000)
         # MainWindow.resize(1580, 1180)
         # MainWindow.resize(1960, 1960)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
@@ -21,7 +21,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
-        MainWindow.setMinimumSize(QtCore.QSize(1760, 1080))
+        MainWindow.setMinimumSize(QtCore.QSize(1580, 1000))
         # MainWindow.setMinimumSize(QtCore.QSize(1580, 1180))
         # MainWindow.setMinimumSize(QtCore.QSize(1960, 1960))
         icon = QtGui.QIcon()

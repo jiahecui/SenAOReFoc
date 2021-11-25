@@ -1,5 +1,5 @@
-from PySide2.QtWidgets import QApplication, QStyleFactory, QMainWindow, QFileDialog, QDialog, QVBoxLayout, QWidget
-from PySide2.QtCore import QThread, QObject, Slot, Signal, QSize, QTimer
+from PySide2.QtWidgets import QApplication
+from PySide2.QtCore import QThread
 
 import logging
 import sys
@@ -108,7 +108,7 @@ class App(QApplication):
         Add hardware devices to a dictionary
         """
         # Add S-H sensor
-        if config['dummy']:
+        if self.debug:
             sensor = SENSOR.get('debug')
         else:
             try:
@@ -122,11 +122,11 @@ class App(QApplication):
         self.devices['sensor'] = sensor
 
         # Start camera acquisition
-        if not config['dummy']:
+        if not self.debug:
             self.devices['sensor'].start_acquisition()
         
         # Add deformable mirror
-        if config['dummy']:
+        if self.debug:
             mirror = MIRROR.get('debug')
         else:
             try:
@@ -140,11 +140,11 @@ class App(QApplication):
 
         # Add scanner
         if config['data_collect']['zern_gen'] in [4, 5]:
-            if config['dummy']:
+
+            if self.debug:
                 scanner = SCANNER.get('debug')
             else:
                 try:
-
                     scanner = mtidevice.MTIDevice()
                     table = scanner.GetAvailableDevices()
 
@@ -239,7 +239,7 @@ class App(QApplication):
         # Create positioning worker and thread
         pos_thread = QThread()
         pos_thread.setObjectName('pos_thread')
-        pos_worker = Positioning(sensor, SB_info)
+        pos_worker = Positioning(sensor, SB_info, debug = self.debug)
         pos_worker.moveToThread(pos_thread)
 
         # Connect to signals
@@ -266,7 +266,7 @@ class App(QApplication):
         # Create centroiding worker and thread
         cent_thread = QThread()
         cent_thread.setObjectName('cent_thread')
-        cent_worker = Centroiding(sensor, mirror, SB_info)
+        cent_worker = Centroiding(sensor, mirror, SB_info, debug = self.debug)
         cent_worker.moveToThread(cent_thread)
 
         # Connect to signals
@@ -292,7 +292,7 @@ class App(QApplication):
         # Create calibration worker and thread
         calib_thread = QThread()
         calib_thread.setObjectName('calib_thread')
-        calib_worker = Calibration(sensor, mirror, SB_info)
+        calib_worker = Calibration(sensor, mirror, SB_info, debug = self.debug)
         calib_worker.moveToThread(calib_thread)
 
         # Connect to signals
@@ -368,7 +368,7 @@ class App(QApplication):
         # Create data collection worker and thread
         data_collect_thread = QThread()
         data_collect_thread.setObjectName('data_collect_thread')
-        data_collect_worker = Data_Collection(sensor, mirror, data_info, scanner)
+        data_collect_worker = Data_Collection(sensor, mirror, data_info, scanner, debug = self.debug)
         data_collect_worker.moveToThread(data_collect_thread)
 
         # Connect to signals
@@ -406,7 +406,7 @@ class App(QApplication):
         # Create Zernike AO worker and thread
         zern_AO_thread = QThread()
         zern_AO_thread.setObjectName('zern_AO_thread')
-        zern_AO_worker = AO_Zernikes(sensor, mirror, data_info, self.main)
+        zern_AO_worker = AO_Zernikes(sensor, mirror, data_info, self.main, debug = self.debug)
         zern_AO_worker.moveToThread(zern_AO_thread)
 
         # Connect to signals
@@ -448,7 +448,7 @@ class App(QApplication):
         # Create slopes AO worker and thread
         slopes_AO_thread = QThread()
         slopes_AO_thread.setObjectName('slopes_AO_thread')
-        slopes_AO_worker = AO_Slopes(sensor, mirror, data_info)
+        slopes_AO_worker = AO_Slopes(sensor, mirror, data_info, debug = self.debug)
         slopes_AO_worker.moveToThread(slopes_AO_thread)
 
         # Connect to signals
@@ -1089,15 +1089,15 @@ class App(QApplication):
             self.threads[thread].wait()
 
         # Stop and reset mirror instance
-        if not config['dummy']:
+        if not self.debug:
             try:
                 self.devices['mirror'].Stop()
-                # self.devices['mirror'].Reset()
+                self.devices['mirror'].Reset()
             except Exception as e:
                 logger.warning("Error on mirror quit: {}".format(e))
 
         # Stop and close sensor instance
-        if not config['dummy']:
+        if not self.debug:
             try:
                 self.devices['sensor'].stop_acquisition()
                 self.devices['sensor'].close_device()
@@ -1105,7 +1105,7 @@ class App(QApplication):
                 logger.warning("Error on sensor quit: {}".format(e))
 
         # Stop and reset scanner instance
-        if not config['dummy']:
+        if not self.debug:
             try:
                 self.devices['scanner'].ResetDevicePosition()
                 self.devices['scanner'].StopDataStream()
@@ -1116,7 +1116,6 @@ class App(QApplication):
 
         # Close other windows
         self.main.close()
-
 
 def debug():
     logger.setLevel(logging.DEBUG)

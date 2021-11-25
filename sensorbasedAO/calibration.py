@@ -1,10 +1,5 @@
-from PySide2.QtCore import QThread, QObject, Signal, Slot
-from PySide2.QtWidgets import QApplication
+from PySide2.QtCore import QObject, Signal, Slot
 
-import logging
-import sys
-import os
-import argparse
 import time
 import h5py
 import numpy as np
@@ -29,7 +24,10 @@ class Calibration(QObject):
     message = Signal(object)
     info = Signal(object)
 
-    def __init__(self, sensor, mirror, settings):
+    def __init__(self, sensor, mirror, settings, debug = False):
+
+        # Get debug status
+        self.debug = debug
 
         # Get search block settings
         self.SB_settings = settings
@@ -110,7 +108,7 @@ class Calibration(QObject):
 
         for i in range(120):
 
-            if i in [11,23,35,47,59] or i > 59:
+            if i in [11, 23, 35, 47, 59] or i > 59:
                 xc[10 + i] = (int(((10 + i) - self.actuator_num // 2) // 12) + 0.5) * act_diam
             else:
                 xc[10 + i] = (int(((10 + i) - (self.actuator_num // 2 - 1)) // 12) + 0.5) * act_diam
@@ -131,10 +129,10 @@ class Calibration(QObject):
             # Start thread
             self.start.emit()
 
-            if config['dummy']:
+            if self.debug:
 
                 """
-                Get real DM calibration functions
+                Get real DM calibration files
                 """
                 self.message.emit('\nDM calibration process started...')
                 
@@ -154,14 +152,14 @@ class Calibration(QObject):
                 self.slope_y = np.array(h5py.File('exec_files/real_calib_func/calib_slope_y.mat','r').get('calib_slope_y')).T
                 svd_check_slopes = np.array(h5py.File('exec_files/real_calib_func/svd_check_slopes.mat','r').get('svd_check_slopes')).T
 
+                self.message.emit('\nDM calibration files loaded.')
+
                 self.message.emit('\nDM calibration process finished.')
                     
             else:
 
                 """
                 Apply highest and lowest voltage to each actuator individually and retrieve raw slopes of each S-H spot
-
-                Time for one calibration cycle for all actuators with image acquisition, but without centroiding: 56.686575999
                 """
                 # Initialise deformable mirror voltage array
                 voltages = np.zeros(self.actuator_num)
@@ -265,8 +263,6 @@ class Calibration(QObject):
                         self.inf_matrix_slopes[self.SB_settings['act_ref_cent_num']:, i] = \
                             (self.slope_y[2 * i] - self.slope_y[2 * i + 1]) / (config['DM']['vol_max'] - config['DM']['vol_min'])             
 
-                    # print('Influence function is:', self.inf_matrix_slopes)
-
                     # Calculate singular value decomposition of influence function matrix
                     u, s, vh = np.linalg.svd(self.inf_matrix_slopes, full_matrices = False)
 
@@ -279,8 +275,7 @@ class Calibration(QObject):
                     svd_check_slopes = np.dot(self.control_matrix_slopes, self.inf_matrix_slopes)
 
                     self.message.emit('\nDM calibration process finished.')
-                    # print('Control matrix is:', self.control_matrix_slopes)
-                    # print('Shape of control matrix is:', np.shape(self.control_matrix_slopes))
+
                 else:
 
                     self.done.emit()
@@ -300,7 +295,7 @@ class Calibration(QObject):
                 self.mirror_info['calib_slope_y'] = self.slope_y
                 self.mirror_info['svd_check_slopes'] = svd_check_slopes
 
-                if config['dummy']:
+                if self.debug:
                     self.mirror_info['act_pos_x'] = xc
                     self.mirror_info['act_pos_y'] = yc
                     self.mirror_info['act_diam'] = act_diam

@@ -1,6 +1,3 @@
-import os
-import sys
-import time
 
 from alpao.Lib64 import asdk  # Use alpao.Lib for 32-bit applications and alpao.Lib64 for 64-bit applications
 

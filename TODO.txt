@@ -1,0 +1,2 @@
+1. Check DM exercising procedure
+2. Check system aberration calibration

@@ -1,10 +1,5 @@
-from PySide2.QtCore import QThread, QObject, Signal, Slot
-from PySide2.QtWidgets import QApplication
+from PySide2.QtCore import QObject, Signal, Slot
 
-import sys
-import os
-import argparse
-import time
 import h5py
 import numpy as np
 
@@ -28,7 +23,10 @@ class Centroiding(QObject):
     message = Signal(object)
     SB_info = Signal(object)
     
-    def __init__(self, sensor, mirror, settings):
+    def __init__(self, sensor, mirror, settings, debug = False):
+
+        # Get debug status
+        self.debug = debug
 
         # Get search block settings
         self.SB_settings = settings
@@ -75,55 +73,67 @@ class Centroiding(QObject):
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
 
-            # Select system aberration calibration mode
-            if config['sys_calib']['sys_calib_mode'] == 1:
+            # Calibrate system aberration
+            if self.debug:
+
                 voltages = h5py.File('exec_files/flat_volts_1.mat','r').get('flat_volts')
                 voltages = np.ravel(np.array(voltages))
-                self.mirror.Send(voltages)
 
-            # Acquire S-H spot image
-            cent_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-            cent_image = np.mean(cent_image_stack, axis = 2)
-            
-            # Image thresholding to remove background
-            cent_image = cent_image - config['image']['threshold'] * np.amax(cent_image)
-            cent_image[cent_image < 0] = 0
-            SB_layer_2D_temp += cent_image
+                print('')
+                self.message.emit('\nDM system flat file loaded.')
 
-            self.layer.emit(SB_layer_2D_temp)
-
-            # Append image to list
-            dset_append(data_set, 'real_cent_img', cent_image)
-
-            # Calculate centroids for S-H spots
-            if self.calc_cent:
-                
-                # Acquire centroid information
-                act_ref_cent_coord, act_ref_cent_coord_x, act_ref_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 0)
-                act_ref_cent_coord, act_ref_cent_coord_x, act_ref_cent_coord_y = map(np.asarray, [act_ref_cent_coord, act_ref_cent_coord_x, act_ref_cent_coord_y])
-
-                # Draw actual S-H spot centroids
-                SB_layer_2D_temp.ravel()[act_ref_cent_coord.astype(int)] = 0
-                self.layer.emit(SB_layer_2D_temp)
-
-                # Take tip\tilt off
-                act_ref_cent_coord_x -= np.mean(slope_x)
-                act_ref_cent_coord_y -= np.mean(slope_y)
-
-                print(np.mean(slope_x), np.mean(slope_y))
-
-                slope_x -= np.mean(slope_x)
-                slope_y -= np.mean(slope_y)
-
-                self.message.emit('\nSystem aberration calibration process finished.')
             else:
 
-                self.done.emit()
+                # Select system aberration calibration mode
+                if config['sys_calib']['sys_calib_mode'] == 1:
+                    voltages = h5py.File('exec_files/flat_volts_1.mat','r').get('flat_volts')
+                    voltages = np.ravel(np.array(voltages))
+                    self.mirror.Send(voltages)
+
+                # Acquire S-H spot image
+                cent_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                cent_image = np.mean(cent_image_stack, axis = 2)
+                
+                # Image thresholding to remove background
+                cent_image = cent_image - config['image']['threshold'] * np.amax(cent_image)
+                cent_image[cent_image < 0] = 0
+                SB_layer_2D_temp += cent_image
+
+                self.layer.emit(SB_layer_2D_temp)
+
+                # Append image to list
+                dset_append(data_set, 'real_cent_img', cent_image)
+
+                # Calculate centroids for S-H spots
+                if self.calc_cent:
+                    
+                    # Acquire centroid information
+                    act_ref_cent_coord, act_ref_cent_coord_x, act_ref_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 0)
+                    act_ref_cent_coord, act_ref_cent_coord_x, act_ref_cent_coord_y = map(np.asarray, [act_ref_cent_coord, act_ref_cent_coord_x, act_ref_cent_coord_y])
+
+                    # Draw actual S-H spot centroids
+                    SB_layer_2D_temp.ravel()[act_ref_cent_coord.astype(int)] = 0
+                    self.layer.emit(SB_layer_2D_temp)
+
+                    # Take tip\tilt off
+                    act_ref_cent_coord_x -= np.mean(slope_x)
+                    act_ref_cent_coord_y -= np.mean(slope_y)
+
+                    print(np.mean(slope_x), np.mean(slope_y))
+
+                    slope_x -= np.mean(slope_x)
+                    slope_y -= np.mean(slope_y)
+
+                else:
+
+                    self.done.emit()
+
+            self.message.emit('\nSystem aberration calibration process finished.')
 
             """
             Returns system aberration information into self.SB_info
             """ 
-            if self.log:
+            if self.log and not self.debug:
 
                 self.SB_settings['act_ref_cent_coord_x'] = act_ref_cent_coord_x
                 self.SB_settings['act_ref_cent_coord_y'] = act_ref_cent_coord_y
