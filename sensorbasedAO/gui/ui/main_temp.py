@@ -337,16 +337,6 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_5.addWidget(self.DMRstBtn)
 
-        self.scannerRstBtn = QPushButton(self.centralwidget)
-        self.scannerRstBtn.setObjectName(u"scannerRstBtn")
-        sizePolicy1.setHeightForWidth(self.scannerRstBtn.sizePolicy().hasHeightForWidth())
-        self.scannerRstBtn.setSizePolicy(sizePolicy1)
-        self.scannerRstBtn.setMinimumSize(QSize(100, 30))
-        self.scannerRstBtn.setFont(font1)
-        self.scannerRstBtn.setCheckable(True)
-
-        self.horizontalLayout_5.addWidget(self.scannerRstBtn)
-
         self.cameraExpoSpin = QSpinBox(self.centralwidget)
         self.cameraExpoSpin.setObjectName(u"cameraExpoSpin")
         sizePolicy3.setHeightForWidth(self.cameraExpoSpin.sizePolicy().hasHeightForWidth())
@@ -702,7 +692,6 @@ class Ui_MainWindow(object):
         self.singleAcqBtn.setText(QCoreApplication.translate("MainWindow", u"Single Acq", None))
         self.miscellaneousLbl.setText(QCoreApplication.translate("MainWindow", u"Miscellaneous", None))
         self.DMRstBtn.setText(QCoreApplication.translate("MainWindow", u"Reset DM", None))
-        self.scannerRstBtn.setText(QCoreApplication.translate("MainWindow", u"Reset Scanner", None))
         self.remoteFocusLbl.setText(QCoreApplication.translate("MainWindow", u"Remote Focusing Unit", None))
         self.scanFocusCheck.setText(QCoreApplication.translate("MainWindow", u"Scan Focus", None))
         self.focusDepthLbl.setText(QCoreApplication.translate("MainWindow", u"Focus Depth (microns)", None))

@@ -46,10 +46,6 @@ DM1:
   aperture: 4.4  # mm  
   coupling_fac: 0.13  # Inter-actuator coupling factor
 
-scanner:
-  SN: "S31155"
-  portnumber: "3"
-
 relay:
   mirror_odd: 0  # Flag for whether there is an odd number of mirrors in between DM and lenslet
   relay_odd: 0  # Flag for whether there is an odd number of relays in between DM and lenslet

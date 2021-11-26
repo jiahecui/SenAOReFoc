@@ -12,7 +12,6 @@ import log
 from config import config
 from sensor import SENSOR
 from mirror import MIRROR
-from scanner import SCANNER
 from server import SERVER
 from gui.main import Main
 from SB_geometry import Setup_SB
@@ -134,50 +133,6 @@ class App(QApplication):
                 mirror = None
 
         self.devices['mirror'] = mirror
-
-        # Add scanner
-        if config['data_collect']['zern_gen'] in [4, 5]:
-
-            if self.debug:
-                scanner = SCANNER.get('debug')
-            else:
-                try:
-                    scanner = mtidevice.MTIDevice()
-                    table = scanner.GetAvailableDevices()
-
-                    if table.NumDevices == 0:
-                        print('There are no devices available.')
-                        return None
-
-                    scanner.ListAvailableDevices(table)
-                    portnumber = config['scanner']['portnumber']
-                    
-                    if os.name == 'nt':
-                        portName = 'COM' + portnumber
-
-                    scanner.ConnectDevice(portName)
-
-                    # Initialise controller parameters
-                    params = scanner.GetDeviceParams()
-                    params.VdifferenceMax = 159
-                    params.HardwareFilterBw = 500
-                    params.Vbias = 80
-                    params.SampleRate = 20000
-                    scanner.SetDeviceParams(params)
-
-                    # Set controller data mode
-                    scanner.ResetDevicePosition()
-                    scanner.StartDataStream()
-
-                    # Turn the MEMS controller on
-                    scanner.SetDeviceParam(MTIParam.MEMSDriverEnable, True)
-
-                    print('Scanner load success.')
-                except Exception as e:
-                    logger.warning('Scanner load error', e)
-                    scanner = None
-
-            self.devices['scanner'] = scanner
 
     def stop_server(self):
         """
@@ -919,17 +874,6 @@ class App(QApplication):
         except Exception as e:
             logger.warning("Error on mirror reset: {}".format(e))
 
-    def handle_scanner_reset(self):
-        """
-        Handle reset of scanner
-        """
-        try:
-            self.devices['scanner'].ResetDevicePosition()
-            self.main.ui.scannerRstBtn.setChecked(False)
-            print('Scanner reset success.')
-        except Exception as e:
-            logger.warning("Error on scanner reset: {}".format(e))
-
     def handle_camera_expo(self, camera_expo):
         """
         Handle update of camera exposure
@@ -1057,13 +1001,6 @@ class App(QApplication):
         except Exception as e:
             logger.warning("Error on sensor stop: {}".format(e))
 
-        # Stop scanner instance
-        try:
-            self.devices['scanner'].ResetDevicePosition()
-            self.devices['scanner'].StopDataStream()
-        except Exception as e:
-            logger.warning("Error on scanner stop: {}".format(e))    
-
     def quit(self):
         """ 
         Quit application. 
@@ -1093,16 +1030,6 @@ class App(QApplication):
                 self.devices['sensor'].close_device()
             except Exception as e:
                 logger.warning("Error on sensor quit: {}".format(e))
-
-        # Stop and reset scanner instance
-        if not self.debug:
-            try:
-                self.devices['scanner'].ResetDevicePosition()
-                self.devices['scanner'].StopDataStream()
-                self.devices['scanner'].SetDeviceParam(MTIParam.MEMSDriverEnable, False)
-                self.devices['scanner'].DisconnectDevice()
-            except Exception as e:
-                logger.warning("Error on scanner quit: {}".format(e))
 
         # Close other windows
         self.main.close()
