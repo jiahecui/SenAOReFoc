@@ -116,6 +116,11 @@ class AO_Zernikes(QObject):
 
             # Run closed-loop control until tolerance value or maximum loop iteration is reached
             for i in range(self.AO_settings['loop_max'] + 1):
+
+                if self.debug:
+
+                    self.message.emit('\nExiting dummy correction loop')
+                    break
                 
                 if self.loop:
 
@@ -287,7 +292,6 @@ class AO_Zernikes(QObject):
             data_file.close()
 
             self.message.emit('\nProcess complete.')
-            print('Final root mean square error of detected wavefront is: {} um'.format(rms_zern))
 
             prev2 = time.perf_counter()
             print('Time for closed-loop AO process is: {} s'.format(prev2 - prev1))
@@ -295,7 +299,7 @@ class AO_Zernikes(QObject):
             """
             Returns closed-loop AO information into self.AO_info
             """             
-            if self.log:
+            if self.log and not self.debug:
 
                 self.AO_info['zern_AO_1']['loop_num'] = i
                 self.AO_info['zern_AO_1']['residual_phase_err_zern'] = self.loop_rms_zern
@@ -350,6 +354,11 @@ class AO_Zernikes(QObject):
 
             # Run closed-loop control until tolerance value or maximum loop iteration is reached
             for i in range(self.AO_settings['loop_max'] + 1):
+
+                if self.debug:
+
+                    self.message.emit('\nExiting dummy correction loop')
+                    break
                 
                 if self.loop:
 
@@ -556,7 +565,6 @@ class AO_Zernikes(QObject):
             data_file.close()
 
             self.message.emit('\nProcess complete.')
-            print('Final root mean square error of detected wavefront is: {} um'.format(rms_zern))
 
             prev2 = time.perf_counter()
             print('Time for closed-loop AO process is: {} s'.format(prev2 - prev1))
@@ -564,7 +572,7 @@ class AO_Zernikes(QObject):
             """
             Returns closed-loop AO information into self.AO_info
             """             
-            if self.log:
+            if self.log and not self.debug:
 
                 self.AO_info['zern_AO_2']['loop_num'] = i
                 self.AO_info['zern_AO_2']['residual_phase_err_zern'] = self.loop_rms_zern
@@ -634,6 +642,11 @@ class AO_Zernikes(QObject):
                 
                 # Run closed-loop control until tolerance value or maximum loop iteration is reached
                 for i in range(self.AO_settings['loop_max'] + 1):
+
+                    if self.debug:
+
+                        self.message.emit('\nExiting dummy correction loop')
+                        break
                     
                     if self.loop:
 
@@ -806,8 +819,6 @@ class AO_Zernikes(QObject):
                         elif self.focus_settings['focus_mode_flag'] == 1:
                             self.done2.emit(1)
 
-                print('Final root mean square error of detected wavefront is: {} um'.format(rms_zern))
-
             # Close HDF5 file
             data_file.close()
 
@@ -819,7 +830,7 @@ class AO_Zernikes(QObject):
             """
             Returns closed-loop AO information into self.AO_info
             """             
-            if self.log:
+            if self.log and not self.debug:
 
                 self.AO_info['zern_AO_3']['loop_num'] = i
                 self.AO_info['zern_AO_3']['residual_phase_err_zern'] = self.loop_rms_zern
@@ -904,6 +915,11 @@ class AO_Zernikes(QObject):
 
                 # Run closed-loop control until tolerance value or maximum loop iteration is reached
                 for i in range(self.AO_settings['loop_max'] + 1):
+
+                    if self.debug:
+
+                        self.message.emit('\nExiting dummy correction loop')
+                        break
                     
                     if self.loop:
 
@@ -1068,7 +1084,6 @@ class AO_Zernikes(QObject):
                             
                             # Recalculate pseudo inverse of influence function matrix to get updated control matrix via zernikes
                             control_matrix_zern = np.linalg.pinv(inf_matrix_zern)
-                            # print('Shape control_matrix_zern:', np.shape(control_matrix_zern))
 
                             # Take tip\tilt off
                             slope_x -= np.mean(slope_x)
@@ -1110,8 +1125,6 @@ class AO_Zernikes(QObject):
                             self.done2.emit(0)
                         elif self.focus_settings['focus_mode_flag'] == 1:
                             self.done2.emit(1)
-                        
-                print('Final root mean square error of detected wavefront is: {} um'.format(rms_zern))
 
             # Close HDF5 file
             data_file.close()
@@ -1124,7 +1137,7 @@ class AO_Zernikes(QObject):
             """
             Returns closed-loop AO information into self.AO_info
             """             
-            if self.log:
+            if self.log and not self.debug:
 
                 self.AO_info['zern_AO_full']['loop_num'] = i
                 self.AO_info['zern_AO_full']['residual_phase_err_zern'] = self.loop_rms_zern
@@ -1207,6 +1220,11 @@ class AO_Zernikes(QObject):
                             voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
                 except Exception as e:
                     print(e)
+
+                if self.debug:
+
+                    self.message.emit('\nExiting dummy correction loop')
+                    break
 
                 if self.loop:
 
@@ -1354,85 +1372,90 @@ class AO_Zernikes(QObject):
             data_file = h5py.File('data_info.h5', 'a')
             data_set_1 = data_file['AO_img']['zern_AO_1']
 
-            # Load network model for central region
-            try:
-                # Load YAML and create model
-                yaml_file = open('exec_files/model_param/stride25_5feat_model2/model.yaml', 'r')
-                loaded_model_yaml = yaml_file.read()
-                yaml_file.close()
-                loaded_model_0 = model_from_yaml(loaded_model_yaml)
+            if self.debug or not config['tracking']['enable_tracking']:
 
-                # Load weights into new model
-                loaded_model_0.load_weights("exec_files/model_param/stride25_5feat_model2/model.h5")
-                print('Model_0 loaded from disk')
-
-                # Load MinMaxScaler
-                scaler_input_list_0 = []
-                for i in range(config['tracking']['feature_num']):
-                    scaler_input = joblib.load('exec_files/model_param/stride25_5feat_model2/scaler_input' + str(i + 2) + '.gz')
-                    scaler_input_list_0.append(scaler_input)
-                scaler_output_0 = joblib.load('exec_files/model_param/stride25_5feat_model2/scaler_output.gz')
-            except Exception as e:
-                print(e)
-
-            # Load network model for extended range towards negative axis
-            try:
-                # Load YAML and create model
-                yaml_file = open('exec_files/model_param/stride25_extended_neg_70epochs_5feat_model2/model.yaml', 'r')
-                loaded_model_yaml = yaml_file.read()
-                yaml_file.close()
-                loaded_model_1 = model_from_yaml(loaded_model_yaml)
-
-                # Load weights into new model
-                loaded_model_1.load_weights("exec_files/model_param/stride25_extended_neg_70epochs_5feat_model2/model.h5")
-                print('Model_1 loaded from disk')
-
-                # Load MinMaxScaler
-                scaler_input_list_1 = []
-                for i in range(config['tracking']['feature_num']):
-                    scaler_input = joblib.load('exec_files/model_param/stride25_extended_neg_70epochs_5feat_model2/scaler_input' + str(i + 2) + '.gz')
-                    scaler_input_list_1.append(scaler_input)
-                scaler_output_1 = joblib.load('exec_files/model_param/stride25_extended_neg_70epochs_5feat_model2/scaler_output.gz')
-            except Exception as e:
-                print(e)
-
-            # Load network model for extended range towards positive axis
-            try:
-                # Load YAML and create model
-                yaml_file = open('exec_files/model_param/stride25_extended_pos_70epochs_5feat_model2/model.yaml', 'r')
-                loaded_model_yaml = yaml_file.read()
-                yaml_file.close()
-                loaded_model_2 = model_from_yaml(loaded_model_yaml)
-
-                # Load weights into new model
-                loaded_model_2.load_weights("exec_files/model_param/stride25_extended_pos_70epochs_5feat_model2/model.h5")
-                print('Model_2 loaded from disk')
-
-                # Load MinMaxScaler
-                scaler_input_list_2 = []
-                for i in range(config['tracking']['feature_num']):
-                    scaler_input = joblib.load('exec_files/model_param/stride25_extended_pos_70epochs_5feat_model2/scaler_input' + str(i + 2) + '.gz')
-                    scaler_input_list_2.append(scaler_input)
-                scaler_output_2 = joblib.load('exec_files/model_param/stride25_extended_pos_70epochs_5feat_model2/scaler_output.gz')
-            except Exception as e:
-                print(e)
-
-            # Initialise timestep array to store detected zernike coefficients
-            self.zern_coeffs_detect = np.zeros([config['tracking']['timestep_num'], config['AO']['control_coeff_num']])
-            zern_coeff_input = np.zeros([config['tracking']['timestep_num'], config['tracking']['feature_num']])
-            timestep_pos = [0, - config['tracking']['stride_length'], config['tracking']['stride_length']]
-            timestep_pos_extended = [2 * config['tracking']['stride_length'], - 2 * config['tracking']['stride_length']]
-
-            self.message.emit('\nProcess started for surface tracking...')
-
-            # Initialise deformable mirror voltage array
-            voltages = np.zeros(self.actuator_num)
-                       
-            self.mirror.Reset()
-
-            prev1 = time.perf_counter()
+                self.loop = False
+                self.message.emit('\nExiting autofocusing function.')
 
             if self.loop:
+
+                # Load network model for central region
+                try:
+                    # Load YAML and create model
+                    yaml_file = open('exec_files/model_param/stride25_5feat_model2/model.yaml', 'r')
+                    loaded_model_yaml = yaml_file.read()
+                    yaml_file.close()
+                    loaded_model_0 = model_from_yaml(loaded_model_yaml)
+
+                    # Load weights into new model
+                    loaded_model_0.load_weights("exec_files/model_param/stride25_5feat_model2/model.h5")
+                    print('Model_0 loaded from disk')
+
+                    # Load MinMaxScaler
+                    scaler_input_list_0 = []
+                    for i in range(config['tracking']['feature_num']):
+                        scaler_input = joblib.load('exec_files/model_param/stride25_5feat_model2/scaler_input' + str(i + 2) + '.gz')
+                        scaler_input_list_0.append(scaler_input)
+                    scaler_output_0 = joblib.load('exec_files/model_param/stride25_5feat_model2/scaler_output.gz')
+                except Exception as e:
+                    print(e)
+
+                # Load network model for extended range towards negative axis
+                try:
+                    # Load YAML and create model
+                    yaml_file = open('exec_files/model_param/stride25_extended_neg_70epochs_5feat_model2/model.yaml', 'r')
+                    loaded_model_yaml = yaml_file.read()
+                    yaml_file.close()
+                    loaded_model_1 = model_from_yaml(loaded_model_yaml)
+
+                    # Load weights into new model
+                    loaded_model_1.load_weights("exec_files/model_param/stride25_extended_neg_70epochs_5feat_model2/model.h5")
+                    print('Model_1 loaded from disk')
+
+                    # Load MinMaxScaler
+                    scaler_input_list_1 = []
+                    for i in range(config['tracking']['feature_num']):
+                        scaler_input = joblib.load('exec_files/model_param/stride25_extended_neg_70epochs_5feat_model2/scaler_input' + str(i + 2) + '.gz')
+                        scaler_input_list_1.append(scaler_input)
+                    scaler_output_1 = joblib.load('exec_files/model_param/stride25_extended_neg_70epochs_5feat_model2/scaler_output.gz')
+                except Exception as e:
+                    print(e)
+
+                # Load network model for extended range towards positive axis
+                try:
+                    # Load YAML and create model
+                    yaml_file = open('exec_files/model_param/stride25_extended_pos_70epochs_5feat_model2/model.yaml', 'r')
+                    loaded_model_yaml = yaml_file.read()
+                    yaml_file.close()
+                    loaded_model_2 = model_from_yaml(loaded_model_yaml)
+
+                    # Load weights into new model
+                    loaded_model_2.load_weights("exec_files/model_param/stride25_extended_pos_70epochs_5feat_model2/model.h5")
+                    print('Model_2 loaded from disk')
+
+                    # Load MinMaxScaler
+                    scaler_input_list_2 = []
+                    for i in range(config['tracking']['feature_num']):
+                        scaler_input = joblib.load('exec_files/model_param/stride25_extended_pos_70epochs_5feat_model2/scaler_input' + str(i + 2) + '.gz')
+                        scaler_input_list_2.append(scaler_input)
+                    scaler_output_2 = joblib.load('exec_files/model_param/stride25_extended_pos_70epochs_5feat_model2/scaler_output.gz')
+                except Exception as e:
+                    print(e)
+
+                # Initialise timestep array to store detected zernike coefficients
+                self.zern_coeffs_detect = np.zeros([config['tracking']['timestep_num'], config['AO']['control_coeff_num']])
+                zern_coeff_input = np.zeros([config['tracking']['timestep_num'], config['tracking']['feature_num']])
+                timestep_pos = [0, - config['tracking']['stride_length'], config['tracking']['stride_length']]
+                timestep_pos_extended = [2 * config['tracking']['stride_length'], - 2 * config['tracking']['stride_length']]
+
+                self.message.emit('\nProcess started for surface tracking...')
+
+                # Initialise deformable mirror voltage array
+                voltages = np.zeros(self.actuator_num)
+                        
+                self.mirror.Reset()
+
+                prev1 = time.perf_counter()
 
                 # Detect the wavefront for each timestep position
                 for j in range(config['tracking']['timestep_num']):
@@ -1648,10 +1671,11 @@ class AO_Zernikes(QObject):
             # Reset mirror
             # self.mirror.Reset()
 
-            self.message.emit('\nSurface tracking process finished...')
+            self.message.emit('\nSurface tracking process finished.')
 
-            prev2 = time.perf_counter()
-            print('Time for one tracking prodedure is: {} s'.format(prev2 - prev1))
+            if not self.debug and config['tracking']['enable_tracking']:
+                prev2 = time.perf_counter()
+                print('Time for one tracking prodedure is: {} s'.format(prev2 - prev1))
 
             # Finished one tracking prodedure
             self.done3.emit()

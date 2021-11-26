@@ -358,14 +358,14 @@ class App(QApplication):
         # Start calibration thread
         calib2_thread.start()
 
-    def control_data_collect(self, sensor, mirror, data_info, mode, scanner):
+    def control_data_collect(self, sensor, mirror, data_info, mode):
         """
         Perform automated data collection
         """
         # Create data collection worker and thread
         data_collect_thread = QThread()
         data_collect_thread.setObjectName('data_collect_thread')
-        data_collect_worker = Data_Collection(sensor, mirror, data_info, scanner, debug = self.debug)
+        data_collect_worker = Data_Collection(sensor, mirror, data_info, debug = self.debug)
         data_collect_worker.moveToThread(data_collect_thread)
 
         # Connect to signals
@@ -1007,10 +1007,10 @@ class App(QApplication):
         """
         Handle end of surface tracking
         """
-        print()
+        print('')
         self.workers['zern_AO_worker'].stop()
         self.threads['zern_AO_thread'].quit()
-        self.threads['zern_AO_thread'].wait()
+        # self.threads['zern_AO_thread'].wait()
         # self.devices['mirror'].Stop()
         # self.devices['mirror'].Reset()
         self.main.ui.trackBtn.setChecked(False)

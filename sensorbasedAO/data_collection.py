@@ -11,9 +11,6 @@ from config import config
 from HDF5_dset import dset_append, get_dset
 from image_acquisition import acq_image
 from centroid_acquisition import acq_centroid
-from gaussian_inf import inf
-from common import fft_spot_from_phase
-from zernike_phase import zern_phase
 
 logger = log.get_logger(__name__)
 
@@ -29,7 +26,7 @@ class Data_Collection(QObject):
     message = Signal(object)
     info = Signal(object)
 
-    def __init__(self, sensor, mirror, settings, scanner = None, debug = False):
+    def __init__(self, sensor, mirror, settings, debug = False):
 
         # Get debug status
         self.debug = debug
@@ -48,9 +45,6 @@ class Data_Collection(QObject):
 
         # Get mirror instance
         self.mirror = mirror
-
-        # Get scanner instance
-        self.scanner = scanner
 
         # Initialise AO information parameter
         self.AO_info = {'data_collect': {}}
@@ -102,6 +96,11 @@ class Data_Collection(QObject):
             prev1 = time.perf_counter()
 
             for n in range(config['data_collect']['run_num']):
+
+                if self.debug:
+
+                    self.message.emit('\nExiting dummy data collection mode')
+                    break
 
                 # Run closed-loop control for each zernike mode aberration
                 for k in range(config['data_collect']['incre_num']):
@@ -283,11 +282,13 @@ class Data_Collection(QObject):
                     # Close HDF5 file
                     data_file.close()
 
-            # Save accurate Zernike mode voltages and amplitudes to file
-            sp.io.savemat('data/data_collection_0/zern_volts_' + str(config['data_collect']['incre_num']) + '_' + str(config['data_collect']['incre_amp']) + '.mat',\
-                dict(zern_volts = self.zern_volts))
-            sp.io.savemat('data/data_collection_0/generated_zern_amp_' + str(config['data_collect']['incre_num']) + '_' + str(config['data_collect']['incre_amp']) + '.mat',\
-                dict(generated_zern_amp = self.generated_zern_amp))
+            if not self.debug:
+
+                # Save accurate Zernike mode voltages and amplitudes to file
+                sp.io.savemat('data/data_collection_0/zern_volts_' + str(config['data_collect']['incre_num']) + '_' + str(config['data_collect']['incre_amp']) + '.mat',\
+                    dict(zern_volts = self.zern_volts))
+                sp.io.savemat('data/data_collection_0/generated_zern_amp_' + str(config['data_collect']['incre_num']) + '_' + str(config['data_collect']['incre_amp']) + '.mat',\
+                    dict(generated_zern_amp = self.generated_zern_amp))
 
             self.message.emit('\nProcess complete.')
 
@@ -297,7 +298,7 @@ class Data_Collection(QObject):
             """
             Returns data collection results into self.AO_info
             """             
-            if self.log:
+            if self.log and not self.debug:
                 
                 self.AO_info['data_collect']['zern_gen_cor_zern_amp_via_zern'] = self.gen_cor_zern_coeff
                 self.AO_info['data_collect']['zern_gen_cor_rms_zern_via_zern'] = self.gen_cor_rms_zern
@@ -349,6 +350,11 @@ class Data_Collection(QObject):
             prev1 = time.perf_counter()
 
             for n in range(config['data_collect']['run_num']):
+
+                if self.debug:
+
+                    self.message.emit('\nExiting dummy data collection mode')
+                    break
 
                 # Run closed-loop control for each zernike mode aberration
                 for k in range(config['data_collect']['incre_num']):
@@ -532,11 +538,13 @@ class Data_Collection(QObject):
                     # Close HDF5 file
                     data_file.close()
 
-            # Save accurate Zernike mode voltages to file
-            sp.io.savemat('data/data_collection_1/zern_volts_' + str(config['data_collect']['incre_num']) + '_' + str(config['data_collect']['incre_amp']) + '.mat',\
-                dict(zern_volts = self.zern_volts))
-            sp.io.savemat('data/data_collection_1/generated_zern_amp_' + str(config['data_collect']['incre_num']) + '_' + str(config['data_collect']['incre_amp']) + '.mat',\
-                dict(generated_zern_amp = self.generated_zern_amp))
+            if not self.debug:
+
+                # Save accurate Zernike mode voltages to file
+                sp.io.savemat('data/data_collection_1/zern_volts_' + str(config['data_collect']['incre_num']) + '_' + str(config['data_collect']['incre_amp']) + '.mat',\
+                    dict(zern_volts = self.zern_volts))
+                sp.io.savemat('data/data_collection_1/generated_zern_amp_' + str(config['data_collect']['incre_num']) + '_' + str(config['data_collect']['incre_amp']) + '.mat',\
+                    dict(generated_zern_amp = self.generated_zern_amp))
 
             self.message.emit('\nProcess complete.')
 
@@ -546,7 +554,7 @@ class Data_Collection(QObject):
             """
             Returns data collection results into self.AO_info
             """             
-            if self.log:
+            if self.log and not self.debug:
                 
                 self.AO_info['data_collect']['zern_gen_cor_zern_amp_via_slopes'] = self.gen_cor_zern_coeff
                 self.AO_info['data_collect']['zern_gen_cor_rms_zern_via_slopes'] = self.gen_cor_rms_zern
@@ -610,6 +618,11 @@ class Data_Collection(QObject):
             prev1 = time.perf_counter()
 
             for n in range(config['data_collect']['run_num']):
+
+                if self.debug:
+
+                    self.message.emit('\nExiting dummy data collection mode')
+                    break
 
                 # Run closed-loop control for each specified zernike mode
                 for j in range(zern_num):
@@ -800,7 +813,7 @@ class Data_Collection(QObject):
             """
             Returns data collection results into self.AO_info
             """             
-            if self.log:
+            if self.log and not self.debug:
                 
                 self.AO_info['data_collect']['zern_gen_cor_zern_amp_via_zern'] = self.gen_cor_zern_coeff
                 self.AO_info['data_collect']['zern_gen_cor_rms_zern_via_zern'] = self.gen_cor_rms_zern
@@ -865,6 +878,11 @@ class Data_Collection(QObject):
             prev1 = time.perf_counter()
 
             for n in range(config['data_collect']['run_num']):
+
+                if self.debug:
+
+                    self.message.emit('\nExiting dummy data collection mode')
+                    break
 
                 # Run closed-loop control for each specified zernike mode
                 for j in range(zern_num):
@@ -1055,7 +1073,7 @@ class Data_Collection(QObject):
             """
             Returns data collection results into self.AO_info
             """             
-            if self.log:
+            if self.log and not self.debug:
                 
                 self.AO_info['data_collect']['zern_gen_cor_zern_amp_via_slopes'] = self.gen_cor_zern_coeff
                 self.AO_info['data_collect']['zern_gen_cor_rms_zern_via_slopes'] = self.gen_cor_rms_zern

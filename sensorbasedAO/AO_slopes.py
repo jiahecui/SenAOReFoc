@@ -108,6 +108,11 @@ class AO_Slopes(QObject):
 
             # Run closed-loop control until tolerance value or maximum loop iteration is reached
             for i in range(self.AO_settings['loop_max'] + 1):
+
+                if self.debug:
+
+                    self.message.emit('\nExiting dummy correction loop')
+                    break
                 
                 if self.loop:
 
@@ -282,7 +287,6 @@ class AO_Slopes(QObject):
             data_file.close()
 
             self.message.emit('\nProcess complete.')
-            print('Final root mean square error of detected wavefront is: {} um'.format(rms_zern))
 
             prev2 = time.perf_counter()
             print('Time for closed-loop AO process is: {} s'.format(prev2 - prev1))
@@ -290,7 +294,7 @@ class AO_Slopes(QObject):
             """
             Returns closed-loop AO information into self.AO_info
             """             
-            if self.log:
+            if self.log and not self.debug:
 
                 self.AO_info['slope_AO_1']['loop_num'] = i
                 self.AO_info['slope_AO_1']['residual_phase_err_slopes'] = self.loop_rms_slopes
@@ -343,6 +347,11 @@ class AO_Slopes(QObject):
 
             # Run closed-loop control until tolerance value or maximum loop iteration is reached
             for i in range(self.AO_settings['loop_max'] + 1):
+
+                if self.debug:
+
+                    self.message.emit('\nExiting dummy correction loop')
+                    break
                 
                 if self.loop:
 
@@ -537,7 +546,6 @@ class AO_Slopes(QObject):
             data_file.close()
 
             self.message.emit('\nProcess complete.')
-            print('Final root mean square error of detected wavefront is: {} um'.format(rms_zern))
 
             prev2 = time.perf_counter()
             print('Time for closed-loop AO process is: {} s'.format(prev2 - prev1))
@@ -545,7 +553,7 @@ class AO_Slopes(QObject):
             """
             Returns closed-loop AO information into self.AO_info
             """             
-            if self.log:
+            if self.log and not self.debug:
 
                 self.AO_info['slope_AO_2']['loop_num'] = i
                 self.AO_info['slope_AO_2']['residual_phase_err_slopes'] = self.loop_rms_slopes
@@ -628,6 +636,11 @@ class AO_Slopes(QObject):
 
                 # Run closed-loop control until tolerance value or maximum loop iteration is reached
                 for i in range(self.AO_settings['loop_max'] + 1):
+
+                    if self.debug:
+
+                        self.message.emit('\nExiting dummy correction loop')
+                        break
                     
                     if self.loop:
 
@@ -806,8 +819,6 @@ class AO_Slopes(QObject):
                         elif self.focus_settings['focus_mode_flag'] == 1:
                             self.done2.emit(1)
 
-                print('Final root mean square error of detected wavefront is: {} um'.format(rms_zern))
-
             # Close HDF5 file
             data_file.close()
 
@@ -819,7 +830,7 @@ class AO_Slopes(QObject):
             """
             Returns closed-loop AO information into self.AO_info
             """             
-            if self.log:
+            if self.log and not self.debug:
 
                 self.AO_info['slope_AO_3']['loop_num'] = i
                 self.AO_info['slope_AO_3']['residual_phase_err_slopes'] = self.loop_rms_slopes
@@ -900,6 +911,11 @@ class AO_Slopes(QObject):
 
                 # Run closed-loop control until tolerance value or maximum loop iteration is reached
                 for i in range(self.AO_settings['loop_max'] + 1):
+
+                    if self.debug:
+
+                        self.message.emit('\nExiting dummy correction loop')
+                        break
                     
                     if self.loop:
 
@@ -1102,8 +1118,6 @@ class AO_Slopes(QObject):
                         elif self.focus_settings['focus_mode_flag'] == 1:
                             self.done2.emit(1)
 
-                print('Final root mean square error of detected wavefront is: {} um'.format(rms_zern))
-
             # Close HDF5 file
             data_file.close()
 
@@ -1115,7 +1129,7 @@ class AO_Slopes(QObject):
             """
             Returns closed-loop AO information into self.AO_info
             """             
-            if self.log:
+            if self.log and not self.debug:
 
                 self.AO_info['slope_AO_full']['loop_num'] = i
                 self.AO_info['slope_AO_full']['residual_phase_err_slopes'] = self.loop_rms_slopes
