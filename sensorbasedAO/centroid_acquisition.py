@@ -45,12 +45,6 @@ def acq_centroid(settings, flag = 0):
                         10 : data_file['AO_img']['slope_AO_full'],
                         11 : data_file['calibration_RF_img']}
 
-    cent_options = {0 : 'real_cent_img', 1 : 'dummy_cent_img'}
-
-    calib_options = {0 : 'real_calib_img', 1 : 'dummy_calib_img'}
-
-    AO_options = {0 : 'real_AO_img', 1 : 'dummy_AO_img'}
-
     if flag == 1:
         if config['DM']['DM_num'] == 0:
             image_num = 2 * config['DM0']['actuator_num']
@@ -67,7 +61,7 @@ def acq_centroid(settings, flag = 0):
     SB_rad = settings['SB_rad']
 
     # Initialise actual S-H spot centroid coords array and sharpness metric array
-    act_cent_coord, act_cent_coord_x, act_cent_coord_y, sharpness = (np.zeros(settings['act_ref_cent_num']) for i in range(4))
+    act_cent_coord, act_cent_coord_x, act_cent_coord_y = (np.zeros(settings['act_ref_cent_num']) for i in range(3))
 
     # Initialise list for storing S-H spot centroid information for all images in data
     slope_x_list, slope_y_list = ([] for i in range(2))
@@ -76,13 +70,13 @@ def acq_centroid(settings, flag = 0):
     for l in range(image_num):
 
         if flag == 0:
-            image_temp = subgroup_options[flag][cent_options[config['dummy']]][l, :, :]
+            image_temp = subgroup_options[flag]['real_cent_img'][l, :, :]
         elif flag == 1:
-            image_temp = subgroup_options[flag][calib_options[config['dummy']]][l, :, :]
+            image_temp = subgroup_options[flag]['real_calib_img'][l, :, :]
         elif flag == 11:
             image_temp = subgroup_options[flag]['real_calib_RF_img'][-1, :, :]
         else:
-            image_temp = subgroup_options[flag][AO_options[config['dummy']]][-1, :, :]
+            image_temp = subgroup_options[flag]['real_AO_img'][-1, :, :]
         
         # print('Centroiding image {}'.format(l))
 
@@ -159,16 +153,9 @@ def acq_centroid(settings, flag = 0):
                 act_cent_coord_y[i] = sum_y / sum_pix
                 act_cent_coord[i] = math.ceil(act_cent_coord_y[i]) * settings['sensor_width'] + math.ceil(act_cent_coord_x[i])
 
-        if config['dummy']:
-
-            # Calculate raw slopes in each dimension
-            slope_x = act_cent_coord_x - (act_ref_cent_coord_x.astype(int) + 1)
-            slope_y = act_cent_coord_y - (act_ref_cent_coord_y.astype(int) + 1)
-        else:
-
-            # Calculate raw slopes in each dimension
-            slope_x = act_cent_coord_x - act_ref_cent_coord_x
-            slope_y = act_cent_coord_y - act_ref_cent_coord_y
+        # Calculate raw slopes in each dimension
+        slope_x = act_cent_coord_x - act_ref_cent_coord_x
+        slope_y = act_cent_coord_y - act_ref_cent_coord_y
 
         # Append slopes to list
         slope_x_list.append(slope_x)

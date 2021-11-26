@@ -8,9 +8,6 @@ import argparse
 import h5py
 import numpy as np
 
-# import mtidevice
-# from mtidevice import MTIParam
-
 import log
 from config import config
 from sensor import SENSOR
@@ -801,15 +798,8 @@ class App(QApplication):
                        all 'control_coeff_num' modes and multiple amplitudes of incremental steps
             mode = 2 - Run closed-loop AO correction for certain combinations of zernike mode aberrations via Zernike control
             mode = 3 - Run closed-loop AO correction for certain combinations of zernike mode aberrations via slopes control
-            mode = 4 - Perform a number of line scans on specimen and retrieve zernike coefficients from each scan point
-                       with / without aberrations applied on DM 
-            mode = 5 - Retrieve zernike coefficients with scanner scanning over full frame exposure time with / without
-                       aberrations applied on DM 
         """
-        if mode == 4:
-            self.control_data_collect(self.devices['sensor'], self.devices['mirror'], self.data_info, mode, self.devices['scanner'])
-        else:
-            self.control_data_collect(self.devices['sensor'], self.devices['mirror'], self.data_info, mode)
+        self.control_data_collect(self.devices['sensor'], self.devices['mirror'], self.data_info, mode)
 
     def handle_data_collect_done(self):
         """

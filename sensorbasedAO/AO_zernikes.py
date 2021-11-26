@@ -12,12 +12,9 @@ import scipy as sp
 
 import log
 from config import config
-from HDF5_dset import dset_append, get_dset, get_mat_dset
+from HDF5_dset import dset_append, get_dset
 from image_acquisition import acq_image
 from centroid_acquisition import acq_centroid
-from gaussian_inf import inf
-from common import fft_spot_from_phase
-from zernike_phase import zern_phase
 
 logger = log.get_logger(__name__)
 
@@ -61,18 +58,6 @@ class AO_Zernikes(QObject):
         # Get voltages for remote focusing
         self.remote_focus_voltages = h5py.File('exec_files/RF_calib_volts_interp_full_01um_1501.mat','r').get('interp_volts')
         self.remote_focus_voltages = np.array(self.remote_focus_voltages).T
-        
-        # Get voltages for generating Zernike modes in one shot
-        if config['AO']['zern_gen'] == 2:
-            if config['AO']['gen_volts_flag'] == 0:
-                self.zern_volts = h5py.File('exec_files/zern_volts/zern_volts_6_0.05_-v7.3.mat','r').get('zern_volts')
-                self.incre_amp = config['AO']['incre_amp_0']
-            elif config['AO']['gen_volts_flag'] == 1:
-                self.zern_volts = h5py.File('exec_files/zern_volts/zern_volts_15_0.02_-v7.3.mat','r').get('zern_volts')
-                self.incre_amp = config['AO']['incre_amp_1']
-            elif config['AO']['gen_volts_flag'] == 2:
-                self.zern_volts = h5py.File('exec_files/zern_volts/zern_volts_10_0.02_6-v7.3.mat','r').get('zern_volts')
-                self.incre_amp = config['AO']['incre_amp_2']
 
         # Initialise Zernike coefficient array
         self.zern_coeff = np.zeros(config['AO']['control_coeff_num'])
@@ -98,47 +83,6 @@ class AO_Zernikes(QObject):
         self.voltages = np.zeros([self.actuator_num, self.AO_settings['loop_max'] + 1])
 
         super().__init__()
-
-    def phase_calc(self, voltages):
-        """
-        Calculates phase profile introduced by DM
-        """
-        # Get meshgrid of coordinates within phase image
-        coord_xx, coord_yy = self.get_coord_mesh(self.SB_settings['sensor_width'])
-
-        # Get boolean pupil mask
-        pupil_mask = self.get_pupil_mask(coord_xx, coord_yy)
-
-        # Calculate Gaussian distribution influence function value introduced by each actuator at each pixel
-        delta_phase = np.zeros([self.SB_settings['sensor_width'], self.SB_settings['sensor_width']])
-
-        for i in range(self.actuator_num):
-            delta_phase += inf(coord_xx, coord_yy, self.mirror_settings['act_pos_x'], self.mirror_settings['act_pos_y'],\
-                i, self.mirror_settings['act_diam']) * voltages[i]
-
-        delta_phase = delta_phase * pupil_mask
-
-        print('Max and min values in delta_phase are: {} um, {} um'.format(np.amax(delta_phase), np.amin(delta_phase)))
-
-        return delta_phase
-
-    def get_coord_mesh(self, image_diam):
-        """
-        Retrieves coordinate meshgrid for calculations over a full image
-        """
-        coord_x, coord_y = (np.arange(int(-image_diam / 2), int(-image_diam / 2) + image_diam) for i in range(2))
-        coord_xx, coord_yy = np.meshgrid(coord_x, coord_y)
-
-        return coord_xx, coord_yy
-
-    def get_pupil_mask(self, coord_xx, coord_yy):
-        """
-        Retrieves boolean pupil mask for round aperture
-        """
-        pupil_mask = np.sqrt((coord_xx * self.SB_settings['pixel_size']) ** 2 + \
-            (coord_yy * self.SB_settings['pixel_size']) ** 2) <= self.pupil_diam * 1e3 / 2
-        
-        return pupil_mask
 
     @Slot(object)
     def run1(self):
@@ -262,44 +206,6 @@ class AO_Zernikes(QObject):
 
                                     c = click.getchar()
 
-                            elif not self.debug and config['AO']['zern_gen'] == 2:
-
-                                # Retrieve input zernike coefficient array
-                                zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
-                                mode_index = len(zern_array_temp)
-                                mode_amp = zern_array_temp[-1]
-
-                                voltages[:] = self.zern_volts[int(mode_amp // self.incre_amp - 1), mode_index - 3, :]
-
-                                # Send values vector to mirror
-                                self.mirror.Send(voltages)
-
-                                # Wait for DM to settle
-                                time.sleep(config['DM']['settling_time'])
-                            
-                                # Acquire S-H spots using camera
-                                AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                                AO_image = np.mean(AO_image_stack, axis = 2)
-
-                                # Image thresholding to remove background
-                                AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
-                                AO_image[AO_image < 0] = 0
-                                self.image.emit(AO_image)
-
-                                print('Applied amplitude of mode {} is {} um'.format(mode_index, mode_amp))
-
-                                # Ask user whether to proceed with correction
-                                self.message.emit('\nPress [y] to proceed with correction.')
-                                c = click.getchar()
-
-                                while True:
-                                    if c == 'y':
-                                        break
-                                    else:
-                                        self.message.emit('\nInvalid input. Please try again.')
-
-                                    c = click.getchar()
-
                             else:
 
                                 voltages[:] = config['DM']['vol_bias']
@@ -311,61 +217,6 @@ class AO_Zernikes(QObject):
                             self.voltages[:, i] = voltages
 
                             print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
-                            print('Sum of voltages {} is: {}'.format(i, voltages.sum()))
-
-                        if self.debug:
-
-                            # Update phase profile and retrieve S-H spot image 
-                            if i == 0:
-
-                                # Option 1: Load real phase profile from .mat file
-                                if config['real_phase']:
-
-                                    # Retrieve real phase profile
-                                    phase_init = get_mat_dset(self.SB_settings, flag = 1)
-
-                                # Option 2: Generate ideal zernike phase profile
-                                else:
-                                    
-                                    # Retrieve input zernike coefficient array
-                                    zern_array =  self.SB_settings['zernike_array_test']
-                                    
-                                    # Generate ideal zernike phase profile
-                                    phase_init = zern_phase(self.SB_settings, zern_array)
-
-                                # Display initial phase
-                                self.image.emit(phase_init)
-
-                                print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
-
-                                # Get simulated S-H spots and append to list
-                                AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
-                                dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
-
-                                phase = phase_init.copy()
-
-                            else:
-
-                                # Calculate phase profile introduced by DM
-                                delta_phase = self.phase_calc(voltages)
-
-                                # Update phase data
-                                phase = phase_init - delta_phase
-
-                                # Display corrected phase
-                                self.image.emit(phase)
-
-                                print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
-
-                                # Get simulated S-H spots and append to list
-                                AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
-                                dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
-
-                        else:
 
                             # Send values vector to mirror
                             self.mirror.Send(voltages)
@@ -389,9 +240,6 @@ class AO_Zernikes(QObject):
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 3)
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
 
-                        # print('slope_x:', slope_x)
-                        # print('slope_y:', slope_y)
-                        
                         # Draw actual S-H spot centroids on image layer
                         AO_image.ravel()[act_cent_coord.astype(int)] = 0
                         self.image.emit(AO_image)
@@ -416,25 +264,17 @@ class AO_Zernikes(QObject):
 
                         strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
                         self.strehl[i] = strehl
-
-                        print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
-                        print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
-                        print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
+                   
+                        print('Strehl ratio {} is: {}'.format(i, strehl))
 
                         # Append data to list
-                        if self.debug:
-                            dset_append(data_set_2, 'dummy_spot_slope_x', slope_x)
-                            dset_append(data_set_2, 'dummy_spot_slope_y', slope_y)
-                            dset_append(data_set_2, 'dummy_spot_slope', slope)
-                            dset_append(data_set_2, 'dummy_spot_zern_err', zern_err)
-                        else:
-                            dset_append(data_set_2, 'real_spot_slope_x', slope_x)
-                            dset_append(data_set_2, 'real_spot_slope_y', slope_y)
-                            dset_append(data_set_2, 'real_spot_slope', slope)
-                            dset_append(data_set_2, 'real_spot_zern_err', zern_err)
+                        dset_append(data_set_2, 'real_spot_slope_x', slope_x)
+                        dset_append(data_set_2, 'real_spot_slope_y', slope_y)
+                        dset_append(data_set_2, 'real_spot_slope', slope)
+                        dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                        if strehl >= config['AO']['tolerance_fact_strehl'] or rms_zern_part <= config['AO']['tolerance_fact_zern']:
+                        if strehl >= config['AO']['tolerance_fact_strehl']:
                             break                 
 
                     except Exception as e:
@@ -600,44 +440,6 @@ class AO_Zernikes(QObject):
 
                                     c = click.getchar()
 
-                            elif not self.debug and config['AO']['zern_gen'] == 2:
-
-                                # Retrieve input zernike coefficient array
-                                zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
-                                mode_index = len(zern_array_temp)
-                                mode_amp = zern_array_temp[-1]
-
-                                voltages[:] = self.zern_volts[int(mode_amp // self.incre_amp - 1), mode_index - 3, :]
-
-                                # Send values vector to mirror
-                                self.mirror.Send(voltages)
-
-                                # Wait for DM to settle
-                                time.sleep(config['DM']['settling_time'])
-                            
-                                # Acquire S-H spots using camera
-                                AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                                AO_image = np.mean(AO_image_stack, axis = 2)
-
-                                # Image thresholding to remove background
-                                AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
-                                AO_image[AO_image < 0] = 0
-                                self.image.emit(AO_image)
-
-                                print('Applied amplitude of mode {} is {} um'.format(mode_index, mode_amp))
-
-                                # Ask user whether to proceed with correction
-                                self.message.emit('\nPress [y] to proceed with correction.')
-                                c = click.getchar()
-
-                                while True:
-                                    if c == 'y':
-                                        break
-                                    else:
-                                        self.message.emit('\nInvalid input. Please try again.')
-
-                                    c = click.getchar()
-
                             else:
 
                                 voltages[:] = config['DM']['vol_bias']
@@ -646,61 +448,7 @@ class AO_Zernikes(QObject):
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(control_matrix_zern\
                                 [:,:config['AO']['control_coeff_num']], zern_err[:config['AO']['control_coeff_num']]))
 
-                            print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
-
-                        if self.debug:
-                            
-                            # Update phase profile and retrieve S-H spot image 
-                            if i == 0:
-
-                                # Option 1: Load real phase profile from .mat file
-                                if config['real_phase']:
-
-                                    # Retrieve real phase profile
-                                    phase_init = get_mat_dset(self.SB_settings, flag = 1)
-                                    
-                                # Option 2: Generate ideal zernike phase profile
-                                else:
-                                    
-                                    # Retrieve input zernike coefficient array
-                                    zern_array =  self.SB_settings['zernike_array_test']
-                                    
-                                    # Generate ideal zernike phase profile
-                                    phase_init = zern_phase(self.SB_settings, zern_array)
-
-                                # Display initial phase
-                                self.image.emit(phase_init)
-
-                                print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
-
-                                # Get simulated S-H spots and append to list
-                                AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
-                                dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
-
-                                phase = phase_init.copy()
-
-                            else:
-
-                                # Calculate phase profile introduced by DM
-                                delta_phase = self.phase_calc(voltages)
-
-                                # Update phase data
-                                phase = phase_init - delta_phase
-
-                                # Display corrected phase
-                                self.image.emit(phase)
-
-                                print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
-
-                                # Get simulated S-H spots and append to list
-                                AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
-                                dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
-
-                        else:                     
+                            print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))              
 
                             # Send values vector to mirror
                             self.mirror.Send(voltages)
@@ -723,9 +471,6 @@ class AO_Zernikes(QObject):
                         # Calculate centroids of S-H spots
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 5)
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
-
-                        # print('slope_x:', slope_x)
-                        # print('slope_y:', slope_y)
 
                         # Remove corresponding elements from slopes and rows from influence function matrix, zernike matrix and zernike derivative matrix
                         if self.debug == 1:
@@ -792,18 +537,13 @@ class AO_Zernikes(QObject):
                         strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
                         self.strehl[i] = strehl
 
-                        print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
-                        print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
                         print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
 
                         # Append data to list
-                        if self.debug:
-                            dset_append(data_set_2, 'dummy_spot_zern_err', zern_err)
-                        else:
-                            dset_append(data_set_2, 'real_spot_zern_err', zern_err)
+                        dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                         # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                        if strehl >= config['AO']['tolerance_fact_strehl'] or rms_zern_part <= config['AO']['tolerance_fact_zern']:
+                        if strehl >= config['AO']['tolerance_fact_strehl']:
                             break                 
 
                     except Exception as e:
@@ -984,44 +724,6 @@ class AO_Zernikes(QObject):
 
                                         c = click.getchar()
 
-                                elif not self.debug and config['AO']['zern_gen'] == 2:
-
-                                    # Retrieve input zernike coefficient array
-                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
-                                    mode_index = len(zern_array_temp)
-                                    mode_amp = zern_array_temp[-1]
-
-                                    voltages[:] = self.zern_volts[int(mode_amp // self.incre_amp - 1), mode_index - 3, :]
-
-                                    # Send values vector to mirror
-                                    self.mirror.Send(voltages)
-
-                                    # Wait for DM to settle
-                                    time.sleep(config['DM']['settling_time'])
-                                
-                                    # Acquire S-H spots using camera
-                                    AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                                    AO_image = np.mean(AO_image_stack, axis = 2)
-
-                                    # Image thresholding to remove background
-                                    AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
-                                    AO_image[AO_image < 0] = 0
-                                    self.image.emit(AO_image)
-
-                                    print('Applied amplitude of mode {} is {} um'.format(mode_index, mode_amp))
-
-                                    # Ask user whether to proceed with correction
-                                    self.message.emit('\nPress [y] to proceed with correction.')
-                                    c = click.getchar()
-
-                                    while True:
-                                        if c == 'y':
-                                            break
-                                        else:
-                                            self.message.emit('\nInvalid input. Please try again.')
-
-                                        c = click.getchar()
-
                                 else:
 
                                     voltages[:] = config['DM']['vol_bias'] + voltages_defoc
@@ -1033,74 +735,6 @@ class AO_Zernikes(QObject):
                                 self.voltages[:, i] = voltages
 
                                 print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
-                                print('Sum of voltages {} is: {}'.format(i, voltages.sum()))
-                            
-                            if self.debug:
-                                
-                                # Update phase profile and retrieve S-H spot image 
-                                if i == 0:
-
-                                    # Option 1: Load real phase profile from .mat file
-                                    if config['real_phase']:
-
-                                        # Retrieve real phase profile
-                                        phase_init = get_mat_dset(self.SB_settings, flag = 1)
-
-                                        # Generate defocus phase profile
-                                        phase_defoc = self.phase_calc(voltages_defoc)
-
-                                        # Apply defocus to real phase profile
-                                        phase_init += phase_defoc
-                                        
-                                    # Option 2: Generate ideal zernike phase profile
-                                    else:
-                                        
-                                        # Retrieve input zernike coefficient array + defocus component
-                                        zern_array_temp =  self.SB_settings['zernike_array_test']
-                                        if len(zern_array_temp) >= 4:
-                                            zern_array_temp[3] += self.zern_coeff[3]
-                                            zern_array = zern_array_temp
-                                        else:
-                                            zern_array = np.zeros(4)
-                                            zern_array[:len(zern_array_temp)] = zern_array_temp
-                                            zern_array[3] = self.zern_coeff[3]
-                                        
-                                        # Generate ideal zernike phase profile
-                                        phase_init = zern_phase(self.SB_settings, zern_array)
-
-                                    # Display initial phase
-                                    self.image.emit(phase_init)
-
-                                    print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
-
-                                    # Get simulated S-H spots and append to list
-                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
-                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
-
-                                    phase = phase_init.copy()
-
-                                else:
-
-                                    # Calculate phase profile introduced by DM
-                                    delta_phase = self.phase_calc(voltages - voltages_defoc)
-
-                                    # Update phase data
-                                    phase = phase_init - delta_phase
-
-                                    # Display corrected phase
-                                    self.image.emit(phase)
-
-                                    print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
-
-                                    # Get simulated S-H spots and append to list
-                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
-                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
-
-                            else:
 
                                 # Send values vector to mirror
                                 self.mirror.Send(voltages)
@@ -1123,9 +757,6 @@ class AO_Zernikes(QObject):
                             # Calculate centroids of S-H spots
                             act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 7)
                             act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
-                        
-                            # print('slope_x:', slope_x)
-                            # print('slope_y:', slope_y)
 
                             # Draw actual S-H spot centroids on image layer
                             AO_image.ravel()[act_cent_coord.astype(int)] = 0
@@ -1152,24 +783,16 @@ class AO_Zernikes(QObject):
                             strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
                             self.strehl[i,j] = strehl
 
-                            print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
-                            print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
-                            print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))                 
+                            print('Strehl ratio {} is: {}'.format(i, strehl))                 
 
                             # Append data to list
-                            if self.debug:
-                                dset_append(data_set_2, 'dummy_spot_slope_x', slope_x)
-                                dset_append(data_set_2, 'dummy_spot_slope_y', slope_y)
-                                dset_append(data_set_2, 'dummy_spot_slope', slope)
-                                dset_append(data_set_2, 'dummy_spot_zern_err', zern_err)
-                            else:
-                                dset_append(data_set_2, 'real_spot_slope_x', slope_x)
-                                dset_append(data_set_2, 'real_spot_slope_y', slope_y)
-                                dset_append(data_set_2, 'real_spot_slope', slope)
-                                dset_append(data_set_2, 'real_spot_zern_err', zern_err)
+                            dset_append(data_set_2, 'real_spot_slope_x', slope_x)
+                            dset_append(data_set_2, 'real_spot_slope_y', slope_y)
+                            dset_append(data_set_2, 'real_spot_slope', slope)
+                            dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                             # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                            if strehl >= config['AO']['tolerance_fact_strehl'] or rms_zern_part <= config['AO']['tolerance_fact_zern']:
+                            if strehl >= config['AO']['tolerance_fact_strehl']:
                                 break                 
 
                         except Exception as e:
@@ -1370,45 +993,7 @@ class AO_Zernikes(QObject):
                                             self.message.emit('\nInvalid input. Please try again.')
 
                                         c = click.getchar()
-
-                                elif not self.debug and config['AO']['zern_gen'] == 2:
-
-                                    # Retrieve input zernike coefficient array
-                                    zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
-                                    mode_index = len(zern_array_temp)
-                                    mode_amp = zern_array_temp[-1]
-
-                                    voltages[:] = self.zern_volts[int(mode_amp // self.incre_amp - 1), mode_index - 3, :]
-
-                                    # Send values vector to mirror
-                                    self.mirror.Send(voltages)
-
-                                    # Wait for DM to settle
-                                    time.sleep(config['DM']['settling_time'])
                                 
-                                    # Acquire S-H spots using camera
-                                    AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                                    AO_image = np.mean(AO_image_stack, axis = 2)
-
-                                    # Image thresholding to remove background
-                                    AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
-                                    AO_image[AO_image < 0] = 0
-                                    self.image.emit(AO_image)
-
-                                    print('Applied amplitude of mode {} is {} um'.format(mode_index, mode_amp))
-
-                                    # Ask user whether to proceed with correction
-                                    self.message.emit('\nPress [y] to proceed with correction.')
-                                    c = click.getchar()
-
-                                    while True:
-                                        if c == 'y':
-                                            break
-                                        else:
-                                            self.message.emit('\nInvalid input. Please try again.')
-
-                                        c = click.getchar()
-                                    
                                 else:
 
                                     voltages[:] = config['DM']['vol_bias'] + voltages_defoc
@@ -1418,73 +1003,6 @@ class AO_Zernikes(QObject):
                                 [:,:config['AO']['control_coeff_num']], zern_err_part[:config['AO']['control_coeff_num']]))
 
                                 print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
-
-                            if self.debug:
-                                
-                                # Update phase profile and retrieve S-H spot image 
-                                if i == 0:
-
-                                    # Option 1: Load real phase profile from .mat file
-                                    if config['real_phase']:
-
-                                        # Retrieve real phase profile
-                                        phase_init = get_mat_dset(self.SB_settings, flag = 1)
-
-                                        # Generate defocus phase profile
-                                        phase_defoc = self.phase_calc(voltages_defoc)
-
-                                        # Apply defocus to real phase profile
-                                        phase_init += phase_defoc
-                                        
-                                    # Option 2: Generate ideal zernike phase profile
-                                    else:
-                                        
-                                        # Retrieve input zernike coefficient array + defocus component
-                                        zern_array_temp =  self.SB_settings['zernike_array_test']
-                                        if len(zern_array_temp) >= 4:
-                                            zern_array_temp[3] += self.zern_coeff[3]
-                                            zern_array = zern_array_temp
-                                        else:
-                                            zern_array = np.zeros(4)
-                                            zern_array[:len(zern_array_temp)] = zern_array_temp
-                                            zern_array[3] = self.zern_coeff[3]
-                                        
-                                        # Generate ideal zernike phase profile
-                                        phase_init = zern_phase(self.SB_settings, zern_array) 
-
-                                    # Display initial phase
-                                    self.image.emit(phase_init)
-
-                                    print('\nMax and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase_init), np.amin(phase_init)))
-
-                                    # Get simulated S-H spots and append to list
-                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase_init)
-                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
-
-                                    phase = phase_init.copy()
-
-                                else:
-
-                                    # Calculate phase profile introduced by DM
-                                    delta_phase = self.phase_calc(voltages - voltages_defoc)
-
-                                    # Update phase data
-                                    phase = phase_init - delta_phase
-
-                                    # Display corrected phase
-                                    self.image.emit(phase)
-
-                                    print('Max and min values of phase {} are: {} um, {} um'.format(i, np.amax(phase), np.amin(phase)))
-
-                                    # Get simulated S-H spots and append to list
-                                    AO_image, spot_cent_x, spot_cent_y = fft_spot_from_phase(self.SB_settings, phase)
-                                    dset_append(data_set_1, 'dummy_AO_img', AO_image)
-                                    dset_append(data_set_1, 'dummy_spot_cent_x', spot_cent_x)
-                                    dset_append(data_set_1, 'dummy_spot_cent_y', spot_cent_y)
-
-                            else:
 
                                 # Send values vector to mirror
                                 self.mirror.Send(voltages)
@@ -1507,9 +1025,6 @@ class AO_Zernikes(QObject):
                             # Calculate centroids of S-H spots
                             act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 9)
                             act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
-
-                            # print('slope_x:', slope_x)
-                            # print('slope_y:', slope_y)
 
                             # Remove corresponding elements from slopes and rows from influence function matrix, zernike matrix and zernike derivative matrix
                             if self.debug == 1:
@@ -1575,19 +1090,14 @@ class AO_Zernikes(QObject):
 
                             strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
                             self.strehl[i,j] = strehl
-
-                            print('Full zernike root mean square error {} is {} um'.format(i, rms_zern))
-                            print('Partial zernike root mean square error {} is {} um'.format(i, rms_zern_part))                        
+                      
                             print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))               
 
                             # Append data to list
-                            if self.debug:
-                                dset_append(data_set_2, 'dummy_spot_zern_err', zern_err)
-                            else:
-                                dset_append(data_set_2, 'real_spot_zern_err', zern_err)
+                            dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                             # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                            if strehl >= config['AO']['tolerance_fact_strehl'] or rms_zern_part <= config['AO']['tolerance_fact_zern']:
+                            if strehl >= config['AO']['tolerance_fact_strehl']:
                                 break                 
 
                         except Exception as e:
@@ -1723,8 +1233,6 @@ class AO_Zernikes(QObject):
                         # Append image to list
                         dset_append(data_set_1, 'real_AO_img', self._image)
 
-                        # imsave('ML_training_data/SH_images/SH_spots_' + str(self.focus_settings['start_depth_defoc'] + j) + 'um.tif', self._image.astype(np.uint8))
-
                         # Calculate centroids of S-H spots
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 3)
                         act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
@@ -1743,7 +1251,6 @@ class AO_Zernikes(QObject):
                         slope_x = np.delete(slope_x, index_remove, axis = 1)
                         slope_y = np.delete(slope_y, index_remove, axis = 1)
                         conv_matrix = np.delete(self.mirror_settings['conv_matrix'].copy(), index_remove_inf, axis = 1)
-                        # print('Number of obscured subapertures:', np.size(index_remove))
 
                         # Concatenate slopes into one slope matrix
                         slope = (np.concatenate((slope_x, slope_y), axis = 1)).T

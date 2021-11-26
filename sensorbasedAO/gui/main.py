@@ -236,18 +236,9 @@ class Main(QMainWindow):
                     self.app.handle_message_disp('\nInvalid input. Please try again.')
             else:
                 btn.setChecked(False)
-                self.app.handle_message_disp('\nPlease enter zernike coefficients.')
+                self.app.handle_message_disp('\nPlease enter Zernike coefficients.')
 
             if btn.isChecked():
-                if config['AO']['zern_gen'] == 2 and config['AO']['gen_volts_flag'] == 0:
-                    if self.ui.ZernikeValSpin.value() % config['AO']['incre_amp_0'] != 0:
-                        btn.setChecked(False)       
-                        self.app.handle_message_disp('\nInvalid input. Please try again.')
-                elif config['AO']['zern_gen'] == 2 and config['AO']['gen_volts_flag'] == 1:
-                    if self.ui.ZernikeValSpin.value() % config['AO']['incre_amp_1'] != 0:
-                        btn.setChecked(False)       
-                        self.app.handle_message_disp('\nInvalid input. Please try again.')
-
                 if not len(zernike_array) > config['AO']['control_coeff_num']:
                     settings = {}
                     settings['zernike_array_test'] = zernike_array
