@@ -133,9 +133,7 @@ class Calibration(QObject):
 
                 """
                 Get real DM calibration files
-                """
-                self.message.emit('\nDM calibration process started...')
-                
+                """                
                 # Get diameter spacing of one actuator
                 act_diam = self.pupil_diam / self.aperture * self.pitch / self.SB_settings['pixel_size']
 
@@ -153,8 +151,6 @@ class Calibration(QObject):
                 svd_check_slopes = np.array(h5py.File('exec_files/real_calib_func/svd_check_slopes.mat','r').get('svd_check_slopes')).T
 
                 self.message.emit('\nDM calibration files loaded.')
-
-                self.message.emit('\nDM calibration process finished.')
                     
             else:
 
@@ -171,7 +167,7 @@ class Calibration(QObject):
                 data_file = h5py.File('data_info.h5', 'a')
                 data_set = data_file['calibration_img']
 
-                self.message.emit('\nDM calibration process started...')
+                self.message.emit('\nDM calibration process started.')
                 
                 # Poke each actuator first in to vol_max, then to vol_min
                 for i in range(self.actuator_num):
@@ -179,7 +175,10 @@ class Calibration(QObject):
                     if self.calibrate:                    
 
                         try:
-                            print('On actuator', i + 1)
+
+                            if (i + 1) % 10 == 0:
+
+                                self.message.emit('On actuator {}'.format(i + 1))
 
                             # Apply highest voltage
                             voltages[i] = config['DM']['vol_max']
@@ -235,20 +234,15 @@ class Calibration(QObject):
                 # Close HDF5 file
                 data_file.close()
 
-                prev2 = time.perf_counter()
-                print('Time for calibration image acquisition process is:', (prev2 - prev1))
-
                 # Reset mirror
                 self.mirror.Reset()
 
                 # Calculate S-H spot centroids for each image in data list to get slopes
                 if self.calc_cent:
 
-                    self.message.emit('\nCentroid calculation process started...')
                     self.slope_x, self.slope_y = acq_centroid(self.SB_settings, flag = 1)
                     self.slope_x -= np.mean(self.slope_x)
                     self.slope_y -= np.mean(self.slope_y)
-                    self.message.emit('\nCentroid calculation process finished.')
                 else:
 
                     self.done.emit()
@@ -266,9 +260,6 @@ class Calibration(QObject):
                     # Calculate singular value decomposition of influence function matrix
                     u, s, vh = np.linalg.svd(self.inf_matrix_slopes, full_matrices = False)
 
-                    # print('u: {}, s: {}, vh: {}'.format(u, s, vh))
-                    # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
-
                     # Calculate pseudo inverse of influence function matrix to get final control matrix
                     self.control_matrix_slopes = np.linalg.pinv(self.inf_matrix_slopes)
 
@@ -280,8 +271,8 @@ class Calibration(QObject):
 
                     self.done.emit()
 
-                prev3 = time.perf_counter()
-                print('Time for entire calibration process is:', (prev3 - prev1))     
+                prev2 = time.perf_counter()
+                self.message.emit('\nTime for DM calibration process is: {} s.', (prev2 - prev1))     
 
             """
             Returns deformable mirror calibration information into self.mirror_info

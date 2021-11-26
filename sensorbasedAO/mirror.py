@@ -12,6 +12,7 @@ class MIRROR_ALPAO(asdk.DM):
     Creates an instance of the DM class to access its methods, attributes, and the target device at serial port.
     """
     def __init__(self, serialNumber):
+        
         # Create Mirror instance
         self.mirror = asdk.DM(serialNumber)
 
@@ -55,4 +56,7 @@ class MIRROR_dummy():
         pass
 
     def Send(self, voltages):
+        pass
+
+    def Stop(self):
         pass

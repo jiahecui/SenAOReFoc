@@ -63,8 +63,6 @@ class Centroiding(QObject):
             data_file = h5py.File('data_info.h5', 'a')
             data_set = data_file['centroiding_img']
 
-            self.message.emit('\nSystem aberration calibration process started...')
-
             # Initialise search block layer and display search blocks
             SB_layer_2D = np.zeros([self.SB_settings['sensor_height'], self.SB_settings['sensor_width']])
             SB_layer_2D_temp = SB_layer_2D.copy()
@@ -119,8 +117,6 @@ class Centroiding(QObject):
                     act_ref_cent_coord_x -= np.mean(slope_x)
                     act_ref_cent_coord_y -= np.mean(slope_y)
 
-                    print(np.mean(slope_x), np.mean(slope_y))
-
                     slope_x -= np.mean(slope_x)
                     slope_y -= np.mean(slope_y)
 
@@ -157,7 +153,4 @@ class Centroiding(QObject):
     @Slot()
     def stop(self):
         self.calc_cent = False
-        self.log = False
-
-
-    
+        self.log = False    

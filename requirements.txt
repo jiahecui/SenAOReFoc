@@ -1,12 +1,6 @@
 numpy
-PySide2==5.15.0
+PySide2==5.13.2
 qimage2ndarray
 Click
 scipy==1.5.4
 h5py==2.9.0
-Cython
-rpyc
-tensorflow-gpu==2.5.0
-joblib
-sklearn
-pandas

@@ -67,3 +67,9 @@ class SENSOR():
 class SENSOR_dummy():
     def __init__(self):
         logger.info('Dummy sensor loaded')
+
+    def set_trigger_software(self, flag = True):
+        pass
+
+    def get_image(self, img, timeout = 1000):
+        pass

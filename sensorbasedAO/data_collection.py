@@ -91,7 +91,7 @@ class Data_Collection(QObject):
             self.zern_volts = np.zeros([self.actuator_num, config['AO']['control_coeff_num'] - 2, config['data_collect']['incre_num']])
             self.generated_zern_amp = np.zeros([config['AO']['control_coeff_num'] - 2, config['data_collect']['incre_num']])
 
-            self.message.emit('\nProcess started for data collection 0...')
+            self.message.emit('\nProcess started for data collection mode 0.')
 
             prev1 = time.perf_counter()
 
@@ -99,7 +99,7 @@ class Data_Collection(QObject):
 
                 if self.debug:
 
-                    self.message.emit('\nExiting dummy data collection mode')
+                    self.message.emit('\nExiting dummy data collection mode 0.')
                     break
 
                 # Run closed-loop control for each zernike mode aberration
@@ -129,7 +129,7 @@ class Data_Collection(QObject):
 
                     for j in range(zern_num):
 
-                        print('On amplitude {} Zernike mode {}'.format(k + 1, j + 3))
+                        self.message.emit('\nOn amplitude {} Zernike mode {}.'.format(k + 1, j + 3))
 
                         for i in range(self.AO_settings['loop_max'] + 1):
                             
@@ -194,7 +194,7 @@ class Data_Collection(QObject):
                                                 # Get detected zernike coefficients from slope matrix
                                                 zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                                print('Detected amplitude of mode {} is {} um'.format(j + 3, zern_array_det[j + 2, 0]))
+                                                self.message.emit('\nDetected amplitude of mode {} is {} um.'.format(j + 3, zern_array_det[j + 2, 0]))
 
                                                 if abs(zern_array_det[j + 2, 0] - zern_amp_gen) / zern_amp_gen <= 0.075 or m == config['data_collect']['loop_max_gen'] - 1:
                                                     self.zern_volts[:, j, k] = voltages
@@ -255,7 +255,7 @@ class Data_Collection(QObject):
                                         self.gen_cor_rms_zern[2 * j, 0] = rms_zern_part
                                         self.gen_cor_strehl[2 * j, 0] = strehl
 
-                                    print('Strehl ratio {} is {}'.format(i, strehl))
+                                    self.message.emit('\nStrehl ratio {} is {}.'.format(i, strehl))
 
                                     # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
                                     if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
@@ -290,10 +290,8 @@ class Data_Collection(QObject):
                 sp.io.savemat('data/data_collection_0/generated_zern_amp_' + str(config['data_collect']['incre_num']) + '_' + str(config['data_collect']['incre_amp']) + '.mat',\
                     dict(generated_zern_amp = self.generated_zern_amp))
 
-            self.message.emit('\nProcess complete.')
-
             prev2 = time.perf_counter()
-            print('Time for data collection process 0 is:', (prev2 - prev1))
+            self.message.emit('\nTime for data collection mode 0 is: {} s.'.format(prev2 - prev1))
 
             """
             Returns data collection results into self.AO_info
@@ -345,7 +343,7 @@ class Data_Collection(QObject):
             self.zern_volts = np.zeros([self.actuator_num, config['AO']['control_coeff_num'] - 2, config['data_collect']['incre_num']])
             self.generated_zern_amp = np.zeros([config['AO']['control_coeff_num'] - 2, config['data_collect']['incre_num']])
 
-            self.message.emit('\nProcess started for data collection 1...')
+            self.message.emit('\nProcess started for data collection mode 1.')
 
             prev1 = time.perf_counter()
 
@@ -353,7 +351,7 @@ class Data_Collection(QObject):
 
                 if self.debug:
 
-                    self.message.emit('\nExiting dummy data collection mode')
+                    self.message.emit('\nExiting dummy data collection mode 1.')
                     break
 
                 # Run closed-loop control for each zernike mode aberration
@@ -383,7 +381,7 @@ class Data_Collection(QObject):
 
                     for j in range(zern_num):
 
-                        print('On amplitude {} Zernike mode {}'.format(k + 1, j + 3))
+                        self.message.emit('\nOn amplitude {} Zernike mode {}.'.format(k + 1, j + 3))
 
                         for i in range(self.AO_settings['loop_max'] + 1):
                             
@@ -448,7 +446,7 @@ class Data_Collection(QObject):
                                                 # Get detected zernike coefficients from slope matrix
                                                 zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                                print('Detected amplitude of mode {} is {} um'.format(j + 3, zern_array_det[j + 2, 0]))
+                                                self.message.emit('\nDetected amplitude of mode {} is {} um.'.format(j + 3, zern_array_det[j + 2, 0]))
 
                                                 if abs(zern_array_det[j + 2, 0] - zern_amp_gen) / zern_amp_gen <= 0.075 or m == config['data_collect']['loop_max_gen'] - 1:
                                                     self.zern_volts[:, j, k] = voltages
@@ -511,7 +509,7 @@ class Data_Collection(QObject):
                                         self.gen_cor_rms_zern[2 * j, 0] = rms_zern_part
                                         self.gen_cor_strehl[2 * j, 0] = strehl
 
-                                    print('Strehl ratio {} is {}'.format(i, strehl))
+                                    self.message.emit('\nStrehl ratio {} is {}.'.format(i, strehl))
 
                                     # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
                                     if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
@@ -546,10 +544,8 @@ class Data_Collection(QObject):
                 sp.io.savemat('data/data_collection_1/generated_zern_amp_' + str(config['data_collect']['incre_num']) + '_' + str(config['data_collect']['incre_amp']) + '.mat',\
                     dict(generated_zern_amp = self.generated_zern_amp))
 
-            self.message.emit('\nProcess complete.')
-
             prev2 = time.perf_counter()
-            print('Time for data collection process 1 is:', (prev2 - prev1))
+            self.message.emit('\nTime for data collection mode 1 is: {}.'.format(prev2 - prev1))
 
             """
             Returns data collection results into self.AO_info
@@ -613,7 +609,7 @@ class Data_Collection(QObject):
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
 
-            self.message.emit('\nProcess started for data collection 2...')
+            self.message.emit('\nProcess started for data collection mode 2.')
 
             prev1 = time.perf_counter()
 
@@ -621,7 +617,7 @@ class Data_Collection(QObject):
 
                 if self.debug:
 
-                    self.message.emit('\nExiting dummy data collection mode')
+                    self.message.emit('\nExiting dummy data collection mode 2.')
                     break
 
                 # Run closed-loop control for each specified zernike mode
@@ -709,7 +705,7 @@ class Data_Collection(QObject):
                                     voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                         [:,:config['AO']['control_coeff_num']], zern_err[:config['AO']['control_coeff_num']]))
 
-                                    print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
+                                    self.message.emit('Max and min voltages {} are: {} V, {} V.'.format(i, np.max(voltages), np.min(voltages)))
 
                                     # Send values vector to mirror
                                     self.mirror.Send(voltages)
@@ -767,7 +763,7 @@ class Data_Collection(QObject):
                                 self.gen_cor_rms_zern[i, 0] = rms_zern_part
                                 self.gen_cor_strehl[i, 0] = strehl
 
-                                print('Strehl ratio {} is {}'.format(i, strehl))
+                                self.message.emit('\nStrehl ratio {} is {}.'.format(i, strehl))
 
                                 # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
                                 if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
@@ -805,10 +801,8 @@ class Data_Collection(QObject):
             # Close HDF5 file
             data_file.close()
 
-            self.message.emit('\nProcess complete.')
-
             prev2 = time.perf_counter()
-            print('Time for data collection process 2 is:', (prev2 - prev1))
+            self.message.emit('\nTime for data collection mode 2 is: {}.'.format(prev2 - prev1))
 
             """
             Returns data collection results into self.AO_info
@@ -873,7 +867,7 @@ class Data_Collection(QObject):
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
 
-            self.message.emit('\nProcess started for data collection 3...')
+            self.message.emit('\nProcess started for data collection mode 3.')
 
             prev1 = time.perf_counter()
 
@@ -881,7 +875,7 @@ class Data_Collection(QObject):
 
                 if self.debug:
 
-                    self.message.emit('\nExiting dummy data collection mode')
+                    self.message.emit('\nExiting dummy data collection mode 3.')
                     break
 
                 # Run closed-loop control for each specified zernike mode
@@ -1027,7 +1021,7 @@ class Data_Collection(QObject):
                                 self.gen_cor_rms_zern[i, 0] = rms_zern_part
                                 self.gen_cor_strehl[i, 0] = strehl
 
-                                print('Strehl ratio {} is {}'.format(i, strehl))
+                                self.message.emit('\nStrehl ratio {} is {}.'.format(i, strehl))
 
                                 # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
                                 if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
@@ -1065,10 +1059,8 @@ class Data_Collection(QObject):
             # Close HDF5 file
             data_file.close()
 
-            self.message.emit('\nProcess complete.')
-
             prev2 = time.perf_counter()
-            print('Time for data collection process 3 is:', (prev2 - prev1))
+            self.message.emit('\nTime for data collection mode 3 is: {}.'.format(prev2 - prev1))
 
             """
             Returns data collection results into self.AO_info

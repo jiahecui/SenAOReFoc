@@ -85,8 +85,6 @@ class Setup_SB(QObject):
             else:
                 self.SB_across_height = int(self.sensor_height // self.SB_diam)
 
-            # print("Number of search blocks across width and height is: {} and {}".format(self.SB_across_width, self.SB_across_height))
-
             # Get initial search block layer offset relative to sensor (top left corner)
             SB_offset_x = (self.sensor_width - (self.SB_across_width * self.SB_diam)) / 2
             SB_offset_y = (self.sensor_height - (self.SB_across_height * self.SB_diam)) / 2
@@ -95,13 +93,9 @@ class Setup_SB(QObject):
             SB_final_x = SB_offset_x + self.SB_across_width * self.SB_diam
             SB_final_y = SB_offset_y + self.SB_across_height * self.SB_diam  
 
-            # print('Offset_x: {}, offset_y: {}, final_x: {}, final_y: {}'.format(SB_offset_x, SB_offset_y, SB_final_x, SB_final_y))
-
             # Get reference centroids
             self.ref_cent_x = np.arange(SB_offset_x + self.SB_rad, SB_final_x, self.SB_diam)
             self.ref_cent_y = np.arange(SB_offset_y + self.SB_rad, SB_final_y, self.SB_diam)
-
-            # print('Ref_cent_x: {}, ref_cent_y: {}'.format(self.ref_cent_x, self.ref_cent_y))
 
             # Get 1D coords of reference centroids 
             self.ref_cent_coord = np.zeros(self.SB_across_width * self.SB_across_height)
@@ -172,8 +166,6 @@ class Setup_SB(QObject):
                 self.act_ref_cent_coord_x += int(self.SB_rad)
                 self.act_ref_cent_coord_y += int(self.SB_rad)
                 self.act_ref_cent_coord += int(self.SB_rad) * self.sensor_width + int(self.SB_rad)
-
-            print("Number of search blocks within pupil is: {}".format(self.act_ref_cent_num))
         
             # Draw actual search blocks on search block layer
             for i in range(self.act_ref_cent_num):
@@ -225,7 +217,8 @@ class Setup_SB(QObject):
             if self.calculate:
 
                 self.layer.emit(self.SB_layer_2D)
-                self.message.emit('Search block geometry initialised.')
+                self.message.emit('Search block geometry initialised.\n\nNumber of search blocks within pupil is: {}.'.format(self.act_ref_cent_num))
+
             else:
 
                 self.done.emit()
@@ -236,24 +229,24 @@ class Setup_SB(QObject):
 
             # Determine whether to exercise DM upon initialisation
             if config['DM']['exercise']:
-
-                print('DM exercise started...')
                    
                 for i in range(config['DM']['exercise_num']):
 
                     # Initialise deformable mirror voltage array
-                    voltages = np.ravel(1.0 * (0.5 - np.random.rand(self.actuator_num, 1)))
+                    # voltages = np.ravel(1.0 * (0.5 - np.random.rand(self.actuator_num, 1)))
+                    voltage = 1.0 * (0.5 - np.random.rand(1, 1))
+                    voltages = voltage
 
                     # Send voltages to exercise DM
                     self.mirror.Send(voltages)
 
                     # Wait for DM to settle
-                    time.sleep(config['DM']['settling_time'])
+                    time.sleep(config['DM']['settling_time'] * 10)
                     
                 # Reset DM
                 self.mirror.Reset()
 
-                print('DM exercise finished.')
+                self.message.emit('\nDM exercise finished.')
 
             """
             Returns search block information

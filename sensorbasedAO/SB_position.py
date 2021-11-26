@@ -230,5 +230,3 @@ class Positioning(QObject):
         self.move = False
         self.load = False
         self.log = False
-
-

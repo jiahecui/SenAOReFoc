@@ -26,7 +26,7 @@ camera:
 DM:
   SN: "HSDM69-15-014" 
   DM_num: 0  # Flag for choosing the working DM, 0-Alpao, 1-Boston
-  exercise: 0  # Flag for whether to exercise DM upon initialisation
+  exercise: 1  # Flag for whether to exercise DM upon initialisation
   exercise_num: 50  # Number of shapes used during DM exercise
   vol_min: -0.1  # V
   vol_max: 0.1  # V
@@ -100,10 +100,3 @@ RF_calib:
 RF:
   step_incre: 0.1  # um Axial increment between each step during actual remote focusing
   index_offset: 900  # Index offset in voltage lookup table
-
-tracking:
-  enable_tracking: 0  # Flag for whether autofocusing function is enabled
-  timestep_num: 3  # Number of timesteps for surface tracking
-  stride_length: 25  # um Remote focusing stride applied on DM between timesteps
-  feature_num: 5  # Number of Zernike modes used as input features
-  feature_indice: [3, 4, 6, 7, 11]  # Zernike modes used as input features

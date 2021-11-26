@@ -111,7 +111,7 @@ class AO_Slopes(QObject):
 
                 if self.debug:
 
-                    self.message.emit('\nExiting dummy correction loop')
+                    self.message.emit('\nExiting dummy correction loop.')
                     break
                 
                 if self.loop:
@@ -186,7 +186,7 @@ class AO_Slopes(QObject):
                                     # Get detected zernike coefficients from slope matrix
                                     zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                    print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
+                                    self.message.emit('\nDetected amplitude of mode {} is {} um.'.format(mode_index + 1, zern_array_det[mode_index, 0]))
 
                                     if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.075:
                                         break
@@ -210,7 +210,7 @@ class AO_Slopes(QObject):
 
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_slopes'], slope_err))
 
-                            print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages))) 
+                            self.message.emit('\nMax and min voltages {} are: {} V, {} V.'.format(i, np.max(voltages), np.min(voltages))) 
 
                             # Send values vector to mirror
                             self.mirror.Send(voltages)
@@ -264,7 +264,7 @@ class AO_Slopes(QObject):
                         strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
                         self.strehl[i] = strehl
                     
-                        print('Strehl ratio {} is: {}'.format(i, strehl))
+                        self.message.emit('\nStrehl ratio {} is: {}.'.format(i, strehl))
 
                         # Append data to list
                         dset_append(data_set_2, 'real_spot_slope_x', slope_x)
@@ -286,10 +286,8 @@ class AO_Slopes(QObject):
             # Close HDF5 file
             data_file.close()
 
-            self.message.emit('\nProcess complete.')
-
             prev2 = time.perf_counter()
-            print('Time for closed-loop AO process is: {} s'.format(prev2 - prev1))
+            self.message.emit('\nTime for closed-loop AO process is: {} s.'.format(prev2 - prev1))
 
             """
             Returns closed-loop AO information into self.AO_info
@@ -338,7 +336,7 @@ class AO_Slopes(QObject):
             data_set_1 = data_file['AO_img']['slope_AO_2']
             data_set_2 = data_file['AO_info']['slope_AO_2']
 
-            self.message.emit('\nProcess started for closed-loop AO via slopes with obscured subapertures...')
+            self.message.emit('\nProcess started for closed-loop AO via slopes with obscured subapertures.')
 
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
@@ -350,7 +348,7 @@ class AO_Slopes(QObject):
 
                 if self.debug:
 
-                    self.message.emit('\nExiting dummy correction loop')
+                    self.message.emit('\nExiting dummy correction loop.')
                     break
                 
                 if self.loop:
@@ -425,7 +423,7 @@ class AO_Slopes(QObject):
                                     # Get detected zernike coefficients from slope matrix
                                     zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                    print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
+                                    self.message.emit('\nDetected amplitude of mode {} is {} um.'.format(mode_index + 1, zern_array_det[mode_index, 0]))
 
                                     if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.75:
                                         break
@@ -449,7 +447,7 @@ class AO_Slopes(QObject):
 
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(control_matrix_slopes, slope_err))
 
-                            print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
+                            self.message.emit('\nMax and min voltages {} are: {} V, {} V.'.format(i, np.max(voltages), np.min(voltages)))
 
                             # Send values vector to mirror
                             self.mirror.Send(voltages)
@@ -479,8 +477,7 @@ class AO_Slopes(QObject):
                         else:
                             index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'] == 0)[1]
 
-                        print('Number of obscured subapertures:', np.size(index_remove))
-                        print('Index of obscured subapertures:', index_remove)
+                        self.message.emit('\nNumber of obscured subapertures: {}.'.format(np.size(index_remove)))
 
                         index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
                         slope_x = np.delete(slope_x, index_remove, axis = 1)
@@ -495,8 +492,6 @@ class AO_Slopes(QObject):
 
                         # Calculate singular value decomposition of modified influence function matrix
                         u, s, vh = np.linalg.svd(inf_matrix_slopes, full_matrices = False)
-                        # print('u: {}, s: {}, vh: {}'.format(u, s, vh))
-                        # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
 
                         # Recalculate pseudo-inverse of modified influence function matrix to get new control matrix
                         control_matrix_slopes = np.linalg.pinv(inf_matrix_slopes)
@@ -527,7 +522,7 @@ class AO_Slopes(QObject):
                         strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
                         self.strehl[i] = strehl
 
-                        print('Strehl ratio {} is: {}'.format(i, strehl))                      
+                        self.message.emit('\nStrehl ratio {} is: {}.'.format(i, strehl))                      
 
                         # Append data to list
                         dset_append(data_set_2, 'real_spot_zern_err', zern_err)
@@ -545,10 +540,8 @@ class AO_Slopes(QObject):
             # Close HDF5 file
             data_file.close()
 
-            self.message.emit('\nProcess complete.')
-
             prev2 = time.perf_counter()
-            print('Time for closed-loop AO process is: {} s'.format(prev2 - prev1))
+            self.message.emit('\nTime for closed-loop AO process is: {} s.'.format(prev2 - prev1))
 
             """
             Returns closed-loop AO information into self.AO_info
@@ -597,8 +590,6 @@ class AO_Slopes(QObject):
 
             # Calculate singular value decomposition of modified influence function matrix
             u, s, vh = np.linalg.svd(inf_matrix_slopes, full_matrices = False)
-            # print('u: {}, s: {}, vh: {}'.format(u, s, vh))
-            # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
 
             # Calculate pseudo-inverse of modified influence function matrix to get new control matrix
             control_matrix_slopes = np.linalg.pinv(inf_matrix_slopes)
@@ -610,9 +601,9 @@ class AO_Slopes(QObject):
             data_set_2 = data_file['AO_info']['slope_AO_3']
 
             if self.AO_settings['focus_enable'] == 0:
-                self.message.emit('\nProcess started for closed-loop AO via slopes with partial correction...')
+                self.message.emit('\nProcess started for closed-loop AO via slopes with partial correction.')
             else:
-                self.message.emit('\nProcess started for remote focusing + closed-loop AO via slopes with partial correction...')
+                self.message.emit('\nProcess started for remote focusing + closed-loop AO via slopes with partial correction.')
 
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
@@ -639,7 +630,7 @@ class AO_Slopes(QObject):
 
                     if self.debug:
 
-                        self.message.emit('\nExiting dummy correction loop')
+                        self.message.emit('\nExiting dummy correction loop.')
                         break
                     
                     if self.loop:
@@ -714,7 +705,7 @@ class AO_Slopes(QObject):
                                         # Get detected zernike coefficients from slope matrix
                                         zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                        print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
+                                        self.message.emit('\nDetected amplitude of mode {} is {} um.'.format(mode_index + 1, zern_array_det[mode_index, 0]))
 
                                         if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 75:
                                             break
@@ -738,7 +729,7 @@ class AO_Slopes(QObject):
 
                                 voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(control_matrix_slopes, slope_err))
 
-                                print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
+                                self.message.emit('\nMax and min voltages {} are: {} V, {} V.'.format(i, np.max(voltages), np.min(voltages)))
 
                                 # Send values vector to mirror
                                 self.mirror.Send(voltages)
@@ -792,7 +783,7 @@ class AO_Slopes(QObject):
                             strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
                             self.strehl[i,j] = strehl
 
-                            print('Strehl ratio {} is: {}'.format(i, strehl))                            
+                            self.message.emit('\nStrehl ratio {} is: {}.'.format(i, strehl))                            
 
                             # Append data to list
                             dset_append(data_set_2, 'real_spot_slope_x', slope_x)
@@ -822,10 +813,8 @@ class AO_Slopes(QObject):
             # Close HDF5 file
             data_file.close()
 
-            self.message.emit('\nProcess complete.')
-
             prev2 = time.perf_counter()
-            print('Time for closed-loop AO process is: {} s'.format(prev2 - prev1))
+            self.message.emit('\nTime for closed-loop AO process is: {} s.'.format(prev2 - prev1))
 
             """
             Returns closed-loop AO information into self.AO_info
@@ -885,9 +874,9 @@ class AO_Slopes(QObject):
             data_set_2 = data_file['AO_info']['slope_AO_full']
 
             if self.AO_settings['focus_enable'] == 0:
-                self.message.emit('\nProcess started for full closed-loop AO via slopes...')
+                self.message.emit('\nProcess started for full closed-loop AO via slopes.')
             else:
-                self.message.emit('\nProcess started for remote focusing + full closed-loop AO via slopes...')
+                self.message.emit('\nProcess started for remote focusing + full closed-loop AO via slopes.')
 
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
@@ -914,7 +903,7 @@ class AO_Slopes(QObject):
 
                     if self.debug:
 
-                        self.message.emit('\nExiting dummy correction loop')
+                        self.message.emit('\nExiting dummy correction loop.')
                         break
                     
                     if self.loop:
@@ -989,7 +978,7 @@ class AO_Slopes(QObject):
                                         # Get detected zernike coefficients from slope matrix
                                         zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                        print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
+                                        self.message.emit('\nDetected amplitude of mode {} is {} um.'.format(mode_index + 1, zern_array_det[mode_index, 0]))
 
                                         if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 75:
                                             break
@@ -1013,7 +1002,7 @@ class AO_Slopes(QObject):
                                 
                                 voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(control_matrix_slopes, slope_err))
 
-                                print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
+                                self.message.emit('\nMax and min voltages {} are: {} V, {} V.'.format(i, np.max(voltages), np.min(voltages)))
 
                                 # Send values vector to mirror
                                 self.mirror.Send(voltages)
@@ -1043,8 +1032,7 @@ class AO_Slopes(QObject):
                             else:
                                 index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'] == 0)[1]
 
-                            print('Number of obscured subapertures:', np.shape(index_remove))
-                            print('Index of obscured subapertures:', index_remove)
+                            self.message.emit('\nNumber of obscured subapertures: {}.'.format(np.shape(index_remove)))
 
                             index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
                             slope_x = np.delete(slope_x, index_remove, axis = 1)
@@ -1063,8 +1051,6 @@ class AO_Slopes(QObject):
 
                             # Calculate singular value decomposition of modified influence function matrix
                             u, s, vh = np.linalg.svd(inf_matrix_slopes, full_matrices = False)
-                            # print('u: {}, s: {}, vh: {}'.format(u, s, vh))
-                            # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
 
                             # Recalculate pseudo-inverse of modified influence function matrix to get new control matrix
                             control_matrix_slopes = np.linalg.pinv(inf_matrix_slopes)
@@ -1095,7 +1081,7 @@ class AO_Slopes(QObject):
                             strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
                             self.strehl[i,j] = strehl
                       
-                            print('Strehl ratio {} is: {}'.format(i, strehl))                      
+                            self.message.emit('\nStrehl ratio {} is: {}.'.format(i, strehl))                      
                             
                             # Append data to list
                             dset_append(data_set_2, 'real_spot_zern_err', zern_err)
@@ -1121,10 +1107,8 @@ class AO_Slopes(QObject):
             # Close HDF5 file
             data_file.close()
 
-            self.message.emit('\nProcess complete.')
-
             prev2 = time.perf_counter()
-            print('Time for closed-loop AO process is: {} s'.format(prev2 - prev1))
+            self.message.emit('\nTime for closed-loop AO process is: {} s.'.format(prev2 - prev1))
 
             """
             Returns closed-loop AO information into self.AO_info

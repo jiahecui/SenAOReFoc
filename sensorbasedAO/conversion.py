@@ -86,8 +86,7 @@ class Conversion(QObject):
             Get normalised coordinates for each individual element in search block to calculate zernike matrix and conversion matrix
             """
             if self.calculate:
-
-                self.message.emit('\nRetrieving zernike matrix and slope - Zernike conversion matrix...')
+                
                 for i in range(self.SB_settings['act_ref_cent_num']):
 
                     # Get reference centroid coords of each element
@@ -111,9 +110,6 @@ class Conversion(QObject):
                 
                 # Get singular value decomposition of zernike derivative matrix
                 u, s, vh = np.linalg.svd(self.diff_matrix, full_matrices = False)
-
-                # print('u: {}, s: {}, vh: {}'.format(u, s, vh))
-                # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
                 
                 # Calculate pseudo inverse of zernike derivative matrix to get conversion matrix
                 self.conv_matrix = np.linalg.pinv(self.diff_matrix)

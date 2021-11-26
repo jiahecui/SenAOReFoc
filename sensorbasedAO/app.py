@@ -65,13 +65,13 @@ class App(QApplication):
         self.workers = {}
         self.threads = {}
 
-        # Add devices
-        self.devices = {}
-        self.add_devices()
-
         # Open main GUI window
         self.main = Main(self, debug = debug)
         self.main.show()
+
+        # Add devices
+        self.devices = {}
+        self.add_devices()
 
         # Initialise remote focusing voltages
         self.remote_focus_voltages = h5py.File('exec_files/RF_calib_volts_interp_full_01um_1501.mat','r').get('interp_volts')
@@ -88,7 +88,6 @@ class App(QApplication):
             try:
                 sensor = SENSOR.get(config['camera']['SN'])
                 sensor.open_device_by_SN(config['camera']['SN'])
-                print('Sensor load success.')
             except Exception as e:
                 logger.warning('Sensor load error.', e)
                 sensor = None
@@ -105,7 +104,6 @@ class App(QApplication):
         else:
             try:
                 mirror = MIRROR.get(config['DM']['SN'])
-                print('Mirror load success.')
             except Exception as e:
                 logger.warning('Mirror load error.', e)
                 mirror = None
@@ -325,12 +323,9 @@ class App(QApplication):
             zern_AO_thread.started.connect(zern_AO_worker.run4)
         elif mode == 5:
             zern_AO_thread.started.connect(zern_AO_worker.run5)
-        elif mode == 6:
-            zern_AO_thread.started.connect(zern_AO_worker.run6)
 
         zern_AO_worker.done.connect(lambda mode: self.handle_zern_AO_done(mode))
         zern_AO_worker.done2.connect(lambda mode: self.handle_focus_done(mode))
-        zern_AO_worker.done3.connect(self.handle_tracking_done)
         zern_AO_worker.image.connect(lambda obj: self.handle_image_disp(obj))   
         zern_AO_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         zern_AO_worker.info.connect(lambda obj: self.handle_AO_info(obj))
@@ -821,7 +816,7 @@ class App(QApplication):
         try:
             self.devices['mirror'].Reset()
             self.main.ui.DMRstBtn.setChecked(False)
-            print('DM reset success.')
+            self.handle_message_disp('DM reset success.')
         except Exception as e:
             logger.warning("Error on mirror reset: {}".format(e))
 
@@ -831,7 +826,7 @@ class App(QApplication):
         """
         try:
             self.devices['sensor'].set_exposure(camera_expo)
-            print('Camera exposure set success.')
+            self.handle_message_disp('Camera exposure set success.')
         except Exception as e:
             logger.warning("Error on setting camera exposure: {}".format(e))
 
@@ -890,25 +885,6 @@ class App(QApplication):
         else:
             pass
 
-    def handle_tracking_start(self):
-        """
-        Handle start of surface tracking
-        """
-        self.control_zern_AO(self.devices['sensor'], self.devices['mirror'], self.data_info, 6)
-
-    def handle_tracking_done(self):
-        """
-        Handle end of surface tracking
-        """
-        print('')
-        self.workers['zern_AO_worker'].stop()
-        self.threads['zern_AO_thread'].quit()
-        # self.threads['zern_AO_thread'].wait()
-        # self.devices['mirror'].Stop()
-        # self.devices['mirror'].Reset()
-        self.main.ui.trackBtn.setChecked(False)
-        print('Surface tracking function stopped.')
-
     def handle_RF_control(self, val = 0):
         """
         Handle remote focusing control slider
@@ -923,8 +899,8 @@ class App(QApplication):
         # Send voltages to mirror
         self.devices['mirror'].Send(voltages)
 
-        print('Focus position: {} um'.format(val))       
-
+        self.handle_message_disp('Focus position: {} um'.format(val))
+        
     def stop(self):
         """
         Stop all workers, threads, and devices

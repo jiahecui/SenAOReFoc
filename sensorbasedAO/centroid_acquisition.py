@@ -1,7 +1,3 @@
-import sys
-import os
-import argparse
-import time
 import h5py
 import numpy as np
 import math
@@ -77,8 +73,6 @@ def acq_centroid(settings, flag = 0):
             image_temp = subgroup_options[flag]['real_calib_RF_img'][-1, :, :]
         else:
             image_temp = subgroup_options[flag]['real_AO_img'][-1, :, :]
-        
-        # print('Centroiding image {}'.format(l))
 
         for i in range(settings['act_ref_cent_num']):
 

@@ -1,8 +1,5 @@
 from PySide2.QtCore import QObject, Signal, Slot
 
-from tensorflow.keras.models import model_from_yaml
-
-import joblib
 import time
 import click
 import h5py
@@ -26,7 +23,6 @@ class AO_Zernikes(QObject):
     write = Signal()
     done = Signal(object)
     done2 = Signal(object)
-    done3 = Signal()
     error = Signal(object)
     image = Signal(object)
     message = Signal(object)
@@ -107,7 +103,7 @@ class AO_Zernikes(QObject):
             data_set_1 = data_file['AO_img']['zern_AO_1']
             data_set_2 = data_file['AO_info']['zern_AO_1']
 
-            self.message.emit('\nProcess started for closed-loop AO via Zernikes...')
+            self.message.emit('\nProcess started for closed-loop AO via Zernikes.')
 
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
@@ -119,7 +115,7 @@ class AO_Zernikes(QObject):
 
                 if self.debug:
 
-                    self.message.emit('\nExiting dummy correction loop')
+                    self.message.emit('\nExiting dummy correction loop.')
                     break
                 
                 if self.loop:
@@ -194,7 +190,7 @@ class AO_Zernikes(QObject):
                                     # Get detected zernike coefficients from slope matrix
                                     zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                    print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
+                                    self.message.emit('\nDetected amplitude of mode {} is {} um.'.format(mode_index + 1, zern_array_det[mode_index, 0]))
 
                                     if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.075:
                                         break
@@ -221,7 +217,7 @@ class AO_Zernikes(QObject):
 
                             self.voltages[:, i] = voltages
 
-                            print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
+                            self.message.emit('Max and min voltages {} are: {} V, {} V.'.format(i, np.max(voltages), np.min(voltages)))
 
                             # Send values vector to mirror
                             self.mirror.Send(voltages)
@@ -270,7 +266,7 @@ class AO_Zernikes(QObject):
                         strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
                         self.strehl[i] = strehl
                    
-                        print('Strehl ratio {} is: {}'.format(i, strehl))
+                        self.message.emit('\nStrehl ratio {} is: {}.'.format(i, strehl))
 
                         # Append data to list
                         dset_append(data_set_2, 'real_spot_slope_x', slope_x)
@@ -291,10 +287,8 @@ class AO_Zernikes(QObject):
             # Close HDF5 file
             data_file.close()
 
-            self.message.emit('\nProcess complete.')
-
             prev2 = time.perf_counter()
-            print('Time for closed-loop AO process is: {} s'.format(prev2 - prev1))
+            self.message.emit('\nTime for closed-loop AO process is: {} s.'.format(prev2 - prev1))
 
             """
             Returns closed-loop AO information into self.AO_info
@@ -342,7 +336,7 @@ class AO_Zernikes(QObject):
             data_set_1 = data_file['AO_img']['zern_AO_2']
             data_set_2 = data_file['AO_info']['zern_AO_2']
 
-            self.message.emit('\nProcess started for closed-loop AO via Zernikes with obscured subapertures...')
+            self.message.emit('\nProcess started for closed-loop AO via Zernikes with obscured subapertures.')
 
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
@@ -357,7 +351,7 @@ class AO_Zernikes(QObject):
 
                 if self.debug:
 
-                    self.message.emit('\nExiting dummy correction loop')
+                    self.message.emit('\nExiting dummy correction loop.')
                     break
                 
                 if self.loop:
@@ -432,7 +426,7 @@ class AO_Zernikes(QObject):
                                     # Get detected zernike coefficients from slope matrix
                                     zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                    print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
+                                    self.message.emit('\nDetected amplitude of mode {} is {} um.'.format(mode_index + 1, zern_array_det[mode_index, 0]))
 
                                     if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.075:
                                         break
@@ -457,7 +451,7 @@ class AO_Zernikes(QObject):
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(control_matrix_zern\
                                 [:,:config['AO']['control_coeff_num']], zern_err[:config['AO']['control_coeff_num']]))
 
-                            print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))              
+                            self.message.emit('\nMax and min voltages {} are: {} V, {} V.'.format(i, np.max(voltages), np.min(voltages)))              
 
                             # Send values vector to mirror
                             self.mirror.Send(voltages)
@@ -487,8 +481,7 @@ class AO_Zernikes(QObject):
                         else:
                             index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'] == 0)[1]
 
-                        print('Number of obscured subapertures:', np.size(index_remove))
-                        print('Index of obscured subapertures:', index_remove)
+                        self.message.emit('\nNumber of obscured subapertures: {}.'.format(np.size(index_remove)))
 
                         index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
                         slope_x = np.delete(slope_x, index_remove, axis = 1)
@@ -517,13 +510,9 @@ class AO_Zernikes(QObject):
 
                         # Get singular value decomposition of influence function matrix
                         u, s, vh = np.linalg.svd(inf_matrix_zern, full_matrices = False)
-
-                        # print('u: {}, s: {}, vh: {}'.format(u, s, vh))
-                        # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
                         
                         # Recalculate pseudo inverse of influence function matrix to get updated control matrix via zernikes
                         control_matrix_zern = np.linalg.pinv(inf_matrix_zern)
-                        # print('Shape control_matrix_zern:', np.shape(control_matrix_zern))
 
                         # Take tip\tilt off
                         slope_x -= np.mean(slope_x)
@@ -546,7 +535,7 @@ class AO_Zernikes(QObject):
                         strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
                         self.strehl[i] = strehl
 
-                        print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
+                        self.message.emit('\nStrehl ratio {} is: {}.'.format(i, strehl))
 
                         # Append data to list
                         dset_append(data_set_2, 'real_spot_zern_err', zern_err)
@@ -564,10 +553,8 @@ class AO_Zernikes(QObject):
             # Close HDF5 file
             data_file.close()
 
-            self.message.emit('\nProcess complete.')
-
             prev2 = time.perf_counter()
-            print('Time for closed-loop AO process is: {} s'.format(prev2 - prev1))
+            self.message.emit('\nTime for closed-loop AO process is: {} s.'.format(prev2 - prev1))
 
             """
             Returns closed-loop AO information into self.AO_info
@@ -616,9 +603,9 @@ class AO_Zernikes(QObject):
             data_set_2 = data_file['AO_info']['zern_AO_3']
 
             if self.AO_settings['focus_enable'] == 0:
-                self.message.emit('\nProcess started for closed-loop AO via Zernikes with partial correction...')
+                self.message.emit('\nProcess started for closed-loop AO via Zernikes with partial correction.')
             else:
-                self.message.emit('\nProcess started for remote focusing + closed-loop AO via Zernikes with partial correction...')
+                self.message.emit('\nProcess started for remote focusing + closed-loop AO via Zernikes with partial correction.')
 
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
@@ -645,7 +632,7 @@ class AO_Zernikes(QObject):
 
                     if self.debug:
 
-                        self.message.emit('\nExiting dummy correction loop')
+                        self.message.emit('\nExiting dummy correction loop.')
                         break
                     
                     if self.loop:
@@ -720,7 +707,7 @@ class AO_Zernikes(QObject):
                                         # Get detected zernike coefficients from slope matrix
                                         zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                        print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
+                                        self.message.emit('\nDetected amplitude of mode {} is {} um.'.format(mode_index + 1, zern_array_det[mode_index, 0]))
 
                                         if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.075:
                                             break
@@ -747,7 +734,7 @@ class AO_Zernikes(QObject):
 
                                 self.voltages[:, i] = voltages
 
-                                print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
+                                self.message.emit('\nMax and min voltages {} are: {} V, {} V.'.format(i, np.max(voltages), np.min(voltages)))
 
                                 # Send values vector to mirror
                                 self.mirror.Send(voltages)
@@ -796,7 +783,7 @@ class AO_Zernikes(QObject):
                             strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
                             self.strehl[i,j] = strehl
 
-                            print('Strehl ratio {} is: {}'.format(i, strehl))                 
+                            self.message.emit('\nStrehl ratio {} is: {}.'.format(i, strehl))                 
 
                             # Append data to list
                             dset_append(data_set_2, 'real_spot_slope_x', slope_x)
@@ -822,10 +809,8 @@ class AO_Zernikes(QObject):
             # Close HDF5 file
             data_file.close()
 
-            self.message.emit('\nProcess complete.')
-
             prev2 = time.perf_counter()
-            print('Time for closed-loop AO process is: {} s'.format(prev2 - prev1))
+            self.message.emit('\nTime for closed-loop AO process is: {} s.'.format(prev2 - prev1))
 
             """
             Returns closed-loop AO information into self.AO_info
@@ -886,9 +871,9 @@ class AO_Zernikes(QObject):
             data_set_2 = data_file['AO_info']['zern_AO_full']
 
             if self.AO_settings['focus_enable'] == 0:
-                self.message.emit('\nProcess started for full closed-loop AO via Zernikes...')
+                self.message.emit('\nProcess started for full closed-loop AO via Zernikes.')
             else:
-                self.message.emit('\nProcess started for remote focusing + full closed-loop AO via Zernikes...')
+                self.message.emit('\nProcess started for remote focusing + full closed-loop AO via Zernikes.')
 
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
@@ -918,7 +903,7 @@ class AO_Zernikes(QObject):
 
                     if self.debug:
 
-                        self.message.emit('\nExiting dummy correction loop')
+                        self.message.emit('\nExiting dummy correction loop.')
                         break
                     
                     if self.loop:
@@ -993,7 +978,7 @@ class AO_Zernikes(QObject):
                                         # Get detected zernike coefficients from slope matrix
                                         zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                        print('Detected amplitude of mode {} is {} um'.format(mode_index + 1, zern_array_det[mode_index, 0]))
+                                        self.message.emit('\nDetected amplitude of mode {} is {} um.'.format(mode_index + 1, zern_array_det[mode_index, 0]))
 
                                         if abs(zern_array_det[mode_index, 0] - zern_array[mode_index, 0]) / zern_array[mode_index, 0] <= 0.075:
                                             break
@@ -1018,7 +1003,7 @@ class AO_Zernikes(QObject):
                                 voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(control_matrix_zern\
                                 [:,:config['AO']['control_coeff_num']], zern_err_part[:config['AO']['control_coeff_num']]))
 
-                                print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
+                                self.message.emit('\nMax and min values of voltages {} are: {} V, {} V.'.format(i, np.max(voltages), np.min(voltages)))
 
                                 # Send values vector to mirror
                                 self.mirror.Send(voltages)
@@ -1048,8 +1033,7 @@ class AO_Zernikes(QObject):
                             else:
                                 index_remove = np.where(slope_x + self.SB_settings['act_ref_cent_coord_x'] == 0)[1]
 
-                            print('Number of obscured subapertures:', np.size(index_remove))
-                            print('Index of obscured subapertures:', index_remove)
+                            self.message.emit('\nNumber of obscured subapertures: {}.'.format(np.size(index_remove)))
 
                             index_remove_inf = np.concatenate((index_remove, index_remove + self.SB_settings['act_ref_cent_num']), axis = None)
                             slope_x = np.delete(slope_x, index_remove, axis = 1)
@@ -1078,9 +1062,6 @@ class AO_Zernikes(QObject):
 
                             # Get singular value decomposition of influence function matrix
                             u, s, vh = np.linalg.svd(inf_matrix_zern, full_matrices = False)
-
-                            # print('u: {}, s: {}, vh: {}'.format(u, s, vh))
-                            # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
                             
                             # Recalculate pseudo inverse of influence function matrix to get updated control matrix via zernikes
                             control_matrix_zern = np.linalg.pinv(inf_matrix_zern)
@@ -1106,7 +1087,7 @@ class AO_Zernikes(QObject):
                             strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
                             self.strehl[i,j] = strehl
                       
-                            print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))               
+                            self.message.emit('\nStrehl ratio {} is: {}.'.format(i, strehl))               
 
                             # Append data to list
                             dset_append(data_set_2, 'real_spot_zern_err', zern_err)
@@ -1129,10 +1110,8 @@ class AO_Zernikes(QObject):
             # Close HDF5 file
             data_file.close()
 
-            self.message.emit('\nProcess complete.')
-
             prev2 = time.perf_counter()
-            print('Time for closed-loop AO process is: {} s'.format(prev2 - prev1))
+            self.message.emit('\nTime for closed-loop AO process is: {} s.'.format(prev2 - prev1))
 
             """
             Returns closed-loop AO information into self.AO_info
@@ -1198,7 +1177,7 @@ class AO_Zernikes(QObject):
             self.rms_zern_detect = np.zeros([self.correct_num, 1])
             self.strehl_detect = np.zeros([self.correct_num, 1])
 
-            self.message.emit('\nProcess started for remote focusing process...')
+            self.message.emit('\nProcess started for remote focusing.')
 
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
@@ -1223,7 +1202,7 @@ class AO_Zernikes(QObject):
 
                 if self.debug:
 
-                    self.message.emit('\nExiting dummy correction loop')
+                    self.message.emit('\nExiting dummy remote focusing process.')
                     break
 
                 if self.loop:
@@ -1291,31 +1270,7 @@ class AO_Zernikes(QObject):
                         self.voltages_detect[j, :] = voltages
 
                         # Pause for specified amount of time
-                        # time.sleep(self.focus_settings['pause_time'])              
-                        
-                        # Ask user whether to move to next depth
-                        # if j == (self.correct_num - 1):
-                        #     self.message.emit('\nPress [y] to end.')
-                        #     c = click.getchar()
-
-                        #     while True:
-                        #         if c == 'y':
-                        #             break
-                        #         else:
-                        #             self.message.emit('\nInvalid input. Please try again.')
-
-                        #         c = click.getchar()
-                        # else:
-                        #     self.message.emit('\nPress [y] to move to next depth.')
-                        #     c = click.getchar()
-
-                        #     while True:
-                        #         if c == 'y':
-                        #             break
-                        #         else:
-                        #             self.message.emit('\nInvalid input. Please try again.')
-
-                        #         c = click.getchar()
+                        time.sleep(self.focus_settings['pause_time'])              
 
                     except Exception as e:
                         print(e)
@@ -1329,356 +1284,21 @@ class AO_Zernikes(QObject):
             self.mirror.Reset()
 
             # Save data to file
-            sp.io.savemat('data/ML_training_data/slope_x_detect.mat', dict(slope_x_detect = self.slope_x_detect))
-            sp.io.savemat('data/ML_training_data/slope_y_detect.mat', dict(slope_y_detect = self.slope_y_detect))
-            sp.io.savemat('data/ML_training_data/zern_coeffs_detect.mat', dict(zern_coeffs_detect = self.zern_coeffs_detect))
-            sp.io.savemat('data/ML_training_data/rms_zern_detect.mat', dict(rms_zern_detect = self.rms_zern_detect))
-            sp.io.savemat('data/ML_training_data/strehl_detect.mat', dict(strehl_detect = self.strehl_detect))
-            sp.io.savemat('data/ML_training_data/voltages_detect.mat', dict(voltages_detect = self.voltages_detect))
-            
-            self.message.emit('\nRemote focusing process complete.')
+            sp.io.savemat('data/RF/slope_x_detect.mat', dict(slope_x_detect = self.slope_x_detect))
+            sp.io.savemat('data/RF/slope_y_detect.mat', dict(slope_y_detect = self.slope_y_detect))
+            sp.io.savemat('data/RF/zern_coeffs_detect.mat', dict(zern_coeffs_detect = self.zern_coeffs_detect))
+            sp.io.savemat('data/RF/rms_zern_detect.mat', dict(rms_zern_detect = self.rms_zern_detect))
+            sp.io.savemat('data/RF/strehl_detect.mat', dict(strehl_detect = self.strehl_detect))
+            sp.io.savemat('data/RF/voltages_detect.mat', dict(voltages_detect = self.voltages_detect))
 
             prev2 = time.perf_counter()
-            print('Time for remote focusing process is: {} s'.format(prev2 - prev1))
+            self.message.emit('\nTime for remote focusing process is: {} s.'.format(prev2 - prev1))
 
             # Finished remote focusing process
             if self.focus_settings['focus_mode_flag'] == 0:
                 self.done2.emit(0)
             else:
                 self.done2.emit(1)
-
-        except Exception as e:
-            self.error.emit(e)
-            raise
-
-    @Slot(object)
-    def run6(self):
-        try:
-            # Set process flags
-            self.loop = True
-            self.log = True
-
-            # Start thread
-            self.start.emit()
-
-            """
-            Perform autofocusing via machine learning
-            """
-            # Initialise AO information parameter
-            self.AO_info = {'zern_AO_1': {}}
-
-            # Create new datasets in HDF5 file to store SH images
-            get_dset(self.SB_settings, 'zern_AO_1', flag = 1)
-            data_file = h5py.File('data_info.h5', 'a')
-            data_set_1 = data_file['AO_img']['zern_AO_1']
-
-            if self.debug or not config['tracking']['enable_tracking']:
-
-                self.loop = False
-                self.message.emit('\nExiting autofocusing function.')
-
-            if self.loop:
-
-                # Load network model for central region
-                try:
-                    # Load YAML and create model
-                    yaml_file = open('exec_files/model_param/stride25_5feat_model2/model.yaml', 'r')
-                    loaded_model_yaml = yaml_file.read()
-                    yaml_file.close()
-                    loaded_model_0 = model_from_yaml(loaded_model_yaml)
-
-                    # Load weights into new model
-                    loaded_model_0.load_weights("exec_files/model_param/stride25_5feat_model2/model.h5")
-                    print('Model_0 loaded from disk')
-
-                    # Load MinMaxScaler
-                    scaler_input_list_0 = []
-                    for i in range(config['tracking']['feature_num']):
-                        scaler_input = joblib.load('exec_files/model_param/stride25_5feat_model2/scaler_input' + str(i + 2) + '.gz')
-                        scaler_input_list_0.append(scaler_input)
-                    scaler_output_0 = joblib.load('exec_files/model_param/stride25_5feat_model2/scaler_output.gz')
-                except Exception as e:
-                    print(e)
-
-                # Load network model for extended range towards negative axis
-                try:
-                    # Load YAML and create model
-                    yaml_file = open('exec_files/model_param/stride25_extended_neg_70epochs_5feat_model2/model.yaml', 'r')
-                    loaded_model_yaml = yaml_file.read()
-                    yaml_file.close()
-                    loaded_model_1 = model_from_yaml(loaded_model_yaml)
-
-                    # Load weights into new model
-                    loaded_model_1.load_weights("exec_files/model_param/stride25_extended_neg_70epochs_5feat_model2/model.h5")
-                    print('Model_1 loaded from disk')
-
-                    # Load MinMaxScaler
-                    scaler_input_list_1 = []
-                    for i in range(config['tracking']['feature_num']):
-                        scaler_input = joblib.load('exec_files/model_param/stride25_extended_neg_70epochs_5feat_model2/scaler_input' + str(i + 2) + '.gz')
-                        scaler_input_list_1.append(scaler_input)
-                    scaler_output_1 = joblib.load('exec_files/model_param/stride25_extended_neg_70epochs_5feat_model2/scaler_output.gz')
-                except Exception as e:
-                    print(e)
-
-                # Load network model for extended range towards positive axis
-                try:
-                    # Load YAML and create model
-                    yaml_file = open('exec_files/model_param/stride25_extended_pos_70epochs_5feat_model2/model.yaml', 'r')
-                    loaded_model_yaml = yaml_file.read()
-                    yaml_file.close()
-                    loaded_model_2 = model_from_yaml(loaded_model_yaml)
-
-                    # Load weights into new model
-                    loaded_model_2.load_weights("exec_files/model_param/stride25_extended_pos_70epochs_5feat_model2/model.h5")
-                    print('Model_2 loaded from disk')
-
-                    # Load MinMaxScaler
-                    scaler_input_list_2 = []
-                    for i in range(config['tracking']['feature_num']):
-                        scaler_input = joblib.load('exec_files/model_param/stride25_extended_pos_70epochs_5feat_model2/scaler_input' + str(i + 2) + '.gz')
-                        scaler_input_list_2.append(scaler_input)
-                    scaler_output_2 = joblib.load('exec_files/model_param/stride25_extended_pos_70epochs_5feat_model2/scaler_output.gz')
-                except Exception as e:
-                    print(e)
-
-                # Initialise timestep array to store detected zernike coefficients
-                self.zern_coeffs_detect = np.zeros([config['tracking']['timestep_num'], config['AO']['control_coeff_num']])
-                zern_coeff_input = np.zeros([config['tracking']['timestep_num'], config['tracking']['feature_num']])
-                timestep_pos = [0, - config['tracking']['stride_length'], config['tracking']['stride_length']]
-                timestep_pos_extended = [2 * config['tracking']['stride_length'], - 2 * config['tracking']['stride_length']]
-
-                self.message.emit('\nProcess started for surface tracking...')
-
-                # Initialise deformable mirror voltage array
-                voltages = np.zeros(self.actuator_num)
-                        
-                self.mirror.Reset()
-
-                prev1 = time.perf_counter()
-
-                # Detect the wavefront for each timestep position
-                for j in range(config['tracking']['timestep_num']):
-
-                    RF_index = int(timestep_pos[j] // config['RF']['step_incre']) + config['RF']['index_offset']
-                    voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
-
-                    # Detect wavefront at different timestep positions
-                    try:
-
-                        # Apply remote focusing voltages
-                        voltages[:] = config['DM']['vol_bias'] + voltages_defoc
-
-                        # Send voltages to mirror
-                        self.mirror.Send(voltages)
-
-                        # Wait for DM to settle
-                        time.sleep(config['DM']['settling_time'])
-
-                        # Acquire S-H spot image 
-                        self._image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
-                        # self._image = np.mean(self._image_stack, axis = 2)
-
-                        # Image thresholding to remove background
-                        self._image = self._image - config['image']['threshold'] * np.amax(self._image)
-                        self._image[self._image < 0] = 0
-                        self.image.emit(self._image)
-
-                        # Append image to list
-                        dset_append(data_set_1, 'real_AO_img', self._image)
-
-                        # Calculate centroids of S-H spots
-                        act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 3)
-                        act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
-
-                        # Take tip\tilt off
-                        slope_x -= np.mean(slope_x)
-                        slope_y -= np.mean(slope_y)
-
-                        # Concatenate slopes into one slope matrix
-                        slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
-
-                        # Get detected zernike coefficients from slope matrix
-                        self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
-                        self.zern_coeffs_detect[j, :] = self.zern_coeff_detect[:config['AO']['control_coeff_num'], 0].T
-
-                    except Exception as e:
-                        print(e)
-
-                # Normalise data input
-                zern_coeff_input = np.zeros([config['tracking']['timestep_num'], config['tracking']['feature_num']])
-                for i in range(config['tracking']['feature_num']):
-                    zern_coeff_input[:, i] = scaler_input_list_0[i].transform(self.zern_coeffs_detect[:, config['tracking']['feature_indice'][i]].reshape(-1,1)).ravel()
-
-                # Reshape data input
-                zern_coeff_input = zern_coeff_input.reshape(1, config['tracking']['timestep_num'], config['tracking']['feature_num'])
-
-                # Determine output model
-                loaded_model = loaded_model_0
-
-                # Determine scaler output
-                scaler_output = scaler_output_0
-
-                print(self.zern_coeffs_detect[config['tracking']['timestep_num'] - 2, 3])
-                print(self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, 3])
-
-                # Determine whether a fourth timestep measurement is needed to feed into extended range network towards negative axis
-                if (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, 3] <= self.zern_coeffs_detect[config['tracking']['timestep_num'] - 3, 3]) \
-                    and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 3, 3] <= self.zern_coeffs_detect[config['tracking']['timestep_num'] - 2, 3]) \
-                        and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 2, 3] <= 0.1) and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, 3] >= -0.35):
-
-                        print('Got here 1-0')
-
-                        # Take another timestep measurement in positive direction
-                        RF_index = int(timestep_pos_extended[0] // config['RF']['step_incre']) + config['RF']['index_offset']
-                        voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
-
-                        try:
-
-                            # Apply remote focusing voltages
-                            voltages[:] = config['DM']['vol_bias'] + voltages_defoc
-
-                            # Send voltages to mirror
-                            self.mirror.Send(voltages)
-
-                            # Wait for DM to settle
-                            time.sleep(config['DM']['settling_time'])
-
-                            # Acquire S-H spot image 
-                            self._image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
-                            # self._image = np.mean(self._image_stack, axis = 2)
-
-                            # Image thresholding to remove background
-                            self._image = self._image - config['image']['threshold'] * np.amax(self._image)
-                            self._image[self._image < 0] = 0
-                            self.image.emit(self._image)
-
-                            # Append image to list
-                            dset_append(data_set_1, 'real_AO_img', self._image)
-
-                            # Calculate centroids of S-H spots
-                            act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 3)
-                            act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
-
-                            # Take tip\tilt off
-                            slope_x -= np.mean(slope_x)
-                            slope_y -= np.mean(slope_y)
-
-                            # Concatenate slopes into one slope matrix
-                            slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
-
-                            # Get detected zernike coefficients from slope matrix
-                            self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
-                            self.zern_coeffs_detect[config['tracking']['timestep_num'] - 2, :] = self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, :].copy()
-                            self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, :] = self.zern_coeff_detect[:config['AO']['control_coeff_num'], 0].T
-
-                        except Exception as e:
-                            print(e)
-
-                        # Normalise data input
-                        zern_coeff_input = np.zeros([config['tracking']['timestep_num'], config['tracking']['feature_num']])
-                        for i in range(config['tracking']['feature_num']):
-                            zern_coeff_input[:, i] = scaler_input_list_1[i].transform(self.zern_coeffs_detect[:, config['tracking']['feature_indice'][i]].reshape(-1,1)).ravel()
-
-                        # Reshape data input
-                        zern_coeff_input = zern_coeff_input.reshape(1, config['tracking']['timestep_num'], config['tracking']['feature_num'])
-
-                        # Determine output model
-                        loaded_model = loaded_model_1
-
-                        # Determine scaler output
-                        scaler_output = scaler_output_1
-
-                        print('Got here 1-1')  
-
-                # Determine whether a fourth timestep measurement is needed to feed into extended range network towards positive axis
-                if (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, 3] <= self.zern_coeffs_detect[config['tracking']['timestep_num'] - 3, 3]) \
-                    and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 3, 3] <= self.zern_coeffs_detect[config['tracking']['timestep_num'] - 2, 3]) \
-                        and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, 3] >= 0) and (self.zern_coeffs_detect[config['tracking']['timestep_num'] - 2, 3] <= 0.75):
-
-                        print('Got here 2-0')
-
-                        # Take another timestep measurement in positive direction
-                        RF_index = int(timestep_pos_extended[1] // config['RF']['step_incre']) + config['RF']['index_offset']
-                        voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
-
-                        try:
-
-                            # Apply remote focusing voltages
-                            voltages[:] = config['DM']['vol_bias'] + voltages_defoc
-
-                            # Send voltages to mirror
-                            self.mirror.Send(voltages)
-
-                            # Wait for DM to settle
-                            time.sleep(config['DM']['settling_time'])
-
-                            # Acquire S-H spot image 
-                            self._image = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 0)
-                            # self._image = np.mean(self._image_stack, axis = 2)
-
-                            # Image thresholding to remove background
-                            self._image = self._image - config['image']['threshold'] * np.amax(self._image)
-                            self._image[self._image < 0] = 0
-                            self.image.emit(self._image)
-
-                            # Append image to list
-                            dset_append(data_set_1, 'real_AO_img', self._image)
-
-                            # Calculate centroids of S-H spots
-                            act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 3)
-                            act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
-
-                            # Take tip\tilt off
-                            slope_x -= np.mean(slope_x)
-                            slope_y -= np.mean(slope_y)
-
-                            # Concatenate slopes into one slope matrix
-                            slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
-
-                            # Get detected zernike coefficients from slope matrix
-                            self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
-                            self.zern_coeffs_detect[config['tracking']['timestep_num'] - 1, :] = self.zern_coeff_detect[:config['AO']['control_coeff_num'], 0].T
-
-                        except Exception as e:
-                            print(e)
-
-                        # Normalise data input
-                        zern_coeff_input = np.zeros([config['tracking']['timestep_num'], config['tracking']['feature_num']])
-                        for i in range(config['tracking']['feature_num']):
-                            zern_coeff_input[:, i] = scaler_input_list_2[i].transform(self.zern_coeffs_detect[:, config['tracking']['feature_indice'][i]].reshape(-1,1)).ravel()
-
-                        # Reshape data input
-                        zern_coeff_input = zern_coeff_input.reshape(1, config['tracking']['timestep_num'], config['tracking']['feature_num'])
-
-                        # Determine output model
-                        loaded_model = loaded_model_2
-
-                        # Determine scaler output
-                        scaler_output = scaler_output_2
-
-                        print('Got here 2-1')
-
-                # Predict voltage output
-                voltage_output = loaded_model(zern_coeff_input, training = False)
-                voltage_output_inversed = scaler_output.inverse_transform(voltage_output).ravel()
-                self.mirror.Send(voltage_output_inversed)
-
-                print('Got here 3')
-
-                time.sleep(1)
-
-            # Reset mirror
-            # self.mirror.Reset()
-
-            self.message.emit('\nSurface tracking process finished.')
-
-            if not self.debug and config['tracking']['enable_tracking']:
-                prev2 = time.perf_counter()
-                print('Time for one tracking prodedure is: {} s'.format(prev2 - prev1))
-
-            # Finished one tracking prodedure
-            self.done3.emit()
 
         except Exception as e:
             self.error.emit(e)

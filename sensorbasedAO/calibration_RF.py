@@ -94,7 +94,7 @@ class Calibration_RF(QObject):
             data_file = h5py.File('data_info.h5', 'a')
             data_set = data_file['calibration_RF_img']
 
-            self.message.emit('\nProcess started for calibration of remote focusing in negative direction...')
+            self.message.emit('\nProcess started for calibration of remote focusing in negative direction.')
 
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
@@ -104,7 +104,7 @@ class Calibration_RF(QObject):
 
                 if self.debug:
 
-                    self.message.emit('\nExiting dummy negative direction remote focusing calibration.')
+                    self.message.emit('\nExiting dummy remote focusing calibration in negative direction.')
                     break
 
                 # Ask user to move sample to different positions along the z-axis
@@ -155,7 +155,7 @@ class Calibration_RF(QObject):
                             elif i > 0:
                                 voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_slopes'], slope_err))
                             
-                            print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
+                            self.message.emit('\nMax and min voltages {} are: {} V, {} V.'.format(i, np.max(voltages), np.min(voltages)))
 
                             # Send values vector to mirror
                             self.mirror.Send(voltages)
@@ -203,7 +203,7 @@ class Calibration_RF(QObject):
 
                             strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
 
-                            print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
+                            self.message.emit('\nStrehl ratio {} is: {}.'.format(i, strehl))
 
                             if i == 0:
                                 self.calib_slope_x[2 * l, :] = slope_x
@@ -292,7 +292,7 @@ class Calibration_RF(QObject):
             data_file = h5py.File('data_info.h5', 'a')
             data_set = data_file['calibration_RF_img']
 
-            self.message.emit('\nProcess started for calibration of remote focusing in positive direction...')
+            self.message.emit('\nProcess started for calibration of remote focusing in positive direction.')
 
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
@@ -302,7 +302,7 @@ class Calibration_RF(QObject):
 
                 if self.debug:
 
-                    self.message.emit('\nExiting dummy positive direction remote focusing calibration.')
+                    self.message.emit('\nExiting dummy remote focusing calibration in positive direction.')
                     break
 
                 # Ask user to move sample to different positions along the z-axis
@@ -353,7 +353,7 @@ class Calibration_RF(QObject):
                             elif i > 0:
                                 voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_slopes'], slope_err))
                             
-                            print('Max and min values of voltages {} are: {}, {}'.format(i, np.max(voltages), np.min(voltages)))
+                            self.message.emit('\nMax and min voltages {} are: {} V, {} V.'.format(i, np.max(voltages), np.min(voltages)))
 
                             # Send values vector to mirror
                             self.mirror.Send(voltages)
@@ -401,7 +401,7 @@ class Calibration_RF(QObject):
 
                             strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
 
-                            print('Strehl ratio {} from rms_zern_part is: {}'.format(i, strehl))
+                            self.message.emit('Strehl ratio {} is: {}.'.format(i, strehl))
 
                             if i == 0:
                                 self.calib_slope_x[2 * l, :] = slope_x
