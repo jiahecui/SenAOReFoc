@@ -12,7 +12,6 @@ import log
 from config import config
 from sensor import SENSOR
 from mirror import MIRROR
-from server import SERVER
 from gui.main import Main
 from SB_geometry import Setup_SB
 from SB_position import Positioning
@@ -66,9 +65,6 @@ class App(QApplication):
         self.workers = {}
         self.threads = {}
 
-        # Initialise background server
-        self.servers = {}
-
         # Add devices
         self.devices = {}
         self.add_devices()
@@ -80,24 +76,6 @@ class App(QApplication):
         # Initialise remote focusing voltages
         self.remote_focus_voltages = h5py.File('exec_files/RF_calib_volts_interp_full_01um_1501.mat','r').get('interp_volts')
         self.remote_focus_voltages = np.array(self.remote_focus_voltages).T
-
-    def add_server(self):
-        """
-        Add background server system
-        """
-        try:
-            self.main.ui.stopRFSpin.setValue(1)
-            server = SERVER.get(self, self.main, portNum = 18812)
-        except Exception as e:
-            logger.warning('Server initialisation error: {}'.format(e))
-            server = None
-
-        self.servers['server'] = server
-
-        try:
-            self.servers['server'].start()
-        except Exception as e:
-            logger.warning('Server start error: {}'.format(e))
 
     def add_devices(self):
         """
@@ -133,31 +111,6 @@ class App(QApplication):
                 mirror = None
 
         self.devices['mirror'] = mirror
-
-    def stop_server(self):
-        """
-        Stop background server system
-        """
-        try:
-            self.servers['server'].close()
-        except Exception as e:
-            logger.warning("Error on server stop: {}".format(e))
-            return False
-    
-    def stop_focus(self):
-        """
-        Stop remote focusing during xz scan by signal of client software
-        """
-        try:
-            self.main.ui.stopRFSpin.setValue(0)
-            print()
-            self.threads['zern_AO_thread'].quit()
-            self.threads['zern_AO_thread'].wait()
-            self.devices['mirror'].Reset()
-            self.stop_server()
-        except Exception as e:
-            logger.warning("Error on RF stop: {}".format(e))
-            raise
 
     def setup_SB(self, mirror):
         """
@@ -374,8 +327,6 @@ class App(QApplication):
             zern_AO_thread.started.connect(zern_AO_worker.run5)
         elif mode == 6:
             zern_AO_thread.started.connect(zern_AO_worker.run6)
-        elif mode == 7:
-            zern_AO_thread.started.connect(zern_AO_worker.run7)
 
         zern_AO_worker.done.connect(lambda mode: self.handle_zern_AO_done(mode))
         zern_AO_worker.done2.connect(lambda mode: self.handle_focus_done(mode))
@@ -465,7 +416,7 @@ class App(QApplication):
         # Create calib_RF worker and thread
         calib_RF_thread = QThread()
         calib_RF_thread.setObjectName('calib_RF_thread')
-        calib_RF_worker = Calibration_RF(sensor, mirror, data_info)
+        calib_RF_worker = Calibration_RF(sensor, mirror, data_info, debug = self.debug)
         calib_RF_worker.moveToThread(calib_RF_thread)
 
         # Connect to signals
@@ -909,13 +860,11 @@ class App(QApplication):
             AO_type = 3 - 'Slope AO 3'
             AO_type = 4 - 'Slope Full'
         """
-        if AO_type == 0 and self.data_info['focusing_info']['is_xz_scan'] == 0:
+        if AO_type == 0:
             self.control_zern_AO(self.devices['sensor'], self.devices['mirror'], self.data_info, 5)
-        elif AO_type == 0 and self.data_info['focusing_info']['is_xz_scan'] == 1:
-            self.control_zern_AO(self.devices['sensor'], self.devices['mirror'], self.data_info, 7)
-        elif AO_type in {1,2}:
+        elif AO_type in {1, 2}:
             self.control_zern_AO(self.devices['sensor'], self.devices['mirror'], self.data_info, AO_type + 2)
-        elif AO_type in {3,4}:
+        elif AO_type in {3, 4}:
             self.control_slope_AO(self.devices['sensor'], self.devices['mirror'], self.data_info, AO_type)
 
     def handle_focus_done(self, mode = 0):

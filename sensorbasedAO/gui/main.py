@@ -21,9 +21,6 @@ class Main(QMainWindow):
         # Setup and initialise GUI
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.ui.serverSpin.hide()
-        self.ui.stopRFSpin.hide()
-        self.ui.serverBtn.hide()
 
         # Initialise instance variables
         self.prev_settings = {}
@@ -61,7 +58,6 @@ class Main(QMainWindow):
         self.ui.moveBtn.clicked.connect(self.on_move)
         self.ui.scanBtn.clicked.connect(self.on_scan)
         self.ui.trackBtn.clicked.connect(self.on_track)
-        self.ui.serverBtn.clicked.connect(self.on_server)
         self.ui.RFSlider.valueChanged.connect(self.on_control_RF)
         self.ui.stopBtn.clicked.connect(self.on_stop)
         self.ui.quitBtn.clicked.connect(self.on_quit)
@@ -571,7 +567,6 @@ class Main(QMainWindow):
             settings = self.get_focus_settings()
             settings['step_num'] = 1
             settings['focus_mode_flag'] = 0
-            settings['is_xz_scan'] = 0
 
             # Set remote focusing flag to 1 and update AO_info
             AO_settings = {}
@@ -602,7 +597,6 @@ class Main(QMainWindow):
             # Retrieve remote focusing settings from GUI
             settings = self.get_focus_settings()
             settings['focus_mode_flag'] = 1
-            settings['is_xz_scan'] = 0
 
             # Set remote focusing flag to 1 and update AO_info
             AO_settings = {}
@@ -638,24 +632,6 @@ class Main(QMainWindow):
             self.app.handle_tracking_start()
             btn.setChecked(True)
 
-    def on_server(self, checked):
-        """
-        Background server system start handler
-        """
-        btn = self.sender()
-
-        # Stop running focus move and focus scan
-        self.app.handle_focus_done(0)
-        self.app.handle_focus_done(1)
-
-        # Start background server system if pressed
-        if not btn.isChecked():
-            self.app.stop_focus()
-            self.app.stop_server()
-        else:
-            self.app.add_server()
-            btn.setChecked(False)
-
     def on_control_RF(self):
         """
         Remote focusing control slider handler
@@ -677,6 +653,3 @@ class Main(QMainWindow):
         Quit application
         """
         self.app.quit()
-
-
-        

@@ -29,7 +29,10 @@ class Calibration_RF(QObject):
     info = Signal(object)
     calib_info = Signal(object)
 
-    def __init__(self, sensor, mirror, settings):
+    def __init__(self, sensor, mirror, settings, debug = False):
+
+        # Get debug status
+        self.debug = debug
 
         # Get search block settings
         self.SB_settings = settings['SB_info']
@@ -98,6 +101,11 @@ class Calibration_RF(QObject):
 
             # Iterate through each step in positive increments and correct for the introduced displacement
             for l in range(config['RF_calib']['calib_step_num']):
+
+                if self.debug:
+
+                    self.message.emit('\nExiting dummy negative direction remote focusing calibration.')
+                    break
 
                 # Ask user to move sample to different positions along the z-axis
                 self.message.emit('\nMove sample to negative position {}. \nPress [y] to confirm. \nPress [s] to save and exit.\
@@ -170,9 +178,6 @@ class Calibration_RF(QObject):
                             # Calculate centroids of S-H spots
                             act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 11)
                             act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
-                        
-                            # print('slope_x:', slope_x)
-                            # print('slope_y:', slope_y)
 
                             # Draw actual S-H spot centroids on image layer
                             AO_image.ravel()[act_cent_coord.astype(int)] = 0
@@ -223,13 +228,15 @@ class Calibration_RF(QObject):
 
                     self.done.emit()
 
-            # Save data to file
-            sp.io.savemat('data/calib_RF/neg_slope_x.mat', dict(neg_slope_x = self.calib_slope_x))
-            sp.io.savemat('data/calib_RF/neg_slope_y.mat', dict(neg_slope_y = self.calib_slope_y))
-            sp.io.savemat('data/calib_RF/neg_zern_coeff.mat', dict(neg_zern_coeff = self.calib_zern_coeff))
-            sp.io.savemat('data/calib_RF/neg_rms_zern.mat', dict(neg_rms_zern = self.calib_rms_zern))
-            sp.io.savemat('data/calib_RF/neg_strehl.mat', dict(neg_strehl = self.calib_strehl))
-            sp.io.savemat('data/calib_RF/neg_voltages.mat', dict(neg_voltages = self.calib_voltages))
+            if not self.debug:
+
+                # Save data to file
+                sp.io.savemat('data/calib_RF/neg_slope_x.mat', dict(neg_slope_x = self.calib_slope_x))
+                sp.io.savemat('data/calib_RF/neg_slope_y.mat', dict(neg_slope_y = self.calib_slope_y))
+                sp.io.savemat('data/calib_RF/neg_zern_coeff.mat', dict(neg_zern_coeff = self.calib_zern_coeff))
+                sp.io.savemat('data/calib_RF/neg_rms_zern.mat', dict(neg_rms_zern = self.calib_rms_zern))
+                sp.io.savemat('data/calib_RF/neg_strehl.mat', dict(neg_strehl = self.calib_strehl))
+                sp.io.savemat('data/calib_RF/neg_voltages.mat', dict(neg_voltages = self.calib_voltages))
 
             # Close HDF5 file
             data_file.close()
@@ -242,7 +249,7 @@ class Calibration_RF(QObject):
             """
             Returns remote focusing calibration information into self.mirror_info, self.calib_RF_AO_info
             """ 
-            if self.log:
+            if self.log and not self.debug:
 
                 self.mirror_info['remote_focus_neg_voltages'] = self.calib_voltages
                 self.calib_RF_AO_info['calib_RF_neg_slope_x'] = self.calib_slope_x
@@ -292,6 +299,11 @@ class Calibration_RF(QObject):
 
             # Iterate through each step in positive increments and correct for the introduced displacement
             for l in range(config['RF_calib']['calib_step_num']):
+
+                if self.debug:
+
+                    self.message.emit('\nExiting dummy positive direction remote focusing calibration.')
+                    break
 
                 # Ask user to move sample to different positions along the z-axis
                 self.message.emit('\nMove sample to positive position {}. \nPress [y] to confirm. \nPress [s] to save and exit.\
@@ -364,9 +376,6 @@ class Calibration_RF(QObject):
                             # Calculate centroids of S-H spots
                             act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 11)
                             act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
-                        
-                            # print('slope_x:', slope_x)
-                            # print('slope_y:', slope_y)
 
                             # Draw actual S-H spot centroids on image layer
                             AO_image.ravel()[act_cent_coord.astype(int)] = 0
@@ -417,13 +426,15 @@ class Calibration_RF(QObject):
 
                     self.done.emit()
 
-            # Save data to file
-            sp.io.savemat('data/calib_RF/pos_slope_x.mat', dict(pos_slope_x = self.calib_slope_x))
-            sp.io.savemat('data/calib_RF/pos_slope_y.mat', dict(pos_slope_y = self.calib_slope_y))
-            sp.io.savemat('data/calib_RF/pos_zern_coeff.mat', dict(pos_zern_coeff = self.calib_zern_coeff))
-            sp.io.savemat('data/calib_RF/pos_rms_zern.mat', dict(pos_rms_zern = self.calib_rms_zern))
-            sp.io.savemat('data/calib_RF/pos_strehl.mat', dict(pos_strehl = self.calib_strehl))
-            sp.io.savemat('data/calib_RF/pos_voltages.mat', dict(pos_voltages = self.calib_voltages))
+            if not self.debug:
+
+                # Save data to file
+                sp.io.savemat('data/calib_RF/pos_slope_x.mat', dict(pos_slope_x = self.calib_slope_x))
+                sp.io.savemat('data/calib_RF/pos_slope_y.mat', dict(pos_slope_y = self.calib_slope_y))
+                sp.io.savemat('data/calib_RF/pos_zern_coeff.mat', dict(pos_zern_coeff = self.calib_zern_coeff))
+                sp.io.savemat('data/calib_RF/pos_rms_zern.mat', dict(pos_rms_zern = self.calib_rms_zern))
+                sp.io.savemat('data/calib_RF/pos_strehl.mat', dict(pos_strehl = self.calib_strehl))
+                sp.io.savemat('data/calib_RF/pos_voltages.mat', dict(pos_voltages = self.calib_voltages))
 
             # Close HDF5 file
             data_file.close()
@@ -436,7 +447,7 @@ class Calibration_RF(QObject):
             """
             Returns remote focusing calibration information into self.mirror_info, self.calib_RF_AO_info
             """ 
-            if self.log:
+            if self.log and not self.debug:
 
                 self.mirror_info['remote_focus_pos_voltages'] = self.calib_voltages
                 self.calib_RF_AO_info['calib_RF_pos_slope_x'] = self.calib_slope_x

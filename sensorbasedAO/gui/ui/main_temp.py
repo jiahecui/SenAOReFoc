@@ -341,7 +341,7 @@ class Ui_MainWindow(object):
         self.cameraExpoSpin.setObjectName(u"cameraExpoSpin")
         sizePolicy3.setHeightForWidth(self.cameraExpoSpin.sizePolicy().hasHeightForWidth())
         self.cameraExpoSpin.setSizePolicy(sizePolicy3)
-        self.cameraExpoSpin.setMinimumSize(QSize(50, 30))
+        self.cameraExpoSpin.setMinimumSize(QSize(100, 30))
         self.cameraExpoSpin.setFont(font1)
         self.cameraExpoSpin.setMinimum(30)
         self.cameraExpoSpin.setMaximum(1000000)
@@ -354,12 +354,16 @@ class Ui_MainWindow(object):
         self.loopMaxSpin.setObjectName(u"loopMaxSpin")
         sizePolicy3.setHeightForWidth(self.loopMaxSpin.sizePolicy().hasHeightForWidth())
         self.loopMaxSpin.setSizePolicy(sizePolicy3)
-        self.loopMaxSpin.setMinimumSize(QSize(50, 30))
+        self.loopMaxSpin.setMinimumSize(QSize(100, 30))
         self.loopMaxSpin.setFont(font1)
         self.loopMaxSpin.setMinimum(1)
         self.loopMaxSpin.setMaximum(100)
 
         self.horizontalLayout_5.addWidget(self.loopMaxSpin)
+
+        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_5.addItem(self.horizontalSpacer_2)
 
 
         self.mainContentLayout.addLayout(self.horizontalLayout_5)
@@ -544,31 +548,6 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_5.addWidget(self.trackBtn)
 
-        self.serverBtn = QPushButton(self.centralwidget)
-        self.serverBtn.setObjectName(u"serverBtn")
-        self.serverBtn.setMinimumSize(QSize(0, 30))
-        self.serverBtn.setFont(font1)
-        self.serverBtn.setCheckable(True)
-
-        self.verticalLayout_5.addWidget(self.serverBtn)
-
-        self.serverSpin = QSpinBox(self.centralwidget)
-        self.serverSpin.setObjectName(u"serverSpin")
-        self.serverSpin.setFont(font1)
-        self.serverSpin.setReadOnly(True)
-        self.serverSpin.setMaximum(1)
-
-        self.verticalLayout_5.addWidget(self.serverSpin)
-
-        self.stopRFSpin = QSpinBox(self.centralwidget)
-        self.stopRFSpin.setObjectName(u"stopRFSpin")
-        self.stopRFSpin.setFont(font1)
-        self.stopRFSpin.setReadOnly(True)
-        self.stopRFSpin.setMaximum(1)
-        self.stopRFSpin.setValue(1)
-
-        self.verticalLayout_5.addWidget(self.stopRFSpin)
-
         self.RFSlider = QSlider(self.centralwidget)
         self.RFSlider.setObjectName(u"RFSlider")
         sizePolicy5.setHeightForWidth(self.RFSlider.sizePolicy().hasHeightForWidth())
@@ -627,7 +606,7 @@ class Ui_MainWindow(object):
         self.stopBtn.setObjectName(u"stopBtn")
         sizePolicy6.setHeightForWidth(self.stopBtn.sizePolicy().hasHeightForWidth())
         self.stopBtn.setSizePolicy(sizePolicy6)
-        self.stopBtn.setMinimumSize(QSize(300, 50))
+        self.stopBtn.setMinimumSize(QSize(300, 30))
         self.stopBtn.setFont(font4)
 
         self.verticalLayout_2.addWidget(self.stopBtn)
@@ -636,7 +615,7 @@ class Ui_MainWindow(object):
         self.quitBtn.setObjectName(u"quitBtn")
         sizePolicy6.setHeightForWidth(self.quitBtn.sizePolicy().hasHeightForWidth())
         self.quitBtn.setSizePolicy(sizePolicy6)
-        self.quitBtn.setMinimumSize(QSize(300, 50))
+        self.quitBtn.setMinimumSize(QSize(300, 30))
         self.quitBtn.setFont(font4)
 
         self.verticalLayout_2.addWidget(self.quitBtn)
@@ -710,7 +689,6 @@ class Ui_MainWindow(object):
         self.moveBtn.setText(QCoreApplication.translate("MainWindow", u"MOVE", None))
         self.scanBtn.setText(QCoreApplication.translate("MainWindow", u"SCAN", None))
         self.trackBtn.setText(QCoreApplication.translate("MainWindow", u"TRACK SURFACE", None))
-        self.serverBtn.setText(QCoreApplication.translate("MainWindow", u"START SERVER", None))
         self.displayBox.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Sensorbased AO Software", None))
         self.stopBtn.setText(QCoreApplication.translate("MainWindow", u"STOP", None))
         self.quitBtn.setText(QCoreApplication.translate("MainWindow", u"QUIT", None))

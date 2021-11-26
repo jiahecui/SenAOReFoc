@@ -1198,7 +1198,7 @@ class AO_Zernikes(QObject):
             self.rms_zern_detect = np.zeros([self.correct_num, 1])
             self.strehl_detect = np.zeros([self.correct_num, 1])
 
-            self.message.emit('\nProcess started for wavefront detection process...')
+            self.message.emit('\nProcess started for remote focusing process...')
 
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
@@ -1336,10 +1336,10 @@ class AO_Zernikes(QObject):
             sp.io.savemat('data/ML_training_data/strehl_detect.mat', dict(strehl_detect = self.strehl_detect))
             sp.io.savemat('data/ML_training_data/voltages_detect.mat', dict(voltages_detect = self.voltages_detect))
             
-            self.message.emit('\nWavefront detection process complete.')
+            self.message.emit('\nRemote focusing process complete.')
 
             prev2 = time.perf_counter()
-            print('Time for wavefront detection process is: {} s'.format(prev2 - prev1))
+            print('Time for remote focusing process is: {} s'.format(prev2 - prev1))
 
             # Finished remote focusing process
             if self.focus_settings['focus_mode_flag'] == 0:
@@ -1682,77 +1682,6 @@ class AO_Zernikes(QObject):
 
         except Exception as e:
             self.error.emit(e)
-            raise
-
-    @Slot(object)
-    def run7(self):
-        try:
-            # Start thread
-            self.start.emit()
-
-            """
-            Perform remote focusing during xz scan process
-            """
-            # Initialise deformable mirror voltage array
-            voltages = np.zeros(self.actuator_num)
-
-            while self.main.ui.stopRFSpin.value():
-
-                prev1 = time.perf_counter()
-
-                # Run correction for each focus depth
-                for j in range(self.correct_num):
-
-                    print('On line {}'.format(j + 1))          
-
-                    # Retrieve voltages for remote focusing component
-                    try:
-                        if self.AO_settings['focus_enable'] == 1:
-                            RF_index = int(self.focus_settings['start_depth_defoc'] // config['RF']['step_incre'] \
-                                + self.focus_settings['step_incre_defoc'] // config['RF']['step_incre'] * j) + config['RF']['index_offset']
-                            voltages_defoc = np.ravel(self.remote_focus_voltages[:, RF_index])
-                        else:
-                            raise RuntimeError
-
-                        print('Current depth: {} um'.format(self.focus_settings['start_depth_defoc'] + self.focus_settings['step_incre_defoc'] * j))
-
-                        # Apply remote focusing voltages
-                        voltages[:] = config['DM']['vol_bias'] + voltages_defoc
-
-                        # Send voltages to mirror
-                        self.mirror.Send(voltages)
-
-                        # Trigger start of xz scan line acquisition
-                        self.main.ui.serverSpin.setValue(1)
-
-                        waiting_time = 0
-                        # print('Waiting for trigger.')
-
-                        # Wait for line termination trigger
-                        while self.main.ui.serverSpin.value() == 1:
-                            _ = time.perf_counter() + 0.000001
-                            waiting_time += 0.000001
-                            while time.perf_counter() < _:
-                                pass
-
-                        print('Waiting time:', waiting_time)
-                        # print('Trigger received.')
-
-                        # Pause for specified amount of time
-                        _ = time.perf_counter() + self.focus_settings['pause_time']
-                        while time.perf_counter() < _:
-                            pass
-
-                    except Exception as e:
-                        print(e)
-                        raise
-
-                prev4 = time.perf_counter()
-                print('Time for single xz scan RF process is: {} s'.format(prev4 - prev1))
-
-            self.mirror.Reset()
-
-        except Exception as e:
             raise
 
     @Slot(object)

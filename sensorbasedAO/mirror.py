@@ -50,3 +50,9 @@ class MIRROR():
 class MIRROR_dummy():
     def __init__(self):
         logger.info('Dummy mirror loaded.')
+
+    def Reset(self):
+        pass
+
+    def Send(self, voltages):
+        pass
