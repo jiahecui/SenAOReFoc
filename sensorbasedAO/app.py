@@ -34,14 +34,6 @@ class App(QApplication):
     Based on the QApplication class. On instantiation, sets up GUI and event handlers, and displays the GUI.
     Also instantiates devices, such as S-H sensor and DM and adds as attributes.
 
-    Args:
-        parent(: obj: `QObject`, optional): parent window
-
-    Example:
-        Here is a simple example of using the class: :
-
-            app = App(sys.argv)
-            sys.exit(app.exec_())
     """
     def __init__(self, debug = False):
         QThread.currentThread().setObjectName('app')   
@@ -899,8 +891,8 @@ class App(QApplication):
         # Send voltages to mirror
         self.devices['mirror'].Send(voltages)
 
-        self.handle_message_disp('Focus position: {} um'.format(val))
-        
+        self.handle_message_disp('Focus position: {} um.'.format(val))
+
     def stop(self):
         """
         Stop all workers, threads, and devices
@@ -968,7 +960,7 @@ def debug():
 
     handler_stream.setFormatter(formatter)
     logger.addHandler(handler_stream)
-    logger.info('Started sensorbased AO app in debug mode')
+    logger.info('Started sensorbased AO and remote focusing app in debug mode')
 
     app = App(debug=True)
 
@@ -983,14 +975,14 @@ def main():
 
     handler_stream.setFormatter(formatter)
     logger.addHandler(handler_stream)
-    logger.info('Started sensorbased AO app')
+    logger.info('Started sensorbased AO and remote focusing app')
 
     app = App(debug = False)
 
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description = 'Sensorbased AO gui')
+    parser = argparse.ArgumentParser(description = 'Sensorbased AO & remote focusing GUI')
     parser.add_argument("-d", "--debug", help = 'debug mode',
                         action = "store_true")
     args = parser.parse_args()

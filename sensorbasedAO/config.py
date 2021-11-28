@@ -9,7 +9,7 @@ else:
     config_path = os.path.dirname(__file__)
 
 with open(os.path.join(config_path, "config.yaml"), "r") as stream:
-    config = yaml.load(stream)
+    config = yaml.load(stream, Loader = yaml.FullLoader)
 
 # Generated options
 config['general'] = {}
