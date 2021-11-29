@@ -1,11 +1,8 @@
-from PySide2.QtWidgets import QApplication, QStyleFactory, QMainWindow, QFileDialog, QDialog, QVBoxLayout, QGridLayout, QWidget, QSpacerItem, QSizePolicy
-from PySide2.QtCore import QThread, QObject, Slot, Signal, QSize, QTimer
+from PySide2.QtWidgets import QMainWindow
 
-import qtawesome as qta
 import numpy as np
 
 from sensorbasedAO.gui.ui.main import Ui_MainWindow
-from sensorbasedAO.gui.common import FloatingWidget
 from sensorbasedAO.config import config
 
 class Main(QMainWindow):
@@ -527,7 +524,7 @@ class Main(QMainWindow):
             self.ui.stepIncreSpin.setReadOnly(True)
             self.ui.stepNumSpin.setReadOnly(True)
             self.ui.startDepthSpin.setReadOnly(True)
-            self.ui.pauseTimeSpin.setReadOnly(True)
+            self.ui.pauseTimeSpin.setReadOnly(False)
 
     def on_calibrate_RF(self, checked):
         """

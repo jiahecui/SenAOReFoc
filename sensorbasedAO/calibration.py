@@ -265,14 +265,14 @@ class Calibration(QObject):
 
                     svd_check_slopes = np.dot(self.control_matrix_slopes, self.inf_matrix_slopes)
 
-                    self.message.emit('\nDM calibration process finished.')
+                    self.message.emit('DM calibration process finished.')
 
                 else:
 
                     self.done.emit()
 
                 prev2 = time.perf_counter()
-                self.message.emit('\nTime for DM calibration process is: {} s.', (prev2 - prev1))     
+                self.message.emit('\nTime for DM calibration process is: {} s.'.format(prev2 - prev1))     
 
             """
             Returns deformable mirror calibration information into self.mirror_info

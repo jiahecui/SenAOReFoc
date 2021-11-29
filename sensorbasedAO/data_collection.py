@@ -194,9 +194,8 @@ class Data_Collection(QObject):
                                                 # Get detected zernike coefficients from slope matrix
                                                 zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                                self.message.emit('\nDetected amplitude of mode {} is {} um.'.format(j + 3, zern_array_det[j + 2, 0]))
-
                                                 if abs(zern_array_det[j + 2, 0] - zern_amp_gen) / zern_amp_gen <= 0.075 or m == config['data_collect']['loop_max_gen'] - 1:
+                                                    self.message.emit('\nDetected amplitude of mode {} is {} um.'.format(j + 3, zern_array_det[j + 2, 0]))
                                                     self.zern_volts[:, j, k] = voltages
                                                     self.generated_zern_amp[j, k] = zern_array_det[j + 2, 0]
                                                     break
@@ -208,15 +207,15 @@ class Data_Collection(QObject):
                                         voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
                                             [:,:config['AO']['control_coeff_num']], zern_err[:config['AO']['control_coeff_num']]))
 
-                                        # Send values vector to mirror
-                                        self.mirror.Send(voltages)
-                                        
-                                        # Wait for DM to settle
-                                        time.sleep(config['DM']['settling_time'])
+                                    # Send values vector to mirror
+                                    self.mirror.Send(voltages)
                                     
-                                        # Acquire S-H spots using camera
-                                        AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                                        AO_image = np.mean(AO_image_stack, axis = 2)
+                                    # Wait for DM to settle
+                                    time.sleep(config['DM']['settling_time'])
+                                
+                                    # Acquire S-H spots using camera
+                                    AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                                    AO_image = np.mean(AO_image_stack, axis = 2)
 
                                     # Image thresholding to remove background
                                     AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
@@ -255,10 +254,9 @@ class Data_Collection(QObject):
                                         self.gen_cor_rms_zern[2 * j, 0] = rms_zern_part
                                         self.gen_cor_strehl[2 * j, 0] = strehl
 
-                                    self.message.emit('\nStrehl ratio {} is {}.'.format(i, strehl))
-
                                     # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
                                     if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
+                                        self.message.emit('\nStrehl ratio {} is {}.'.format(i, strehl))
                                         self.zern_coeff[j + 2] = 0
                                         self.gen_cor_zern_coeff[2 * j + 1, :] = self.zern_coeff_detect[2:config['AO']['control_coeff_num'], 0].T
                                         self.gen_cor_rms_zern[2 * j + 1, 0] = rms_zern_part
@@ -272,11 +270,11 @@ class Data_Collection(QObject):
                                 self.done.emit()
 
                     # Save data to file
-                    sp.io.savemat('data/data_collection_0/amp_' + str(config['data_collect']['incre_amp'] * (k + 1)) + '_zern_amp_run' + str(n) + '.mat',\
+                    sp.io.savemat('data/data_collection_0/amp_' + str(config['data_collect']['incre_amp'] * (k + 1)) + '_zern_amp_run' + str(n + 1) + '.mat',\
                         dict(zern_amp = self.gen_cor_zern_coeff))
-                    sp.io.savemat('data/data_collection_0/amp_' + str(config['data_collect']['incre_amp'] * (k + 1)) + '_rms_zern_run' + str(n) + '.mat',\
+                    sp.io.savemat('data/data_collection_0/amp_' + str(config['data_collect']['incre_amp'] * (k + 1)) + '_rms_zern_run' + str(n + 1) + '.mat',\
                         dict(rms_zern = self.gen_cor_rms_zern))
-                    sp.io.savemat('data/data_collection_0/amp_' + str(config['data_collect']['incre_amp'] * (k + 1)) + '_strehl_run' + str(n) + '.mat',\
+                    sp.io.savemat('data/data_collection_0/amp_' + str(config['data_collect']['incre_amp'] * (k + 1)) + '_strehl_run' + str(n + 1) + '.mat',\
                         dict(strehl = self.gen_cor_strehl))
 
                     # Close HDF5 file
@@ -444,11 +442,10 @@ class Data_Collection(QObject):
                                                 slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
 
                                                 # Get detected zernike coefficients from slope matrix
-                                                zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
-
-                                                self.message.emit('\nDetected amplitude of mode {} is {} um.'.format(j + 3, zern_array_det[j + 2, 0]))
+                                                zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)                                                
 
                                                 if abs(zern_array_det[j + 2, 0] - zern_amp_gen) / zern_amp_gen <= 0.075 or m == config['data_collect']['loop_max_gen'] - 1:
+                                                    self.message.emit('\nDetected amplitude of mode {} is {} um.'.format(j + 3, zern_array_det[j + 2, 0]))
                                                     self.zern_volts[:, j, k] = voltages
                                                     self.generated_zern_amp[j, k] = zern_array_det[j + 2, 0]
                                                     break
@@ -459,15 +456,15 @@ class Data_Collection(QObject):
 
                                         voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_slopes'], slope_err))
 
-                                        # Send values vector to mirror
-                                        self.mirror.Send(voltages)
-                                        
-                                        # Wait for DM to settle
-                                        time.sleep(config['DM']['settling_time'])
+                                    # Send values vector to mirror
+                                    self.mirror.Send(voltages)                                  
                                     
-                                        # Acquire S-H spots using camera
-                                        AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                                        AO_image = np.mean(AO_image_stack, axis = 2)
+                                    # Wait for DM to settle
+                                    time.sleep(config['DM']['settling_time'])
+                                
+                                    # Acquire S-H spots using camera
+                                    AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                                    AO_image = np.mean(AO_image_stack, axis = 2)
 
                                     # Image thresholding to remove background
                                     AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
@@ -499,7 +496,7 @@ class Data_Collection(QObject):
                                     self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
 
                                     # Get residual zernike error and calculate root mean square (rms) error, Strehl ratio
-                                    zern_err_part = (self.zern_coeff_detect.copy() for c in range(2))
+                                    zern_err, zern_err_part = (self.zern_coeff_detect.copy() for c in range(2))
                                     zern_err_part[[0, 1], 0] = 0
                                     rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
                                     strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
@@ -509,10 +506,9 @@ class Data_Collection(QObject):
                                         self.gen_cor_rms_zern[2 * j, 0] = rms_zern_part
                                         self.gen_cor_strehl[2 * j, 0] = strehl
 
-                                    self.message.emit('\nStrehl ratio {} is {}.'.format(i, strehl))
-
                                     # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
                                     if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
+                                        self.message.emit('\nStrehl ratio {} is {}.'.format(i, strehl))
                                         self.zern_coeff[j + 2] = 0
                                         self.gen_cor_zern_coeff[2 * j + 1, :] = self.zern_coeff_detect[2:config['AO']['control_coeff_num'], 0].T
                                         self.gen_cor_rms_zern[2 * j + 1, 0] = rms_zern_part
@@ -526,11 +522,11 @@ class Data_Collection(QObject):
                                 self.done.emit()
 
                     # Save data to file
-                    sp.io.savemat('data/data_collection_1/amp_' + str(config['data_collect']['incre_amp'] * (k + 1)) + '_zern_amp_run' + str(n) + '.mat',\
+                    sp.io.savemat('data/data_collection_1/amp_' + str(config['data_collect']['incre_amp'] * (k + 1)) + '_zern_amp_run' + str(n + 1) + '.mat',\
                         dict(zern_amp = self.gen_cor_zern_coeff))
-                    sp.io.savemat('data/data_collection_1/amp_' + str(config['data_collect']['incre_amp'] * (k + 1)) + '_rms_zern_run' + str(n) + '.mat',\
+                    sp.io.savemat('data/data_collection_1/amp_' + str(config['data_collect']['incre_amp'] * (k + 1)) + '_rms_zern_run' + str(n + 1) + '.mat',\
                         dict(rms_zern = self.gen_cor_rms_zern))
-                    sp.io.savemat('data/data_collection_1/amp_' + str(config['data_collect']['incre_amp'] * (k + 1)) + '_strehl_run' + str(n) + '.mat',\
+                    sp.io.savemat('data/data_collection_1/amp_' + str(config['data_collect']['incre_amp'] * (k + 1)) + '_strehl_run' + str(n + 1) + '.mat',\
                         dict(strehl = self.gen_cor_strehl))
 
                     # Close HDF5 file
@@ -594,17 +590,10 @@ class Data_Collection(QObject):
             data_file = h5py.File('data_info.h5', 'a')
             data_set_1 = data_file['AO_img']['data_collect']
 
-            # Choose to generate single or multiple zernike modes at the same time
-            if config['data_collect']['mult_mode_gen']:
-                zern_mode_array = [4, 6, 11, 19]
-                zern_amp_array = [0, 0, 0, 0, 0.1, 0, 0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0, 0.1]
-                loop_gain_gen_array = [0.2]
-                zern_num = 1
-            else:
-                zern_mode_array = [4, 6, 11, 19]
-                zern_amp_array = [0.3, 0.15, 0.15, 0.2]
-                loop_gain_gen_array = [0.3, 0.2, 0.2, 0.2]
-                zern_num = len(zern_mode_array)
+            # Retrieve input zernike coefficient array
+            zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
+            zern_array = np.zeros([config['AO']['control_coeff_num'], 1])
+            zern_array[:len(zern_array_temp), 0] = zern_array_temp
 
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
@@ -620,183 +609,155 @@ class Data_Collection(QObject):
                     self.message.emit('\nExiting dummy data collection mode 2.')
                     break
 
-                # Run closed-loop control for each specified zernike mode
-                for j in range(zern_num):
+                # Initialise array to store detected values of critical parameters
+                self.gen_cor_zern_coeff = np.zeros([self.AO_settings['loop_max'] + 1, config['AO']['control_coeff_num'] - 2])
+                self.gen_cor_rms_zern = np.zeros([self.AO_settings['loop_max'] + 1, 1])
+                self.gen_cor_strehl = np.zeros([self.AO_settings['loop_max'] + 1, 1])
 
-                    # Initialise array to store detected values of critical parameters
-                    self.gen_cor_zern_coeff = np.zeros([self.AO_settings['loop_max'] + 1, config['AO']['control_coeff_num'] - 2])
-                    self.gen_cor_rms_zern = np.zeros([self.AO_settings['loop_max'] + 1, 1])
-                    self.gen_cor_strehl = np.zeros([self.AO_settings['loop_max'] + 1, 1])
+                # Get initial loop_gain_gen
+                loop_gain_gen = config['AO']['loop_gain']                  
 
-                    # Get initial loop_gain_gen
-                    loop_gain_gen = loop_gain_gen_array[j]                  
-
-                    for i in range(self.AO_settings['loop_max'] + 1):
+                for i in range(self.AO_settings['loop_max'] + 1):
+                    
+                    if self.loop:
                         
-                        if self.loop:
-                            
-                            try:
+                        try:
 
-                                # Update mirror control voltages
-                                if i == 0:
+                            # Update mirror control voltages
+                            if i == 0:
 
-                                    if not self.debug:
+                                if not self.debug:
 
-                                        # Generate one Zernike modes on DM for correction
-                                        if config['data_collect']['mult_mode_gen']:
-                                            self.zern_coeff[:len(zern_amp_array), 0] = zern_amp_array
+                                    # Generate Zernike modes on DM for correction
+                                    self.zern_coeff = zern_array.copy()
+
+                                    # Run closed-loop to generate a precise amount of Zernike modes using DM
+                                    for m in range(config['data_collect']['loop_max_gen']):
+
+                                        if m == 0:
+
+                                            voltages[:] = config['DM']['vol_bias']
+
                                         else:
-                                            self.zern_coeff[zern_mode_array[j], 0] = zern_amp_array[j]
 
-                                        # Run closed-loop to generate a precise amount of Zernike modes using DM
-                                        for m in range(config['data_collect']['loop_max_gen']):
+                                            # Update control voltages
+                                            voltages -= loop_gain_gen * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                                [:,:config['AO']['control_coeff_num']], (zern_array_det[:config['AO']['control_coeff_num']] - self.zern_coeff)))
 
-                                            if m == 0:
+                                        # Send values vector to mirror
+                                        self.mirror.Send(voltages)
 
-                                                voltages[:] = config['DM']['vol_bias']
+                                        # Wait for DM to settle
+                                        time.sleep(config['DM']['settling_time'])
+                                    
+                                        # Acquire S-H spots using camera
+                                        AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                                        AO_image = np.mean(AO_image_stack, axis = 2)
 
-                                            else:
+                                        # Image thresholding to remove background
+                                        AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                                        AO_image[AO_image < 0] = 0
+                                        self.image.emit(AO_image)
 
-                                                # Update control voltages
-                                                voltages -= loop_gain_gen * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
-                                                    [:,:config['AO']['control_coeff_num']], (zern_array_det[:config['AO']['control_coeff_num']] - self.zern_coeff)))
+                                        # Append image to list
+                                        dset_append(data_set_1, 'real_AO_img', AO_image)
 
-                                            # Send values vector to mirror
-                                            self.mirror.Send(voltages)
+                                        # Calculate centroids of S-H spots
+                                        act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 2)
+                                        act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
 
-                                            # Wait for DM to settle
-                                            time.sleep(config['DM']['settling_time'])
-                                        
-                                            # Acquire S-H spots using camera
-                                            AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                                            AO_image = np.mean(AO_image_stack, axis = 2)
+                                        # Draw actual S-H spot centroids on image layer
+                                        AO_image.ravel()[act_cent_coord.astype(int)] = 0
+                                        self.image.emit(AO_image)
 
-                                            # Image thresholding to remove background
-                                            AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
-                                            AO_image[AO_image < 0] = 0
-                                            self.image.emit(AO_image)
+                                        # Take tip\tilt off
+                                        slope_x -= np.mean(slope_x)
+                                        slope_y -= np.mean(slope_y)
 
-                                            # Append image to list
-                                            dset_append(data_set_1, 'real_AO_img', AO_image)
+                                        # Concatenate slopes into one slope matrix
+                                        slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
 
-                                            # Calculate centroids of S-H spots
-                                            act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 2)
-                                            act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+                                        # Get detected zernike coefficients from slope matrix
+                                        zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                            # Draw actual S-H spot centroids on image layer
-                                            AO_image.ravel()[act_cent_coord.astype(int)] = 0
-                                            self.image.emit(AO_image)
+                                    self.message.emit('\nZernike mode combination generated.')
 
-                                            # Take tip\tilt off
-                                            slope_x -= np.mean(slope_x)
-                                            slope_y -= np.mean(slope_y)
-
-                                            # Concatenate slopes into one slope matrix
-                                            slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
-
-                                            # Get detected zernike coefficients from slope matrix
-                                            zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
-
-                                    else:
-
-                                        voltages[:] = config['DM']['vol_bias']                              
                                 else:
 
-                                    voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
-                                        [:,:config['AO']['control_coeff_num']], zern_err[:config['AO']['control_coeff_num']]))
+                                    voltages[:] = config['DM']['vol_bias']                              
+                            else:
 
-                                    self.message.emit('Max and min voltages {} are: {} V, {} V.'.format(i, np.max(voltages), np.min(voltages)))
+                                voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                    [:,:config['AO']['control_coeff_num']], zern_err[:config['AO']['control_coeff_num']]))
 
-                                    # Send values vector to mirror
-                                    self.mirror.Send(voltages)
-                                    
-                                    # Wait for DM to settle
-                                    time.sleep(config['DM']['settling_time'])
-                                
-                                    # Acquire S-H spots using camera
-                                    AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                                    AO_image = np.mean(AO_image_stack, axis = 2)
+                            # Send values vector to mirror
+                            self.mirror.Send(voltages)
+                            
+                            # Wait for DM to settle
+                            time.sleep(config['DM']['settling_time'])
+                        
+                            # Acquire S-H spots using camera
+                            AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                            AO_image = np.mean(AO_image_stack, axis = 2)
 
-                                # Image thresholding to remove background
-                                AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
-                                AO_image[AO_image < 0] = 0
-                                self.image.emit(AO_image)
+                            # Image thresholding to remove background
+                            AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                            AO_image[AO_image < 0] = 0
+                            self.image.emit(AO_image)
 
-                                # Append image to list
-                                dset_append(data_set_1, 'real_AO_img', AO_image)
+                            # Append image to list
+                            dset_append(data_set_1, 'real_AO_img', AO_image)
 
-                                # Calculate centroids of S-H spots
-                                act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 2) 
-                                act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+                            # Calculate centroids of S-H spots
+                            act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 2) 
+                            act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
 
-                                # Draw actual S-H spot centroids on image layer
-                                AO_image.ravel()[act_cent_coord.astype(int)] = 0
-                                self.image.emit(AO_image)
+                            # Draw actual S-H spot centroids on image layer
+                            AO_image.ravel()[act_cent_coord.astype(int)] = 0
+                            self.image.emit(AO_image)
 
-                                # Take tip\tilt off
-                                slope_x -= np.mean(slope_x)
-                                slope_y -= np.mean(slope_y)
+                            # Take tip\tilt off
+                            slope_x -= np.mean(slope_x)
+                            slope_y -= np.mean(slope_y)
 
-                                if i == 0:
-                                    if config['data_collect']['mult_mode_gen']:
-                                        sp.io.savemat('data/data_collection_2/slope_x_before_run' + str(n) + '.mat', dict(slope_x_before = slope_x))
-                                        sp.io.savemat('data/data_collection_2/slope_y_before_run' + str(n) + '.mat', dict(slope_y_before = slope_y))
-                                    else:
-                                        sp.io.savemat('data/data_collection_2/mode' + str(zern_mode_array[j] + 1) + '_slope_x_before_run' + str(n) + '.mat',\
-                                            dict(slope_x_before = slope_x))
-                                        sp.io.savemat('data/data_collection_2/mode' + str(zern_mode_array[j] + 1) + '_slope_y_before_run' + str(n) + '.mat',\
-                                            dict(slope_y_before = slope_y))
+                            if i == 0:
+                                sp.io.savemat('data/data_collection_2/slope_x_before_run' + str(n + 1) + '.mat', dict(slope_x_before = slope_x))
+                                sp.io.savemat('data/data_collection_2/slope_y_before_run' + str(n + 1) + '.mat', dict(slope_y_before = slope_y))
 
-                                # Concatenate slopes into one slope matrix
-                                slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+                            # Concatenate slopes into one slope matrix
+                            slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
 
-                                # Get detected zernike coefficients from slope matrix
-                                self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
+                            # Get detected zernike coefficients from slope matrix
+                            self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                # Get residual zernike error and calculate root mean square (rms) error, Strehl ratio
-                                zern_err, zern_err_part = (self.zern_coeff_detect.copy() for c in range(2))
-                                zern_err_part[[0, 1], 0] = 0
-                                rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
-                                strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
+                            # Get residual zernike error and calculate root mean square (rms) error, Strehl ratio
+                            zern_err, zern_err_part = (self.zern_coeff_detect.copy() for c in range(2))
+                            zern_err_part[[0, 1], 0] = 0
+                            rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
+                            strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
 
-                                self.gen_cor_zern_coeff[i, :] = self.zern_coeff_detect[2:config['AO']['control_coeff_num'], 0].T
-                                self.gen_cor_rms_zern[i, 0] = rms_zern_part
-                                self.gen_cor_strehl[i, 0] = strehl
+                            self.gen_cor_zern_coeff[i, :] = self.zern_coeff_detect[2:config['AO']['control_coeff_num'], 0].T
+                            self.gen_cor_rms_zern[i, 0] = rms_zern_part
+                            self.gen_cor_strehl[i, 0] = strehl
 
+                            # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
+                            if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
                                 self.message.emit('\nStrehl ratio {} is {}.'.format(i, strehl))
+                                self.zern_coeff[:, 0] = 0
+                                sp.io.savemat('data/data_collection_2/slope_x_after_run' + str(n + 1) + '.mat', dict(slope_x_after = slope_x))
+                                sp.io.savemat('data/data_collection_2/slope_y_after_run' + str(n + 1) + '.mat', dict(slope_y_after = slope_y))
+                                break                 
 
-                                # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                                if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
-                                    if config['data_collect']['mult_mode_gen']:
-                                        self.zern_coeff[:, 0] = 0
-                                        sp.io.savemat('data/data_collection_2/slope_x_after_run' + str(n) + '.mat', dict(slope_x_after = slope_x))
-                                        sp.io.savemat('data/data_collection_2/slope_y_after_run' + str(n) + '.mat', dict(slope_y_after = slope_y))
-                                    else:
-                                        self.zern_coeff[zern_mode_array[j], 0] = 0
-                                        sp.io.savemat('data/data_collection_2/mode' + str(zern_mode_array[j] + 1) + '_slope_x_after_run' + str(n) + '.mat',\
-                                            dict(slope_x_after = slope_x))
-                                        sp.io.savemat('data/data_collection_2/mode' + str(zern_mode_array[j] + 1) + '_slope_y_after_run' + str(n) + '.mat',\
-                                            dict(slope_y_after = slope_y))
-                                    break                 
-
-                            except Exception as e:
-                                print(e)
-                        else:
-
-                            self.done.emit()
-
-                    # Save data to file
-                    if config['data_collect']['mult_mode_gen']:
-                        sp.io.savemat('data/data_collection_2/zern_amp_run' + str(n) + '.mat', dict(zern_amp = self.gen_cor_zern_coeff))
-                        sp.io.savemat('data/data_collection_2/rms_zern_run' + str(n) + '.mat', dict(rms_zern = self.gen_cor_rms_zern))
-                        sp.io.savemat('data/data_collection_2/strehl_run' + str(n) + '.mat', dict(strehl = self.gen_cor_strehl))
+                        except Exception as e:
+                            print(e)
                     else:
-                        sp.io.savemat('data/data_collection_2/mode' + str(zern_mode_array[j] + 1) + '_zern_amp_run' + str(n) + '.mat',\
-                            dict(zern_amp = self.gen_cor_zern_coeff))
-                        sp.io.savemat('data/data_collection_2/mode' + str(zern_mode_array[j] + 1) + '_rms_zern_run' + str(n) + '.mat',\
-                            dict(rms_zern = self.gen_cor_rms_zern))
-                        sp.io.savemat('data/data_collection_2/mode' + str(zern_mode_array[j] + 1) + '_strehl_run' + str(n) + '.mat',\
-                            dict(strehl = self.gen_cor_strehl))
+
+                        self.done.emit()
+
+                # Save data to file
+                sp.io.savemat('data/data_collection_2/zern_amp_run' + str(n + 1) + '.mat', dict(zern_amp = self.gen_cor_zern_coeff))
+                sp.io.savemat('data/data_collection_2/rms_zern_run' + str(n + 1) + '.mat', dict(rms_zern = self.gen_cor_rms_zern))
+                sp.io.savemat('data/data_collection_2/strehl_run' + str(n + 1) + '.mat', dict(strehl = self.gen_cor_strehl))
 
             # Close HDF5 file
             data_file.close()
@@ -852,17 +813,10 @@ class Data_Collection(QObject):
             data_file = h5py.File('data_info.h5', 'a')
             data_set_1 = data_file['AO_img']['data_collect']
 
-            # Choose to generate single or multiple zernike modes at the same time
-            if config['data_collect']['mult_mode_gen']:
-                zern_mode_array = [4, 6, 11, 19]
-                zern_amp_array = [0, 0, 0, 0, 0.1, 0, 0.1, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0, 0.1]
-                loop_gain_gen_array = [0.2]
-                zern_num = 1
-            else:
-                zern_mode_array = [4, 6, 11, 19]
-                zern_amp_array = [0.3, 0.15, 0.15, 0.2]
-                loop_gain_gen_array = [0.3, 0.2, 0.2, 0.2]
-                zern_num = len(zern_mode_array)
+            # Retrieve input zernike coefficient array
+            zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
+            zern_array = np.zeros([config['AO']['control_coeff_num'], 1])
+            zern_array[:len(zern_array_temp), 0] = zern_array_temp
 
             # Initialise deformable mirror voltage array
             voltages = np.zeros(self.actuator_num)
@@ -878,183 +832,157 @@ class Data_Collection(QObject):
                     self.message.emit('\nExiting dummy data collection mode 3.')
                     break
 
-                # Run closed-loop control for each specified zernike mode
-                for j in range(zern_num):
+                # Initialise array to store detected values of critical parameters
+                self.gen_cor_zern_coeff = np.zeros([self.AO_settings['loop_max'] + 1, config['AO']['control_coeff_num'] - 2])
+                self.gen_cor_rms_zern = np.zeros([self.AO_settings['loop_max'] + 1, 1])
+                self.gen_cor_strehl = np.zeros([self.AO_settings['loop_max'] + 1, 1])
 
-                    # Initialise array to store detected values of critical parameters
-                    self.gen_cor_zern_coeff = np.zeros([self.AO_settings['loop_max'] + 1, config['AO']['control_coeff_num'] - 2])
-                    self.gen_cor_rms_zern = np.zeros([self.AO_settings['loop_max'] + 1, 1])
-                    self.gen_cor_strehl = np.zeros([self.AO_settings['loop_max'] + 1, 1])
+                # Get initial loop_gain_gen
+                loop_gain_gen = config['AO']['loop_gain']
 
-                    # Get initial loop_gain_gen
-                    loop_gain_gen = loop_gain_gen_array[j]
-
-                    for i in range(self.AO_settings['loop_max'] + 1):
+                for i in range(self.AO_settings['loop_max'] + 1):
+                    
+                    if self.loop:
                         
-                        if self.loop:
-                            
-                            try:
+                        try:
 
-                                # Update mirror control voltages
-                                if i == 0:
+                            # Update mirror control voltages
+                            if i == 0:
 
-                                    if not self.debug:
+                                if not self.debug:
 
-                                        # Generate one Zernike modes on DM for correction
-                                        if config['data_collect']['mult_mode_gen']:
-                                            self.zern_coeff[:len(zern_amp_array), 0] = zern_amp_array
+                                    # Generate Zernike modes on DM for correction
+                                    self.zern_coeff = zern_array.copy()
+
+                                    # Run closed-loop to generate a precise amount of Zernike modes using DM
+                                    for m in range(config['data_collect']['loop_max_gen']):
+
+                                        if m == 0:
+
+                                            voltages[:] = config['DM']['vol_bias']
+
                                         else:
-                                            self.zern_coeff[zern_mode_array[j], 0] = zern_amp_array[j]
 
-                                        # Run closed-loop to generate a precise amount of Zernike modes using DM
-                                        for m in range(config['data_collect']['loop_max_gen']):
+                                            # Update control voltages
+                                            voltages -= loop_gain_gen * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
+                                                [:,:config['AO']['control_coeff_num']], (zern_array_det[:config['AO']['control_coeff_num']] - self.zern_coeff)))
 
-                                            if m == 0:
+                                        # Send values vector to mirror
+                                        self.mirror.Send(voltages)
 
-                                                voltages[:] = config['DM']['vol_bias']
+                                        # Wait for DM to settle
+                                        time.sleep(config['DM']['settling_time'])
+                                    
+                                        # Acquire S-H spots using camera
+                                        AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                                        AO_image = np.mean(AO_image_stack, axis = 2)
 
-                                            else:
+                                        # Image thresholding to remove background
+                                        AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                                        AO_image[AO_image < 0] = 0
+                                        self.image.emit(AO_image)
 
-                                                # Update control voltages
-                                                voltages -= loop_gain_gen * np.ravel(np.dot(self.mirror_settings['control_matrix_zern']\
-                                                    [:,:config['AO']['control_coeff_num']], (zern_array_det[:config['AO']['control_coeff_num']] - self.zern_coeff)))
+                                        # Append image to list
+                                        dset_append(data_set_1, 'real_AO_img', AO_image)
 
-                                            # Send values vector to mirror
-                                            self.mirror.Send(voltages)
+                                        # Calculate centroids of S-H spots
+                                        act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 2)
+                                        act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
 
-                                            # Wait for DM to settle
-                                            time.sleep(config['DM']['settling_time'])
-                                        
-                                            # Acquire S-H spots using camera
-                                            AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                                            AO_image = np.mean(AO_image_stack, axis = 2)
+                                        # Draw actual S-H spot centroids on image layer
+                                        AO_image.ravel()[act_cent_coord.astype(int)] = 0
+                                        self.image.emit(AO_image)
 
-                                            # Image thresholding to remove background
-                                            AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
-                                            AO_image[AO_image < 0] = 0
-                                            self.image.emit(AO_image)
+                                        # Take tip\tilt off
+                                        slope_x -= np.mean(slope_x)
+                                        slope_y -= np.mean(slope_y)
 
-                                            # Append image to list
-                                            dset_append(data_set_1, 'real_AO_img', AO_image)
+                                        # Concatenate slopes into one slope matrix
+                                        slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
 
-                                            # Calculate centroids of S-H spots
-                                            act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 2)
-                                            act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+                                        # Get detected zernike coefficients from slope matrix
+                                        zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                            # Draw actual S-H spot centroids on image layer
-                                            AO_image.ravel()[act_cent_coord.astype(int)] = 0
-                                            self.image.emit(AO_image)
-
-                                            # Take tip\tilt off
-                                            slope_x -= np.mean(slope_x)
-                                            slope_y -= np.mean(slope_y)
-
-                                            # Concatenate slopes into one slope matrix
-                                            slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
-
-                                            # Get detected zernike coefficients from slope matrix
-                                            zern_array_det = np.dot(self.mirror_settings['conv_matrix'], slope)
-                                     
-                                    else:
-
-                                        voltages[:] = config['DM']['vol_bias']                              
+                                    self.message.emit('\nZernike mode combination generated.')
+                                    
                                 else:
 
-                                    voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_slopes'], slope_err))
+                                    voltages[:] = config['DM']['vol_bias']                              
+                            else:
 
-                                    # Send values vector to mirror
-                                    self.mirror.Send(voltages)
-                                    
-                                    # Wait for DM to settle
-                                    time.sleep(config['DM']['settling_time'])
-                                
-                                    # Acquire S-H spots using camera
-                                    AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                                    AO_image = np.mean(AO_image_stack, axis = 2)
+                                voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(self.mirror_settings['control_matrix_slopes'], slope_err))
 
-                                # Image thresholding to remove background
-                                AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
-                                AO_image[AO_image < 0] = 0
-                                self.image.emit(AO_image)
+                            # Send values vector to mirror
+                            self.mirror.Send(voltages)
+                            
+                            # Wait for DM to settle
+                            time.sleep(config['DM']['settling_time'])
+                        
+                            # Acquire S-H spots using camera
+                            AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                            AO_image = np.mean(AO_image_stack, axis = 2)
 
-                                # Append image to list
-                                dset_append(data_set_1, 'real_AO_img', AO_image)
+                            # Image thresholding to remove background
+                            AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
+                            AO_image[AO_image < 0] = 0
+                            self.image.emit(AO_image)
 
-                                # Calculate centroids of S-H spots
-                                act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 2) 
-                                act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+                            # Append image to list
+                            dset_append(data_set_1, 'real_AO_img', AO_image)
 
-                                # Draw actual S-H spot centroids on image layer
-                                AO_image.ravel()[act_cent_coord.astype(int)] = 0
-                                self.image.emit(AO_image)
+                            # Calculate centroids of S-H spots
+                            act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 2) 
+                            act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
 
-                                # Take tip\tilt off
-                                slope_x -= np.mean(slope_x)
-                                slope_y -= np.mean(slope_y)
+                            # Draw actual S-H spot centroids on image layer
+                            AO_image.ravel()[act_cent_coord.astype(int)] = 0
+                            self.image.emit(AO_image)
 
-                                if i == 0:
-                                    if config['data_collect']['mult_mode_gen']:
-                                        sp.io.savemat('data/data_collection_2/slope_x_before_run' + str(n) + '.mat', dict(slope_x_before = slope_x))
-                                        sp.io.savemat('data/data_collection_2/slope_y_before_run' + str(n) + '.mat', dict(slope_y_before = slope_y))
-                                    else:
-                                        sp.io.savemat('data/data_collection_2/mode' + str(zern_mode_array[j] + 1) + '_slope_x_before_run' + str(n) + '.mat',\
-                                            dict(slope_x_before = slope_x))
-                                        sp.io.savemat('data/data_collection_2/mode' + str(zern_mode_array[j] + 1) + '_slope_y_before_run' + str(n) + '.mat',\
-                                            dict(slope_y_before = slope_y))
+                            # Take tip\tilt off
+                            slope_x -= np.mean(slope_x)
+                            slope_y -= np.mean(slope_y)
 
-                                # Concatenate slopes into one slope matrix
-                                slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
+                            if i == 0:
+                                sp.io.savemat('data/data_collection_3/slope_x_before_run' + str(n + 1) + '.mat', dict(slope_x_before = slope_x))
+                                sp.io.savemat('data/data_collection_3/slope_y_before_run' + str(n + 1) + '.mat', dict(slope_y_before = slope_y))
 
-                                # Get residual slope error
-                                slope_err = slope.copy()
-                                
-                                # Get detected zernike coefficients from slope matrix
-                                self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
+                            # Concatenate slopes into one slope matrix
+                            slope = (np.concatenate((slope_x, slope_y), axis = 1)).T
 
-                                # Get residual zernike error and calculate root mean square (rms) error, Strehl ratio
-                                zern_err_part = (self.zern_coeff_detect.copy() for c in range(2))
-                                zern_err_part[[0, 1], 0] = 0
-                                rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
-                                strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
+                            # Get residual slope error
+                            slope_err = slope.copy()
+                            
+                            # Get detected zernike coefficients from slope matrix
+                            self.zern_coeff_detect = np.dot(self.mirror_settings['conv_matrix'], slope)
 
-                                self.gen_cor_zern_coeff[i, :] = self.zern_coeff_detect[2:config['AO']['control_coeff_num'], 0].T
-                                self.gen_cor_rms_zern[i, 0] = rms_zern_part
-                                self.gen_cor_strehl[i, 0] = strehl
+                            # Get residual zernike error and calculate root mean square (rms) error, Strehl ratio
+                            zern_err, zern_err_part = (self.zern_coeff_detect.copy() for c in range(2))
+                            zern_err_part[[0, 1], 0] = 0
+                            rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
+                            strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
 
+                            self.gen_cor_zern_coeff[i, :] = self.zern_coeff_detect[2:config['AO']['control_coeff_num'], 0].T
+                            self.gen_cor_rms_zern[i, 0] = rms_zern_part
+                            self.gen_cor_strehl[i, 0] = strehl
+
+                            # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
+                            if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
                                 self.message.emit('\nStrehl ratio {} is {}.'.format(i, strehl))
+                                self.zern_coeff[:, 0] = 0
+                                sp.io.savemat('data/data_collection_3/slope_x_after_run' + str(n + 1) + '.mat', dict(slope_x_after = slope_x))
+                                sp.io.savemat('data/data_collection_3/slope_y_after_run' + str(n + 1) + '.mat', dict(slope_y_after = slope_y))
+                                break                 
 
-                                # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                                if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
-                                    if config['data_collect']['mult_mode_gen']:
-                                        self.zern_coeff[:, 0] = 0
-                                        sp.io.savemat('data/data_collection_2/slope_x_after_run' + str(n) + '.mat', dict(slope_x_after = slope_x))
-                                        sp.io.savemat('data/data_collection_2/slope_y_after_run' + str(n) + '.mat', dict(slope_y_after = slope_y))
-                                    else:
-                                        self.zern_coeff[zern_mode_array[j], 0] = 0
-                                        sp.io.savemat('data/data_collection_2/mode' + str(zern_mode_array[j] + 1) + '_slope_x_after_run' + str(n) + '.mat',\
-                                            dict(slope_x_after = slope_x))
-                                        sp.io.savemat('data/data_collection_2/mode' + str(zern_mode_array[j] + 1) + '_slope_y_after_run' + str(n) + '.mat',\
-                                            dict(slope_y_after = slope_y))
-                                    break                 
-
-                            except Exception as e:
-                                print(e)
-                        else:
-
-                            self.done.emit()
-
-                    # Save data to file
-                    if config['data_collect']['mult_mode_gen']:
-                        sp.io.savemat('data/data_collection_2/zern_amp_run' + str(n) + '.mat', dict(zern_amp = self.gen_cor_zern_coeff))
-                        sp.io.savemat('data/data_collection_2/rms_zern_run' + str(n) + '.mat', dict(rms_zern = self.gen_cor_rms_zern))
-                        sp.io.savemat('data/data_collection_2/strehl_run' + str(n) + '.mat', dict(strehl = self.gen_cor_strehl))
+                        except Exception as e:
+                            print(e)
                     else:
-                        sp.io.savemat('data/data_collection_2/mode' + str(zern_mode_array[j] + 1) + '_zern_amp_run' + str(n) + '.mat',\
-                            dict(zern_amp = self.gen_cor_zern_coeff))
-                        sp.io.savemat('data/data_collection_2/mode' + str(zern_mode_array[j] + 1) + '_rms_zern_run' + str(n) + '.mat',\
-                            dict(rms_zern = self.gen_cor_rms_zern))
-                        sp.io.savemat('data/data_collection_2/mode' + str(zern_mode_array[j] + 1) + '_strehl_run' + str(n) + '.mat',\
-                            dict(strehl = self.gen_cor_strehl))
+
+                        self.done.emit()
+
+                # Save data to file
+                sp.io.savemat('data/data_collection_3/zern_amp_run' + str(n + 1) + '.mat', dict(zern_amp = self.gen_cor_zern_coeff))
+                sp.io.savemat('data/data_collection_3/rms_zern_run' + str(n + 1) + '.mat', dict(rms_zern = self.gen_cor_rms_zern))
+                sp.io.savemat('data/data_collection_3/strehl_run' + str(n + 1) + '.mat', dict(strehl = self.gen_cor_strehl))
 
             # Close HDF5 file
             data_file.close()

@@ -57,6 +57,3 @@ class MIRROR_dummy():
 
     def Send(self, voltages):
         pass
-
-    def Stop(self):
-        pass

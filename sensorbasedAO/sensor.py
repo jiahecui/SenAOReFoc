@@ -51,7 +51,7 @@ class SENSOR():
 
     @staticmethod
     def get(type = config['camera']['SN']):
-        if type.lower() == config['camera']['SN1']:
+        if type.lower() == config['camera']['SN']:
             try:
                 sensor = SENSOR_XIMEA()
             except:

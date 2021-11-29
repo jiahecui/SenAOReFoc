@@ -1,6 +1,4 @@
 from PySide2.QtWidgets import QApplication, QWidget
-
-import qtawesome as qta
 from qimage2ndarray import array2qimage
 
 import numpy as np

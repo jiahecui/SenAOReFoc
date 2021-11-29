@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(name='sensorbasedAO',
       version='0.1',
-      description='Sensor-based AO control software',
+      description='Sensorbased AO and remote focusing control software',
       author='Jiahe Cui',
       author_email='jiahe.cui@eng.ox.ac.uk',
       packages=find_packages(include=['sensorbasedAO.*']),
@@ -13,7 +13,8 @@ setup(name='sensorbasedAO',
             'qimage2ndarray', 
             'Click',
             'scipy==1.5.4',
-            'h5py==2.9.0'],
+            'h5py==2.9.0',
+            'pyyaml'],
       entry_points={
             'console_scripts': [
                   'sensorbasedAO=sensorbasedAO.app:main',

@@ -808,7 +808,7 @@ class App(QApplication):
         try:
             self.devices['mirror'].Reset()
             self.main.ui.DMRstBtn.setChecked(False)
-            self.handle_message_disp('DM reset success.')
+            self.handle_message_disp('\nDM reset success.')
         except Exception as e:
             logger.warning("Error on mirror reset: {}".format(e))
 
@@ -818,7 +818,7 @@ class App(QApplication):
         """
         try:
             self.devices['sensor'].set_exposure(camera_expo)
-            self.handle_message_disp('Camera exposure set success.')
+            self.handle_message_disp('\nCamera exposure set success.')
         except Exception as e:
             logger.warning("Error on setting camera exposure: {}".format(e))
 
@@ -891,7 +891,7 @@ class App(QApplication):
         # Send voltages to mirror
         self.devices['mirror'].Send(voltages)
 
-        self.handle_message_disp('Focus position: {} um.'.format(val))
+        self.handle_message_disp('\nFocus position: {} um.'.format(val))
 
     def stop(self):
         """
@@ -907,7 +907,6 @@ class App(QApplication):
 
         # Stop and reset mirror instance
         try:
-           self.devices['mirror'].Stop()
            self.devices['mirror'].Reset()
         except Exception as e:
             logger.warning("Error on mirror stop: {}".format(e))
@@ -935,7 +934,6 @@ class App(QApplication):
         # Stop and reset mirror instance
         if not self.debug:
             try:
-                self.devices['mirror'].Stop()
                 self.devices['mirror'].Reset()
             except Exception as e:
                 logger.warning("Error on mirror quit: {}".format(e))

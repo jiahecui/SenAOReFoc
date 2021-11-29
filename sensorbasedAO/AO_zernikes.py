@@ -217,17 +217,15 @@ class AO_Zernikes(QObject):
 
                             self.voltages[:, i] = voltages
 
-                            self.message.emit('Max and min voltages {} are: {} V, {} V.'.format(i, np.max(voltages), np.min(voltages)))
-
-                            # Send values vector to mirror
-                            self.mirror.Send(voltages)
-                            
-                            # Wait for DM to settle
-                            time.sleep(config['DM']['settling_time'])
+                        # Send values vector to mirror
+                        self.mirror.Send(voltages)
                         
-                            # Acquire S-H spots using camera
-                            AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                            AO_image = np.mean(AO_image_stack, axis = 2)
+                        # Wait for DM to settle
+                        time.sleep(config['DM']['settling_time'])
+                    
+                        # Acquire S-H spots using camera
+                        AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                        AO_image = np.mean(AO_image_stack, axis = 2)
 
                         # Image thresholding to remove background
                         AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
@@ -449,19 +447,17 @@ class AO_Zernikes(QObject):
                         else:
 
                             voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(control_matrix_zern\
-                                [:,:config['AO']['control_coeff_num']], zern_err[:config['AO']['control_coeff_num']]))
+                                [:,:config['AO']['control_coeff_num']], zern_err[:config['AO']['control_coeff_num']]))              
 
-                            self.message.emit('\nMax and min voltages {} are: {} V, {} V.'.format(i, np.max(voltages), np.min(voltages)))              
-
-                            # Send values vector to mirror
-                            self.mirror.Send(voltages)
-                            
-                            # Wait for DM to settle
-                            time.sleep(config['DM']['settling_time'])
+                        # Send values vector to mirror
+                        self.mirror.Send(voltages)
                         
-                            # Acquire S-H spots using camera
-                            AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                            AO_image = np.mean(AO_image_stack, axis = 2)
+                        # Wait for DM to settle
+                        time.sleep(config['DM']['settling_time'])
+                    
+                        # Acquire S-H spots using camera
+                        AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                        AO_image = np.mean(AO_image_stack, axis = 2)
 
                         # Image thresholding to remove background
                         AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
@@ -643,7 +639,7 @@ class AO_Zernikes(QObject):
                             if i == 0:
 
                                 # Determine whether to generate Zernike modes using DM
-                                if not self.debug and config['AO']['zern_gen'] == 1:
+                                if not self.debug and config['AO']['zern_gen'] == 1 and self.AO_settings['focus_enable'] == 0:
 
                                     # Retrieve input zernike coefficient array
                                     zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
@@ -734,17 +730,15 @@ class AO_Zernikes(QObject):
 
                                 self.voltages[:, i] = voltages
 
-                                self.message.emit('\nMax and min voltages {} are: {} V, {} V.'.format(i, np.max(voltages), np.min(voltages)))
-
-                                # Send values vector to mirror
-                                self.mirror.Send(voltages)
-                                
-                                # Wait for DM to settle
-                                time.sleep(config['DM']['settling_time'])
+                            # Send values vector to mirror
+                            self.mirror.Send(voltages)
                             
-                                # Acquire S-H spots using camera
-                                AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                                AO_image = np.mean(AO_image_stack, axis = 2)
+                            # Wait for DM to settle
+                            time.sleep(config['DM']['settling_time'])
+                        
+                            # Acquire S-H spots using camera
+                            AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                            AO_image = np.mean(AO_image_stack, axis = 2)
 
                             # Image thresholding to remove background
                             AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
@@ -777,11 +771,11 @@ class AO_Zernikes(QObject):
                             zern_err_part[[0, 1, 3], 0] = 0
                             rms_zern = np.sqrt((zern_err ** 2).sum())
                             rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
-                            self.loop_rms_zern[i,j] = rms_zern
-                            self.loop_rms_zern_part[i,j] = rms_zern_part
+                            self.loop_rms_zern[i] = rms_zern
+                            self.loop_rms_zern_part[i] = rms_zern_part
 
                             strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
-                            self.strehl[i,j] = strehl
+                            self.strehl[i] = strehl
 
                             self.message.emit('\nStrehl ratio {} is: {}.'.format(i, strehl))                 
 
@@ -792,7 +786,12 @@ class AO_Zernikes(QObject):
                             dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                             # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                            if strehl >= config['AO']['tolerance_fact_strehl']:
+                            if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
+
+                                if self.AO_settings['focus_enable'] == 1:
+                            
+                                    # Pause for specified amount of time
+                                    time.sleep(self.focus_settings['pause_time'])
                                 break                 
 
                         except Exception as e:
@@ -914,7 +913,7 @@ class AO_Zernikes(QObject):
                             if i == 0:
 
                                 # Determine whether to generate Zernike modes using DM
-                                if not self.debug and config['AO']['zern_gen'] == 1:
+                                if not self.debug and config['AO']['zern_gen'] == 1 and self.AO_settings['focus_enable'] == 0:
 
                                     # Retrieve input zernike coefficient array
                                     zern_array_temp = np.array(self.SB_settings['zernike_array_test'])
@@ -1003,17 +1002,15 @@ class AO_Zernikes(QObject):
                                 voltages -= config['AO']['loop_gain'] * np.ravel(np.dot(control_matrix_zern\
                                 [:,:config['AO']['control_coeff_num']], zern_err_part[:config['AO']['control_coeff_num']]))
 
-                                self.message.emit('\nMax and min values of voltages {} are: {} V, {} V.'.format(i, np.max(voltages), np.min(voltages)))
-
-                                # Send values vector to mirror
-                                self.mirror.Send(voltages)
-                                
-                                # Wait for DM to settle
-                                time.sleep(config['DM']['settling_time'])
+                            # Send values vector to mirror
+                            self.mirror.Send(voltages)
                             
-                                # Acquire S-H spots using camera
-                                AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
-                                AO_image = np.mean(AO_image_stack, axis = 2)
+                            # Wait for DM to settle
+                            time.sleep(config['DM']['settling_time'])
+                        
+                            # Acquire S-H spots using camera
+                            AO_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                            AO_image = np.mean(AO_image_stack, axis = 2)
 
                             # Image thresholding to remove background
                             AO_image = AO_image - config['image']['threshold'] * np.amax(AO_image)
@@ -1081,11 +1078,11 @@ class AO_Zernikes(QObject):
                             zern_err_part[[0, 1, 3], 0] = 0
                             rms_zern = np.sqrt((zern_err ** 2).sum())
                             rms_zern_part = np.sqrt((zern_err_part ** 2).sum())
-                            self.loop_rms_zern[i,j] = rms_zern
-                            self.loop_rms_zern_part[i,j] = rms_zern_part
+                            self.loop_rms_zern[i] = rms_zern
+                            self.loop_rms_zern_part[i] = rms_zern_part
 
                             strehl = np.exp(-(2 * np.pi / config['AO']['lambda'] * rms_zern_part) ** 2)
-                            self.strehl[i,j] = strehl
+                            self.strehl[i] = strehl
                       
                             self.message.emit('\nStrehl ratio {} is: {}.'.format(i, strehl))               
 
@@ -1093,11 +1090,16 @@ class AO_Zernikes(QObject):
                             dset_append(data_set_2, 'real_spot_zern_err', zern_err)
 
                             # Compare rms error with tolerance factor (Marechel criterion) and decide whether to break from loop
-                            if strehl >= config['AO']['tolerance_fact_strehl']:
+                            if strehl >= config['AO']['tolerance_fact_strehl'] or i == self.AO_settings['loop_max']:
+
+                                if self.AO_settings['focus_enable'] == 1:
+                            
+                                    # Pause for specified amount of time
+                                    time.sleep(self.focus_settings['pause_time'])
                                 break                 
 
                         except Exception as e:
-                            print(e)
+                            print(e)                           
                     else:
 
                         if self.AO_settings['focus_enable'] == 0:
@@ -1280,8 +1282,6 @@ class AO_Zernikes(QObject):
                         self.done2.emit(0)
                     else:
                         self.done2.emit(1)
-
-            self.mirror.Reset()
 
             # Save data to file
             sp.io.savemat('data/RF/slope_x_detect.mat', dict(slope_x_detect = self.slope_x_detect))
