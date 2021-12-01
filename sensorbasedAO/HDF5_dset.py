@@ -70,6 +70,14 @@ def get_dset(settings, name, flag = 0):
                 del group[k]
             if flag == 3 and k == 'real_cent_img':
                 make_dset(group, k, data_set_img)
+            elif flag == 3 and k == 'real_spot_slope_err':
+                make_dset(group, k, data_set_slope)
+            elif flag == 3 and k == 'real_spot_zern_err':
+                make_dset(group, k, data_set_zern)
+            elif flag == 3 and k in {'real_spot_slope_x', 'real_spot_slope_y'}:
+                make_dset(group, k, data_set_cent)
+            elif flag == 3 and k == 'real_spot_slope':
+                make_dset(group, k, data_set_slope)
             elif flag == 4 and k == 'real_calib_img':
                 make_dset(group, k, data_set_img)
             elif flag == 5 and k == 'real_calib_RF_img':

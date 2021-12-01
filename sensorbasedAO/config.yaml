@@ -65,7 +65,7 @@ image:
   rescale: 1  # 0 - rescale off, 1 - rescale on
 
 sys_calib:
-  sys_calib_mode: 0  # Mode flag for system aberration calibration method, 0 – load previous system aberration calibration profile, 1 – perform new system aberration correction
+  sys_calib_mode: 1  # Mode flag for system aberration calibration method, 0 – load previous system aberration calibration profile, 1 – perform new system aberration correction
 
 AO:
   zern_gen: 0  # Flag for generating zernike modes on DM in AO_zernikes.py and AO_slopes.py, 0 - off, 1 - iterative generation

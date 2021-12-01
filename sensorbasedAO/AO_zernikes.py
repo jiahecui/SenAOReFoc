@@ -65,8 +65,8 @@ class AO_Zernikes(QObject):
         else:
             self.correct_num = 1
         self.loop_rms_zern, self.loop_rms_zern_part = (np.zeros([self.AO_settings['loop_max'] + 1, self.correct_num]) for i in range(2))
-        self.strehl, self.strehl_2 = (np.zeros([self.AO_settings['loop_max'] + 1, self.correct_num]) for i in range(2))
-
+        self.strehl = np.zeros([self.AO_settings['loop_max'] + 1, self.correct_num])
+        
         # Choose working DM along with its parameters
         if config['DM']['DM_num'] == 0:
             self.actuator_num = config['DM0']['actuator_num']
@@ -820,8 +820,6 @@ class AO_Zernikes(QObject):
                 self.AO_info['zern_AO_3']['residual_phase_err_zern'] = self.loop_rms_zern
                 self.AO_info['zern_AO_3']['residual_phase_err_zern_part'] = self.loop_rms_zern_part
                 self.AO_info['zern_AO_3']['strehl_ratio'] = self.strehl
-                if self.debug:
-                    self.AO_info['zern_AO_3']['strehl_ratio_2'] = self.strehl_2
 
                 self.info.emit(self.AO_info)
                 self.write.emit()

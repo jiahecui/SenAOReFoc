@@ -154,22 +154,22 @@ class App(QApplication):
         # Start positioning thread
         pos_thread.start()
 
-    def get_centroids(self, sensor, mirror, SB_info):
+    def get_centroids(self, sensor, mirror, data_info):
         """
-        Get actual centroids of S-H spots for system aberration correction
+        Perform system aberration correction
         """
         # Create centroiding worker and thread
         cent_thread = QThread()
         cent_thread.setObjectName('cent_thread')
-        cent_worker = Centroiding(sensor, mirror, SB_info, debug = self.debug)
+        cent_worker = Centroiding(sensor, mirror, data_info, debug = self.debug)
         cent_worker.moveToThread(cent_thread)
 
         # Connect to signals
         cent_thread.started.connect(cent_worker.run)
-        cent_worker.layer.connect(lambda obj: self.handle_layer_disp(obj))
+        cent_worker.image.connect(lambda obj: self.handle_image_disp(obj))
         cent_worker.message.connect(lambda obj: self.handle_message_disp(obj))
-        cent_worker.SB_info.connect(lambda obj: self.handle_SB_info(obj))
-        cent_worker.write.connect(self.write_SB_info)
+        cent_worker.info.connect(lambda obj: self.handle_centroiding_info(obj))
+        cent_worker.write.connect(self.write_centroiding_info)
         cent_worker.error.connect(lambda obj: self.handle_error(obj))
         cent_worker.done.connect(self.handle_cent_done)
 
@@ -622,9 +622,9 @@ class App(QApplication):
 
     def handle_cent_start(self):
         """
-        Handle start of S-H spot centroid calculation for system aberration calibration
+        Handle start of system aberration calibration
         """
-        self.get_centroids(self.devices['sensor'], self.devices['mirror'], self.data_info['SB_info'])
+        self.get_centroids(self.devices['sensor'], self.devices['mirror'], self.data_info)
 
     def handle_cent_done(self):
         """

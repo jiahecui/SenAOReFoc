@@ -158,6 +158,13 @@ class Main(QMainWindow):
         if not btn.isChecked():
             btn.setChecked(False)
         else:
+            # Set remote focusing flag to 0 and update AO_info
+            AO_settings = {}
+            AO_settings['loop_max'] = self.ui.loopMaxSpin.value()
+            AO_settings['focus_enable'] = 0
+            self.app.handle_AO_info(AO_settings)
+            self.app.write_AO_info()
+            
             self.app.handle_cent_start()
             btn.setChecked(True)
 

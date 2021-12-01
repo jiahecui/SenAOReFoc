@@ -66,7 +66,7 @@ def acq_centroid(settings, flag = 0):
     for l in range(image_num):
 
         if flag == 0:
-            image_temp = subgroup_options[flag]['real_cent_img'][l, :, :]
+            image_temp = subgroup_options[flag]['real_cent_img'][-1, :, :]
         elif flag == 1:
             image_temp = subgroup_options[flag]['real_calib_img'][l, :, :]
         elif flag == 11:
