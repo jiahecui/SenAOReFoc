@@ -1,0 +1,1 @@
+This folder saves .mat files for remote focusing process.

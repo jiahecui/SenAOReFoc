@@ -1,0 +1,1 @@
+This folder saves .mat files for mode 2 of Data Collection.

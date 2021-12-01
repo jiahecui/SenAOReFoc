@@ -83,7 +83,7 @@ class Centroiding(QObject):
             else:
 
                 # Select system aberration calibration mode
-                if config['sys_calib']['sys_calib_mode'] == 1:
+                if config['sys_calib']['sys_calib_mode'] == 0:
                     voltages = h5py.File('exec_files/flat_volts_1.mat','r').get('flat_volts')
                     voltages = np.ravel(np.array(voltages))
                     self.mirror.Send(voltages)
