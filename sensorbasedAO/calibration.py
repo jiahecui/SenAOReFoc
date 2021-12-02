@@ -143,14 +143,7 @@ class Calibration(QObject):
                 elif config['DM']['DM_num'] == 1:
                     xc, yc = self.act_coord_2(act_diam)
 
-                s = np.array(h5py.File('exec_files/real_calib_func/inf_matrix_slopes_SV.mat','r').get('inf_matrix_slopes_SV')).T
-                self.inf_matrix_slopes = np.array(h5py.File('exec_files/real_calib_func/inf_matrix_slopes.mat','r').get('inf_matrix_slopes')).T
-                self.control_matrix_slopes = np.array(h5py.File('exec_files/real_calib_func/control_matrix_slopes.mat','r').get('control_matrix_slopes')).T
-                self.slope_x = np.array(h5py.File('exec_files/real_calib_func/calib_slope_x.mat','r').get('calib_slope_x')).T
-                self.slope_y = np.array(h5py.File('exec_files/real_calib_func/calib_slope_y.mat','r').get('calib_slope_y')).T
-                svd_check_slopes = np.array(h5py.File('exec_files/real_calib_func/svd_check_slopes.mat','r').get('svd_check_slopes')).T
-
-                self.message.emit('\nDM calibration files loaded.')
+                self.message.emit('\nDummy DM actuator coordinates loaded.')
                     
             else:
 
@@ -279,14 +272,16 @@ class Calibration(QObject):
             """ 
             if self.log:
 
-                self.mirror_info['inf_matrix_slopes_SV'] = s
-                self.mirror_info['inf_matrix_slopes'] = self.inf_matrix_slopes
-                self.mirror_info['control_matrix_slopes'] = self.control_matrix_slopes
-                self.mirror_info['calib_slope_x'] = self.slope_x
-                self.mirror_info['calib_slope_y'] = self.slope_y
-                self.mirror_info['svd_check_slopes'] = svd_check_slopes
+                if not self.debug:
 
-                if self.debug:
+                    self.mirror_info['inf_matrix_slopes_SV'] = s
+                    self.mirror_info['inf_matrix_slopes'] = self.inf_matrix_slopes
+                    self.mirror_info['control_matrix_slopes'] = self.control_matrix_slopes
+                    self.mirror_info['calib_slope_x'] = self.slope_x
+                    self.mirror_info['calib_slope_y'] = self.slope_y
+                    self.mirror_info['svd_check_slopes'] = svd_check_slopes
+
+                else:
                     self.mirror_info['act_pos_x'] = xc
                     self.mirror_info['act_pos_y'] = yc
                     self.mirror_info['act_diam'] = act_diam

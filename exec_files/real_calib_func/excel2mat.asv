@@ -1,9 +1,0 @@
-%% This script converts the real calibration functions from excel to mat files
-
-calib_slope_x = xlsread('calib_slope_x.xlsx');
-calib_slope_y = xlsread('calib_slope_y.xlsx');
-control_matrix_slopes = xlsread('calib_slope_x.xlsx');
-calib_slope_x = xlsread('calib_slope_x.xlsx');
-calib_slope_x = xlsread('calib_slope_x.xlsx');
-calib_slope_x = xlsread('calib_slope_x.xlsx');
-save('calib_slope_x.mat', '-v7.3', 'calib_slope_x');

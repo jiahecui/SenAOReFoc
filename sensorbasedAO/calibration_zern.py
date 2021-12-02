@@ -17,7 +17,10 @@ class Calibration_Zern(QObject):
     error = Signal(object)
     info = Signal(object)
 
-    def __init__(self, settings):
+    def __init__(self, settings, debug = False):
+
+        # Get debug status
+        self.debug = debug
 
         # Get search block settings
         self.SB_settings = settings['SB_info']
@@ -49,50 +52,57 @@ class Calibration_Zern(QObject):
             # Start thread
             self.start.emit()
 
-            """
-            Calculate individual zernike coefficients for max / min voltage of each actuator using preacquired calibration slopes
-            and slope - zernike conversion matrix to create zernike influence function and control matrix
-            """
-            if self.calc_inf:
+            if self.debug:
 
-                # Get calibration slopes and slope - zernike conversion matrix
-                self.slope_x = self.mirror_settings['calib_slope_x']
-                self.slope_y = self.mirror_settings['calib_slope_y']
-                self.conv_matrix =  self.mirror_settings['conv_matrix']
+                print('')
+                self.message.emit('\nExiting Zernike control matrix calibration process.')
 
-                # Convert slopes list to numpy array
-                (self.slope_x, self.slope_y) = map(np.array, (self.slope_x, self.slope_y))
-
-                # Concatenate x, y slopes matrix
-                self.slope = np.concatenate((self.slope_x.T, self.slope_y.T), axis = 0)
-
-                # Fill influence function matrix by multiplying each column in slopes matrix with the conversion matrix
-                for i in range(self.actuator_num):
-
-                    self.inf_matrix_zern[:, i] = \
-                        np.dot(self.conv_matrix, (self.slope[:, 2 * i] - self.slope[:, 2 * i + 1])) \
-                            / (config['DM']['vol_max'] - config['DM']['vol_min'])
-            
-                # Get singular value decomposition of influence function matrix
-                u, s, vh = np.linalg.svd(self.inf_matrix_zern, full_matrices = False)
-
-                # print('u: {}, s: {}, vh: {}'.format(u, s, vh))
-                # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
-                
-                # Calculate pseudo inverse of influence function matrix to get final control matrix
-                self.control_matrix_zern = np.linalg.pinv(self.inf_matrix_zern, rcond = 0.01)
-
-                svd_check_zern = np.dot(self.inf_matrix_zern, self.control_matrix_zern)
-
-                self.message.emit('\nZernike control matrix retrieved.')
             else:
 
-                self.done.emit()
+                """
+                Calculate individual zernike coefficients for max / min voltage of each actuator using preacquired calibration slopes
+                and slope - zernike conversion matrix to create zernike influence function and control matrix
+                """
+                if self.calc_inf:
+
+                    # Get calibration slopes and slope - zernike conversion matrix
+                    self.slope_x = self.mirror_settings['calib_slope_x']
+                    self.slope_y = self.mirror_settings['calib_slope_y']
+                    self.conv_matrix =  self.mirror_settings['conv_matrix']
+
+                    # Convert slopes list to numpy array
+                    (self.slope_x, self.slope_y) = map(np.array, (self.slope_x, self.slope_y))
+
+                    # Concatenate x, y slopes matrix
+                    self.slope = np.concatenate((self.slope_x.T, self.slope_y.T), axis = 0)
+
+                    # Fill influence function matrix by multiplying each column in slopes matrix with the conversion matrix
+                    for i in range(self.actuator_num):
+
+                        self.inf_matrix_zern[:, i] = \
+                            np.dot(self.conv_matrix, (self.slope[:, 2 * i] - self.slope[:, 2 * i + 1])) \
+                                / (config['DM']['vol_max'] - config['DM']['vol_min'])
+                
+                    # Get singular value decomposition of influence function matrix
+                    u, s, vh = np.linalg.svd(self.inf_matrix_zern, full_matrices = False)
+
+                    # print('u: {}, s: {}, vh: {}'.format(u, s, vh))
+                    # print('The shapes of u, s, and vh are: {}, {}, and {}'.format(np.shape(u), np.shape(s), np.shape(vh)))
+                    
+                    # Calculate pseudo inverse of influence function matrix to get final control matrix
+                    self.control_matrix_zern = np.linalg.pinv(self.inf_matrix_zern, rcond = 0.01)
+
+                    svd_check_zern = np.dot(self.inf_matrix_zern, self.control_matrix_zern)
+
+                    self.message.emit('\nZernike control matrix retrieved.')
+                else:
+
+                    self.done.emit()
 
             """
             Returns zernike calibration information into self.mirror_info
             """ 
-            if self.log:
+            if self.log and not self.debug:
 
                 self.mirror_info['inf_matrix_zern_SV'] = s
                 self.mirror_info['inf_matrix_zern'] = self.inf_matrix_zern

@@ -24,8 +24,8 @@ camera:
 DM:
   SN: "HSDM69-15-014" 
   DM_num: 0  # Flag for choosing the working DM, 0-Alpao, 1-Boston
-  exercise: 0  # Flag for whether to exercise DM upon initialisation
-  exercise_num: 100  # Number of shapes used during DM exercise
+  exercise: 1  # Flag for whether to exercise DM upon initialisation
+  exercise_num: 1000  # Number of shapes used during DM exercise
   vol_min: -0.1  # V Negative voltage to apply on DM during calibration
   vol_max: 0.1  # V Positive voltage to apply on DM during calibration
   vol_bias: 0  # Neutral voltage of DM actuators
@@ -53,8 +53,8 @@ search_block:
   div_elem: 5  # Number of elements in each dimension of a search block
   sharp_thres: 0.001  # Minimum sharpness threshold within search block below which S-H spot will be considered as obscured
   outline_int: 255  # uint8
-  pupil_diam_0: 2.2  # mm Diameter of beam incident on SHWS
-  pupil_diam_1: 2.2  # mm 
+  pupil_diam_0: 2.2  # mm Diameter of beam incident on SHWS when using DM0
+  pupil_diam_1: 2.2  # mm Diameter of beam incident on SHWS when using DM1
 
 image:
   threshold: 0.02  # Percentage of maximum pixel used for thresholding an image
@@ -65,7 +65,7 @@ image:
   rescale: 1  # 0 - rescale off, 1 - rescale on
 
 sys_calib:
-  sys_calib_mode: 1  # Mode flag for system aberration calibration method, 0 – load previous system aberration calibration profile, 1 – perform new system aberration correction
+  sys_calib_mode: 1  # Mode flag for system aberration calibration method, 0 – load previous system aberration calibration profile, 1 – perform new system aberration correction, 2 - no system aberration correction
 
 AO:
   zern_gen: 0  # Flag for generating zernike modes on DM in AO_zernikes.py and AO_slopes.py, 0 - off, 1 - iterative generation
@@ -80,9 +80,9 @@ AO:
 data_collect:
   data_collect_mode: 0  # Mode flag for Data Collection button, detailed function descriptions in app.py
   loop_max_gen: 15  # Maximum number of loops during closed-loop generation of zernike modes in mode 0/1/2/3
-  incre_num: 15  # Number of zernike mode amplitudes to generate in mode 0/1
-  incre_amp: 0.02  # Increment amplitude between zernike modes in mode 0/1
-  run_num: 5  # Number of times to run mode 0/1/2/3
+  incre_num: 1  # Number of zernike mode amplitudes to generate in mode 0/1
+  incre_amp: 0.05  # Increment amplitude between zernike modes in mode 0/1
+  run_num: 1  # Number of times to run mode 0/1/2/3
 
 RF_calib:
   calib_step_num: 11  # Number of steps used in one direction during calibration of remote focusing

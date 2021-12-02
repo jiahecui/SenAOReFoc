@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Fri Nov 26 21:20:00 2021
+# Created: Wed Dec  1 16:59:17 2021
 #      by: pyside2-uic  running on PySide2 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,13 +13,13 @@ from PySide2 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1580, 1180)
+        MainWindow.resize(1580, 1080)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
-        MainWindow.setMinimumSize(QtCore.QSize(1580, 1180))
+        MainWindow.setMinimumSize(QtCore.QSize(1580, 1080))
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("../resources/icons/AO.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
@@ -407,6 +407,7 @@ class Ui_MainWindow(object):
         self.loopMaxSpin.setFont(font)
         self.loopMaxSpin.setMinimum(1)
         self.loopMaxSpin.setMaximum(100)
+        self.loopMaxSpin.setProperty("value", 10)
         self.loopMaxSpin.setObjectName("loopMaxSpin")
         self.horizontalLayout_5.addWidget(self.loopMaxSpin)
         spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
@@ -597,16 +598,15 @@ class Ui_MainWindow(object):
         self.verticalLayout_5.addItem(spacerItem2)
         self.horizontalLayout_3.addLayout(self.verticalLayout_5)
         self.mainContentLayout.addLayout(self.horizontalLayout_3)
-        spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.mainContentLayout.addItem(spacerItem3)
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
         self.displayBox = QtWidgets.QPlainTextEdit(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.displayBox.sizePolicy().hasHeightForWidth())
         self.displayBox.setSizePolicy(sizePolicy)
+        self.displayBox.setMinimumSize(QtCore.QSize(0, 250))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setWeight(75)
@@ -649,6 +649,8 @@ class Ui_MainWindow(object):
         self.quitBtn.setFont(font)
         self.quitBtn.setObjectName("quitBtn")
         self.verticalLayout_2.addWidget(self.quitBtn)
+        spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayout_2.addItem(spacerItem3)
         self.mainContentLayout.addLayout(self.verticalLayout_2)
         self.mainLayout.addLayout(self.mainContentLayout)
         self.SHViewer = SHViewer(self.centralwidget)

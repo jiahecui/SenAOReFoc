@@ -241,7 +241,7 @@ class Setup_SB(QObject):
                     self.mirror.Send(voltages)
 
                     # Wait for DM to settle
-                    time.sleep(config['DM']['settling_time'] * 10)
+                    time.sleep(config['DM']['settling_time'] * 250)
                     
                 # Reset DM
                 self.mirror.Reset()

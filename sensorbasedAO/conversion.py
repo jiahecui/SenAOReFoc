@@ -19,7 +19,10 @@ class Conversion(QObject):
     error = Signal(object)
     info = Signal(object)
 
-    def __init__(self, settings):
+    def __init__(self, settings, debug = False):
+
+        # Get debug status
+        self.debug = debug
 
         # Get search block settings
         self.SB_settings = settings
@@ -50,84 +53,91 @@ class Conversion(QObject):
             # Start thread
             self.start.emit()
 
-            """
-            Get normalised reference coordinates in unit circle
-            """
-            if self.norm_coords:
+            if self.debug:
 
-                # Get rescale factor between normalised coordinates and actual coordinates
-                self.rescale = 2 / (self.pupil_diam * 1e3 / self.SB_settings['pixel_size'])
-
-                # Get normalised search block radius
-                self.norm_rad = self.SB_settings['SB_rad'] * self.rescale
-
-                # Get size of each individual element in unit circle
-                self.elem_size = self.SB_settings['SB_diam'] / config['search_block']['div_elem'] * self.rescale
-                
-                # Get reference centroid coordinates for unit circle
-                self.norm_ref_cent_coord_x = (self.SB_settings['act_ref_cent_coord_x'] - \
-                    self.SB_settings['sensor_width'] // 2 - self.SB_settings['act_SB_offset_x']) * self.rescale
-                self.norm_ref_cent_coord_y = (self.SB_settings['act_ref_cent_coord_y'] - \
-                    self.SB_settings['sensor_height'] // 2 - self.SB_settings['act_SB_offset_y']) * self.rescale
-
-                # Take account of odd number of relays and mirrors between DM and lenslet
-                if config['relay']['mirror_odd']:
-                    self.norm_ref_cent_coord_x = -self.norm_ref_cent_coord_x
-
-                if config['relay']['relay_odd']:
-                    self.norm_ref_cent_coord_x = -self.norm_ref_cent_coord_x
-                    self.norm_ref_cent_coord_y = -self.norm_ref_cent_coord_y
+                print('')
+                self.message.emit('\nExiting slope - Zernike conversion process.')
 
             else:
 
-                self.done.emit()
+                """
+                Get normalised reference coordinates in unit circle
+                """
+                if self.norm_coords:
 
-            """
-            Get normalised coordinates for each individual element in search block to calculate zernike matrix and conversion matrix
-            """
-            if self.calculate:
-                
-                for i in range(self.SB_settings['act_ref_cent_num']):
+                    # Get rescale factor between normalised coordinates and actual coordinates
+                    self.rescale = 2 / (self.pupil_diam * 1e3 / self.SB_settings['pixel_size'])
 
-                    # Get reference centroid coords of each element
-                    elem_ref_cent_coord_x = np.arange(self.norm_ref_cent_coord_x[i] - self.norm_rad + self.elem_size / 2, \
-                        self.norm_ref_cent_coord_x[i] + self.norm_rad, self.elem_size)
-                    elem_ref_cent_coord_y = np.arange(self.norm_ref_cent_coord_y[i] - self.norm_rad + self.elem_size / 2, \
-                        self.norm_ref_cent_coord_y[i] + self.norm_rad, self.elem_size)
+                    # Get normalised search block radius
+                    self.norm_rad = self.SB_settings['SB_rad'] * self.rescale
 
-                    elem_ref_cent_coord_xx, elem_ref_cent_coord_yy = np.meshgrid(elem_ref_cent_coord_x, elem_ref_cent_coord_y)
+                    # Get size of each individual element in unit circle
+                    self.elem_size = self.SB_settings['SB_diam'] / config['search_block']['div_elem'] * self.rescale
+                    
+                    # Get reference centroid coordinates for unit circle
+                    self.norm_ref_cent_coord_x = (self.SB_settings['act_ref_cent_coord_x'] - \
+                        self.SB_settings['sensor_width'] // 2 - self.SB_settings['act_SB_offset_x']) * self.rescale
+                    self.norm_ref_cent_coord_y = (self.SB_settings['act_ref_cent_coord_y'] - \
+                        self.SB_settings['sensor_height'] // 2 - self.SB_settings['act_SB_offset_y']) * self.rescale
 
-                    # Get averaged x and y values and derivatives of the jth Zernike polynomial to fill zernike matrix and zernike derivative matrix
-                    for j in range(config['AO']['recon_coeff_num']):
-                        
-                        self.zern_matrix[i, j] = zern(elem_ref_cent_coord_xx, elem_ref_cent_coord_yy, j + 1)
+                    # Take account of odd number of relays and mirrors between DM and lenslet
+                    if config['relay']['mirror_odd']:
+                        self.norm_ref_cent_coord_x = -self.norm_ref_cent_coord_x
 
-                        self.diff_matrix[i, j] = zern_diff(elem_ref_cent_coord_xx, elem_ref_cent_coord_yy, j + 1, True)
-                        self.diff_matrix[i + self.SB_settings['act_ref_cent_num'], j] = zern_diff(elem_ref_cent_coord_xx, elem_ref_cent_coord_yy, j + 1, False)
-                
-                # Take beam diameter on lenslet, pixel size, and lenslet focal length into account
-                self.diff_matrix = self.diff_matrix * 2 * config['lenslet']['lenslet_focal_length'] / (self.pupil_diam * 1e3 * self.SB_settings['pixel_size'])
-                
-                # Get singular value decomposition of zernike derivative matrix
-                u, s, vh = np.linalg.svd(self.diff_matrix, full_matrices = False)
-                
-                # Calculate pseudo inverse of zernike derivative matrix to get conversion matrix
-                self.conv_matrix = np.linalg.pinv(self.diff_matrix)
+                    if config['relay']['relay_odd']:
+                        self.norm_ref_cent_coord_x = -self.norm_ref_cent_coord_x
+                        self.norm_ref_cent_coord_y = -self.norm_ref_cent_coord_y
 
-                svd_check_conv = np.dot(self.conv_matrix, self.diff_matrix)
+                else:
 
-                # Convert zern_matrix from radians to um
-                self.zern_matrix = self.zern_matrix * config['AO']['lambda'] / (2 * np.pi)   
+                    self.done.emit()
 
-                self.message.emit('\nZernike matrix and slope - Zernike conversion matrix retrieved.')
-            else:
+                """
+                Get normalised coordinates for each individual element in search block to calculate zernike matrix and conversion matrix
+                """
+                if self.calculate:
+                    
+                    for i in range(self.SB_settings['act_ref_cent_num']):
 
-                self.done.emit()
+                        # Get reference centroid coords of each element
+                        elem_ref_cent_coord_x = np.arange(self.norm_ref_cent_coord_x[i] - self.norm_rad + self.elem_size / 2, \
+                            self.norm_ref_cent_coord_x[i] + self.norm_rad, self.elem_size)
+                        elem_ref_cent_coord_y = np.arange(self.norm_ref_cent_coord_y[i] - self.norm_rad + self.elem_size / 2, \
+                            self.norm_ref_cent_coord_y[i] + self.norm_rad, self.elem_size)
+
+                        elem_ref_cent_coord_xx, elem_ref_cent_coord_yy = np.meshgrid(elem_ref_cent_coord_x, elem_ref_cent_coord_y)
+
+                        # Get averaged x and y values and derivatives of the jth Zernike polynomial to fill zernike matrix and zernike derivative matrix
+                        for j in range(config['AO']['recon_coeff_num']):
+                            
+                            self.zern_matrix[i, j] = zern(elem_ref_cent_coord_xx, elem_ref_cent_coord_yy, j + 1)
+
+                            self.diff_matrix[i, j] = zern_diff(elem_ref_cent_coord_xx, elem_ref_cent_coord_yy, j + 1, True)
+                            self.diff_matrix[i + self.SB_settings['act_ref_cent_num'], j] = zern_diff(elem_ref_cent_coord_xx, elem_ref_cent_coord_yy, j + 1, False)
+                    
+                    # Take beam diameter on lenslet, pixel size, and lenslet focal length into account
+                    self.diff_matrix = self.diff_matrix * 2 * config['lenslet']['lenslet_focal_length'] / (self.pupil_diam * 1e3 * self.SB_settings['pixel_size'])
+                    
+                    # Get singular value decomposition of zernike derivative matrix
+                    u, s, vh = np.linalg.svd(self.diff_matrix, full_matrices = False)
+                    
+                    # Calculate pseudo inverse of zernike derivative matrix to get conversion matrix
+                    self.conv_matrix = np.linalg.pinv(self.diff_matrix)
+
+                    svd_check_conv = np.dot(self.conv_matrix, self.diff_matrix)
+
+                    # Convert zern_matrix from radians to um
+                    self.zern_matrix = self.zern_matrix * config['AO']['lambda'] / (2 * np.pi)   
+
+                    self.message.emit('\nZernike matrix and slope - Zernike conversion matrix retrieved.')
+                else:
+
+                    self.done.emit()
 
             """
             Returns zernike matrix and slope - zernike conversion matrix information into self.conv_info
             """ 
-            if self.log:
+            if self.log and not self.debug:
 
                 self.conv_info['norm_ref_cent_coord_x'] = self.norm_ref_cent_coord_x
                 self.conv_info['norm_ref_cent_coord_y'] = self.norm_ref_cent_coord_y

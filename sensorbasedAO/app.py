@@ -169,7 +169,9 @@ class App(QApplication):
         cent_worker.image.connect(lambda obj: self.handle_image_disp(obj))
         cent_worker.message.connect(lambda obj: self.handle_message_disp(obj))
         cent_worker.info.connect(lambda obj: self.handle_centroiding_info(obj))
+        cent_worker.SB_info.connect(lambda obj: self.handle_SB_info(obj))
         cent_worker.write.connect(self.write_centroiding_info)
+        cent_worker.SB_write.connect(self.write_SB_info)
         cent_worker.error.connect(lambda obj: self.handle_error(obj))
         cent_worker.done.connect(self.handle_cent_done)
 
@@ -213,7 +215,7 @@ class App(QApplication):
         # Create conversion worker and thread
         conv_thread = QThread()
         conv_thread.setObjectName('conv_thread')
-        conv_worker = Conversion(SB_info)
+        conv_worker = Conversion(SB_info, debug = self.debug)
         conv_worker.moveToThread(conv_thread)
 
         # Connect to signals
@@ -238,7 +240,7 @@ class App(QApplication):
         # Create calibration worker and thread
         calib2_thread = QThread()
         calib2_thread.setObjectName('calib2_thread')
-        calib2_worker = Calibration_Zern(data_info)
+        calib2_worker = Calibration_Zern(data_info, debug = self.debug)
         calib2_worker.moveToThread(calib2_thread)
 
         # Connect to signals

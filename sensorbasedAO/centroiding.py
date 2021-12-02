@@ -18,11 +18,13 @@ class Centroiding(QObject):
     """
     start = Signal()
     write = Signal()
+    SB_write = Signal()
     done = Signal()
     error = Signal(object)
     image = Signal(object)
     message = Signal(object)
     info = Signal(object)
+    SB_info = Signal(object)
     
     def __init__(self, sensor, mirror, settings, debug = False):
 
@@ -110,7 +112,7 @@ class Centroiding(QObject):
                     cent_image[cent_image < 0] = 0
                     self.image.emit(cent_image)
 
-                else:
+                elif config['sys_calib']['sys_calib_mode'] == 1:
 
                     # Create new datasets in HDF5 file to store centroiding data
                     get_dset(self.SB_settings, 'centroiding_img', flag = 3)
@@ -203,6 +205,45 @@ class Centroiding(QObject):
                         else:
 
                             self.done.emit()
+                else:
+
+                    # Create new datasets in HDF5 file to store centroiding data
+                    get_dset(self.SB_settings, 'centroiding_img', flag = 3)
+                    data_file = h5py.File('data_info.h5', 'a')
+                    data_set = data_file['centroiding_img']
+
+                    # Update mirror control voltage
+                    voltages[:] = config['DM']['vol_bias']
+
+                    # Send values vector to mirror
+                    self.mirror.Send(voltages)
+            
+                    # Wait for DM to settle
+                    time.sleep(config['DM']['settling_time'])
+
+                    # Acquire S-H spot image
+                    cent_image_stack = acq_image(self.sensor, self.SB_settings['sensor_height'], self.SB_settings['sensor_width'], acq_mode = 1)
+                    cent_image = np.mean(cent_image_stack, axis = 2)
+                    
+                    # Image thresholding to remove background
+                    cent_image = cent_image - config['image']['threshold'] * np.amax(cent_image)
+                    cent_image[cent_image < 0] = 0
+                    self.image.emit(cent_image)
+
+                    # Append image to list
+                    dset_append(data_set, 'real_cent_img', cent_image)
+                
+                    # Calculate centroids of S-H spots
+                    act_cent_coord, act_cent_coord_x, act_cent_coord_y, slope_x, slope_y = acq_centroid(self.SB_settings, flag = 0)
+                    act_cent_coord, act_cent_coord_x, act_cent_coord_y = map(np.asarray, [act_cent_coord, act_cent_coord_x, act_cent_coord_y])
+
+                    # Update reference centroid values of search blocks to prevent system aberration correction
+                    self.SB_settings['act_ref_cent_coord_x'] = act_cent_coord_x
+                    self.SB_settings['act_ref_cent_coord_y'] = act_cent_coord_y
+                    self.SB_settings['act_ref_cent_coord'] = act_cent_coord
+
+                    self.SB_info.emit(self.SB_settings)
+                    self.SB_write.emit()
 
             if not self.debug and config['sys_calib']['sys_calib_mode']:
 
@@ -214,7 +255,7 @@ class Centroiding(QObject):
             """
             Returns system aberration information into self.cent_info
             """ 
-            if self.log and not self.debug and config['sys_calib']['sys_calib_mode']:
+            if self.log and not self.debug and config['sys_calib']['sys_calib_mode'] == 1:
 
                 self.cent_info['residual_phase_err_slopes'] = self.loop_rms_slopes
                 self.cent_info['residual_phase_err_zern'] = self.loop_rms_zern

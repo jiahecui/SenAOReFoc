@@ -1,5 +1,2 @@
-1. Check DM exercising procedure
-2. Check system aberration calibration
-3. Check DM characterisation using Zernike array edit box
-4. Check how to specify limits for RF toggle bar
-5. Remove serial numbers
+Alpao/Ximea drivers
+Remove serial numbers
