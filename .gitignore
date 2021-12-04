@@ -8,9 +8,6 @@
 # HDF5
 *.h5
 
-# markdown
-*.md
-
 # virtualenv
 venv/
 
