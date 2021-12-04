@@ -199,7 +199,7 @@ include:
 
 ```python
 camera:
-  SN: \"XXXXXXXX\"
+  SN: "XXXXXXXX"
   exposure: 40000  # us
   frame_rate: 20.0  # Hz
   sensor_width: 2048  # pixels
