@@ -648,13 +648,12 @@ perform the following tests in sequence:
     actuator displacement is linearly proportional to the applied
     control voltage [12]. In this case, the device can be driven
     linearly in both the negative and positive directions by applying a
-    normalised control voltage of <img src="https://render.githubusercontent.com/render/math?math=\frac{V}{V_{\text{max}}}">\(\frac{V}{V_{\text{max}}}\), where
-    <img src="https://render.githubusercontent.com/render/math?math=V_{\text{max}}">\(V_{\text{max}}\) is the maximum control voltage. However, if an
+    normalised control voltage of <img src="https://render.githubusercontent.com/render/math?math=\frac{V}{V_{\text{max}}}">, where
+    <img src="https://render.githubusercontent.com/render/math?math=V_{\text{max}}"> is the maximum control voltage. However, if an
     electrostatic DM is to be used, the actuator displacement would be
     proportional to the square of the applied control voltage. In such a
     case, in order to drive the device linearly, the normalised control
-    voltage should be given as <img src="https://render.githubusercontent.com/render/math?math=\left(\frac{V}{V_{\text{max}}}\right)^{2}">
-    \(\left(\frac{V}{V_{\text{max}}}\right)^{2}\).
+    voltage should be given as <img src="https://render.githubusercontent.com/render/math?math=\left(\frac{V}{V_{\text{max}}}\right)^{2}">.
 
 2.  The SHWS used in the current example is custom built and uses a
     Ximea camera as the sensor. The interfacing of a different SHWS or
