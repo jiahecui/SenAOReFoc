@@ -3,7 +3,6 @@ from PySide2.QtCore import QThread
 
 import logging
 import sys
-import os
 import argparse
 import h5py
 import numpy as np

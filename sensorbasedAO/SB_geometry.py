@@ -233,7 +233,6 @@ class Setup_SB(QObject):
                 for i in range(config['DM']['exercise_num']):
 
                     # Initialise deformable mirror voltage array
-                    # voltages = np.ravel(1.0 * (0.5 - np.random.rand(self.actuator_num, 1)))
                     voltage = 1.0 * (0.5 - np.random.rand(1, 1))
                     voltages = voltage
 

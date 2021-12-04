@@ -35,7 +35,7 @@ class MIRROR():
 
     @staticmethod
     def get(type = config['DM']['SN']):
-        if type.lower() == 'hsdm69-15-014':
+        if type.lower() == config['DM']['SN']:
             try:
                 mirror = MIRROR_ALPAO(type)
             except:

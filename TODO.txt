@@ -1,2 +1,0 @@
-Alpao/Ximea drivers
-Remove serial numbers

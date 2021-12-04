@@ -1,5 +1,5 @@
 camera:
-  SN: "26883050"
+  SN: "XXXXXXXX"
   dataformat: "XI_MONO8"
   data_min: 0  # Minimum image output value
   data_max: 255  # Maximum image output value for dataformat 1023 for actual camera
@@ -22,10 +22,10 @@ camera:
   sleep_time: 0.1  # s Interval time between frames during live acquisition
     
 DM:
-  SN: "HSDM69-15-014" 
+  SN: "XXXXXXXX" 
   DM_num: 0  # Flag for choosing the working DM, 0-Alpao, 1-Boston
-  exercise: 1  # Flag for whether to exercise DM upon initialisation
-  exercise_num: 1000  # Number of shapes used during DM exercise
+  exercise: 0  # Flag for whether to exercise DM upon initialisation
+  exercise_num: 200  # Number of shapes used during DM exercise
   vol_min: -0.1  # V Negative voltage to apply on DM during calibration
   vol_max: 0.1  # V Positive voltage to apply on DM during calibration
   vol_bias: 0  # Neutral voltage of DM actuators
