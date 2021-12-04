@@ -127,7 +127,7 @@ git clone -b cleaned_v1 <https://github.com/jiahecui/SensorbasedAO.git>
 Then set up a virtual environment (optional but recommended):
 
 ```bash
-python --m venv venv
+python -m venv venv
 ```
 
 And activate the virtual environment:
@@ -139,7 +139,7 @@ venv\Scripts\activate
 Then install all package dependencies:
 
 ``` bash
-pip install --r requirements.txt
+pip install -r requirements.txt
 ```
 
 These include:
@@ -155,7 +155,7 @@ These include:
 And install the project in editable mode:
 
 ``` bash
-pip install --e .
+pip install -e .
 ```
 
 Finally, SenAOReFoc can be run in **standard mode** in the availability
@@ -269,8 +269,7 @@ corresponding mode flag is left as default in `config.yaml`.
 
 ```python
 sys_calib:
-  sys_calib_mode: 1  # Mode flag for system aberration calibration method, 0 -- load previous system aberration calibration profile, 1 -- perform new system aberration correction,
-2 -- no system aberration correction
+  sys_calib_mode: 1  # Mode flag for system aberration calibration method, 0 -- load previous system aberration calibration profile, 1 -- perform new system aberration correction, 2 -- no system aberration correction
 ```
 
 Then on the GUI press [Calibrate-Sys]. This will run closed-loop AO
@@ -285,8 +284,7 @@ flag in `config.yaml`.
 
 ```python
 sys_calib:
-  sys_calib_mode: 0  # Mode flag for system aberration calibration method, 0 -- load previous system aberration calibration profile, 1 -- perform new system aberration correction,
-2 -- no system aberration correction
+  sys_calib_mode: 0  # Mode flag for system aberration calibration method, 0 -- load previous system aberration calibration profile, 1 -- perform new system aberration correction, 2 -- no system aberration correction
 ```
 
 Then on the GUI press [Calibrate-Sys]. This will automatically load
@@ -299,8 +297,7 @@ correction processes, change the corresponding mode flag in
 
 ```python
 sys_calib:
-  sys_calib_mode: 2  # Mode flag for system aberration calibration method, 0 -- load previous system aberration calibration profile, 1 -- perform new system aberration correction,
-2 -- no system aberration correction
+  sys_calib_mode: 2  # Mode flag for system aberration calibration method, 0 -- load previous system aberration calibration profile, 1 -- perform new system aberration correction, 2 -- no system aberration correction
 ```
 
 Then on the GUI press [Calibrate-Sys]. This will save the current
@@ -351,14 +348,14 @@ by generating a user specified number of random patterns on the DM.
 [Position SB] repositions the SB region on the camera sensor such that
 it is concentric with the incident beam. This can be achieved in two
 ways depending on whether or not the DM requires recalibration. User
-input is needed at this stage by entering \'y\' or \'n\' on the
-keyboard. By entering \'y\', the user can reposition the SB region by
-entering \'↑\', \'↓\', \'←\', \'→\' arrows on the keyboard, which will
+input is needed at this stage by entering `y` or `n` on the
+keyboard. By entering `y`, the user can reposition the SB region by
+entering `↑`, `↓`, `←`, `→` arrows on the keyboard, which will
 shift the entire SB region by one pixel at a time and display it at its
 new location. When the central SH spot(s) is centred within its
-corresponding SB, by pressing \'Enter\' on the keyboard, the user can
+corresponding SB, by pressing `Enter` on the keyboard, the user can
 confirm the new SB position and trigger the process of automatically
-calculating new SB reference centroid coordinates. Upon entering \'n\',
+calculating new SB reference centroid coordinates. Upon entering `n`,
 SB and DM calibration related parameters from the last session will be
 automatically loaded from the HDF5 file.
 
@@ -375,7 +372,7 @@ closed-loop AO correction.
 [Calibrate-S] performs DM calibration to retrieve the control matrix
 (CM) for direct slopes (zonal) control. The positive and negative bias
 control voltages provided by the user are sequentially applied to each
-DM actuator to retrieve the \'x\' and \'y\' slope values, which are then
+DM actuator to retrieve the x- and y-slope values, which are then
 used to calculate the DM influence function (IF) matrix and slope CM by
 computing its pseudo-inverse.
 
@@ -496,9 +493,9 @@ calibration direction and step number, as well as to provide users with
 options to 1) confirm that the sample has been moved to the next
 calibration step; and 2) save or discard calibrated voltages and exit
 the thread. Commands can then be entered via the keyboard. A typical
-example of the interactive command message is: *Move sample to positive
+example of the interactive command message is: `Move sample to positive
 position. Press [y] to confirm. Press [s] to save and exit. Press
-[d] to discard and exit.* The software automatically saves calibrated
+[d] to discard and exit.` The software automatically saves calibrated
 voltages to the HDF5 file after reaching the maximum user-defined step
 number or does so on request at an arbitrary step. After interpolation
 of DM control voltages acquired at each calibration step, all remote
@@ -542,8 +539,7 @@ changing the minimum and maximum value of the `RFslider` widget in Qt
 Designer. The values are calculated as [depth (um) / step increment
 (um)].
 
-![C:\\Users\\jesu3424\\Desktop\\slider.PNG](./examples//media/image1.png){width="3.96875in"
-height="0.6875in"}
+![](media/image1.png?classes=caption&lightbox)
 
 # Example usage
 
@@ -567,7 +563,7 @@ data_collect:
   run_num: 5  # Number of times to run mode 0/1/2/3
 ```
 
-![](/media/image2.png? "Figure 1. Characterisation results of system AO correction performance.
+![](/media/image2.png?classes=caption&lightbox"Figure 1. Characterisation results of system AO correction performance.
 (a) Dynamic range of the SHWS for Zernike modes 3∼20 (excl. tip/tilt).
 (b)-(e) Generated and detected RMS amplitudes of odd/even Zernike modes
 (b) 5, (c) 7, (d) 12, and (e) 20, in increments of 0.02 μm. 5 tests were
@@ -588,7 +584,7 @@ data_collect:
   run_num: 5  # Number of times to run mode 0/1/2/3
 ```
 
-![](media/image3.png? "Figure 2. Heatmap of correlation coefficients between detected and
+![](media/image3.png?classes=caption&lightbox"Figure 2. Heatmap of correlation coefficients between detected and
 generated mode values for 0.1 μm of Zernike modes 3∼20 (excl. tip/tilt).")
 
 **Example 3**: To ensure the system could correct for multiple Zernike
@@ -607,7 +603,7 @@ data_collect:
 And [Zernike array edit box] can be set to [0 0 0 0 **0.1** 0 **0.1**
 0 0 0 0 **0.1** 0 0 0 0 0 0 0 **0.1**].
 
-![](media/image4.png? "Figure 3. Detected amplitudes of generated odd and even Zernike mode
+![](media/image4.png?classes=caption&lightbox"Figure 3. Detected amplitudes of generated odd and even Zernike mode
 combinations and Strehl ratio calculated using first 69 Zernike modes
 (excl. tip/tilt) at each iteration of closed-loop AO correction. 5 tests
 were performed for each measurement.")
@@ -620,31 +616,31 @@ perform the following tests in sequence:
 
 -   [Initialise SB]: A search block region should appear in the
     ImageViewer with 14 search blocks across the diameter. Message box:
-    `**Search block geometry initialised. Number of search blocks within
-    the pupil is: 148.**`
+    `Search block geometry initialised. Number of search blocks within
+    the pupil is: 148.`
 
 -   [Position SB]: A white dot should appear at the centre of all the
-    search blocks. Message box: `**Need to calibrate DM? [y/n]**` -\>
-    Click on the command prompt and press 'y' on the keyboard. Message
-    box: `**Reposition search blocks using keyboard. Press arrow keys to
-    centre S-H spots in search blocks. Press Enter to finish.**` -\>
-    Press \'↑\', \'↓\', \'←\', \'→\' keys on the keyboard to reposition
-    search blocks and press 'Enter' to confirm. Message box: `**Search
-    block position confirmed.**`
+    search blocks. Message box: `Need to calibrate DM? [y/n]` -\>
+    Click on the command prompt and press `y` on the keyboard. Message
+    box: `Reposition search blocks using keyboard. Press arrow keys to
+    centre S-H spots in search blocks. Press Enter to finish.` -\>
+    Press `↑`, `↓`, `←`, `→` keys on the keyboard to reposition
+    search blocks and press `Enter` to confirm. Message box: `Search
+    block position confirmed.`
 
--   [Calibrate-S]: Message box: `**Dummy DM actuator coordinates
-    loaded.**`
+-   [Calibrate-S]: Message box: `Dummy DM actuator coordinates
+    loaded.`
 
--   [S-Z Conv]: Message box: `**Exiting slope - Zernike conversion
-    process.**`
+-   [S-Z Conv]: Message box: `Exiting slope - Zernike conversion
+    process.`
 
--   [Calibrate-Z]: Message box: `**Exiting Zernike control matrix
-    calibration process.**`
+-   [Calibrate-Z]: Message box: `Exiting Zernike control matrix
+    calibration process.`
 
--   [Reset DM]: Message box: `**DM reset success.**`
+-   [Reset DM]: Message box: `DM reset success.`
 
--   Adjust the remote focusing toggle bar: Message box: `**Focus
-    position: X.X um.**`
+-   Adjust the remote focusing toggle bar: Message box: `Focus
+    position: X.X um.`
 
 # Notes for development
 
@@ -652,13 +648,13 @@ perform the following tests in sequence:
     actuator displacement is linearly proportional to the applied
     control voltage [12]. In this case, the device can be driven
     linearly in both the negative and positive directions by applying a
-    normalised control voltage of $\frac{V}{V_{\text{max}}}$, where
-    $V_{\text{max}}$ is the maximum control voltage. However, if an
+    normalised control voltage of \(\frac{V}{V_{\text{max}}}\), where
+    \(V_{\text{max}}\) is the maximum control voltage. However, if an
     electrostatic DM is to be used, the actuator displacement would be
     proportional to the square of the applied control voltage. In such a
     case, in order to drive the device linearly, the normalised control
     voltage should be given as
-    $\left( \frac{V}{V_{\text{max}}} \right)^{2}$.
+    \(\left(\frac{V}{V_{\text{max}}}\right)^{2}\).
 
 2.  The SHWS used in the current example is custom built and uses a
     Ximea camera as the sensor. The interfacing of a different SHWS or
