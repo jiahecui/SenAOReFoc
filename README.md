@@ -185,6 +185,10 @@ deactivate
 
 # Getting started
 
+After installing the software, please run SenAOReFoc in **debug mode** 
+and perform functionality tests according to the procedure given in the
+`Software functionality tests` section.
+
 Before running SenAOReFoc on the microscope system in **standard mode**
 or modifying the software scripts, please first read the `Notes for
 development` section at the bottom of this document and follow
