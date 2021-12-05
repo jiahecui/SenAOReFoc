@@ -121,7 +121,7 @@ Once these are installed, in the command prompt clone the source-code
 from the Git repository:
 
 ``` bash
-git clone -b cleaned_v1 <https://github.com/jiahecui/SensorbasedAO.git>
+git clone <https://github.com/jiahecui/SenAOReFoc.git>
 ```
 
 Then set up a virtual environment (optional but recommended):
@@ -679,6 +679,18 @@ self.devices['mirror'].Send(voltages)
 self.mirror.Reset()
 self.devices['mirror'].Reset()
 ```
+
+# Issues and support
+
+Should any issues or problems be found in the software, please use the issue
+tracker at: <https://github.com/jiahecui/SenAOReFoc/issues>
+
+To make general inquiries about how to use the software, or how to modify the 
+software for integration into existing hardware, please email <jiahe.cui@eng.ox.ac.uk>
+
+# Notes for contribution
+
+Open development and optimisation of SenAOReFoc are more than welcome.
 
 # References
 
