@@ -121,7 +121,7 @@ Once these are installed, in the command prompt clone the source-code
 from the Git repository:
 
 ``` bash
-git clone <https://github.com/jiahecui/SenAOReFoc.git>
+git clone https://github.com/jiahecui/SenAOReFoc.git
 ```
 
 Then set up a virtual environment (optional but recommended):
