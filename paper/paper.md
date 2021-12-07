@@ -97,7 +97,7 @@ SenAOReFoc aims to fill this gap and to make closed-loop sensorbased AO and
 remote focusing more easily accessible to the microscopy community. It has been
 designed for open development and easy integration into existing adaptive optical
 microscopes with a simple and user-friendly architecture. It has also been tested
-on different operating systems (Windows / macOS / Linux) for sake of generality. 
+on different operating systems (Windows/macOS/Linux) for sake of generality. 
 However, we note that SenAOReFoc is a control software, and the performance of the 
 closed-loop AO correction procedure is inevitably dependent on the state of the optical system.
 Finally, SenAOReFoc takes care of some reported issues in the field, such as the thermal effects of electromagnetic DMs 
@@ -107,7 +107,7 @@ pupils [@Dong2018OpticsExpress; @Ye2015OpticsExpress; @cui_j_2020_3885508].
 # Example usage
 
 Three examples are given for automated AO performance characterisations
-of the reflectance confocal microscope described in [@Cui2021Biophotonics; @Cui2021OpticsExpress].
+of the reflectance confocal microscope described in [@Cui2021; @Cui2021OpticsExpress].
 
 **Example 1**: The dynamic range of the SHWS for the first *N* Zernike modes can be 
 characterised by generating and correcting for them in closed-loop using mode 0/1 of 
