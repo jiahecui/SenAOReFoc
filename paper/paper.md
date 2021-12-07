@@ -32,7 +32,7 @@ user guidance.
 SenAOReFoc consists of 5 main units, the SHWS initialisation and DM
 calibration unit, the Zernike aberration input unit, the AO control and
 data collection unit, the miscellaneous control unit, and the remote
-focusing unit (\autoref{fig:GUI}). The software can be ran in either 'debug mode' to perform 
+focusing unit, as shown in \autoref{fig:gui}. The software can be ran in either 'debug mode' to perform 
 functionality tests without connected hardware (DM and SHWS), or 
 'standard mode' on a well-aligned optical sectioning microscope (confocal, 
 multiphoton, etc.). User controllable system parameters can be freely accessed and modified
@@ -48,7 +48,7 @@ DM exhibits insufficient stroke for remote focusing, by ignoring the remote
 focusing unit, closed-loop AO correction functionalities will still be fully 
 functional without additional modifications to the software. 
 
-![Graphic user interface (GUI) of SenAOReFoc with modular units labelled in red boxes.\label{fig:GUI}](media/image1.png)
+![Graphic user interface (GUI) of SenAOReFoc with modular units labelled in red boxes.\label{fig:gui}](media/image1.png)
 
 Closed-loop AO correction can be performed using both the zonal method,
 which updates DM control voltages in terms of the raw slope values; and
@@ -132,7 +132,7 @@ data_collect:
 (a) Dynamic range of the SHWS for Zernike modes 3∼20 (excl. tip/tilt).
 (b)-(e) Generated and detected RMS amplitudes of odd/even Zernike modes
 (b) 5, (c) 7, (d) 12, and (e) 20, in increments of 0.02 micrometers. 5 tests were
-performed for each measurement.\label{fig:example1}](media/image2.png){ width=70% }
+performed for each measurement.\label{fig:example1}](media/image2.png)
 
 **Example 2**: The degree of Zernike mode coupling upon detection at the
 SHWS can be characterised by individually generating the same amount of
@@ -151,7 +151,7 @@ data_collect:
 ```
 
 ![Heatmap of correlation coefficients between detected and
-generated mode values for 0.1 micrometers of Zernike modes 3-20 (excl. tip/tilt).\label{fig:example2}](media/image3.png){ width=70% }
+generated mode values for 0.1 micrometers of Zernike modes 3-20 (excl. tip/tilt).\label{fig:example2}](media/image3.png)
 
 **Example 3**: To ensure the system can correct for multiple Zernike
 modes with good stability and minimal mode coupling, different
@@ -173,7 +173,7 @@ And [Zernike array edit box] was set to [0 0 0 0 **0.1** 0 **0.1**
 ![Detected amplitudes of generated odd and even Zernike mode
 combinations and Strehl ratio calculated using first 69 Zernike modes
 (excl. tip/tilt) after each closed-loop iteration. 5 tests were performed for each measurement.
-\label{fig:example3}](media/image4.png){ width=100% }
+\label{fig:example3}](media/image4.png)
 
 # Acknowledgements
 
