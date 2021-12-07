@@ -571,7 +571,7 @@ data_collect:
 (a) Dynamic range of the SHWS for Zernike modes 3∼20 (excl. tip/tilt).
 (b)-(e) Generated and detected RMS amplitudes of odd/even Zernike modes
 (b) 5, (c) 7, (d) 12, and (e) 20, in increments of 0.02 μm. 5 tests were
-performed for each measurement.\label{fig:example}](media/image2.png)
+performed for each measurement.\label{fig:example}](media/image2.png){width=60%}
 
 **Example 2**: The degree of Zernike mode coupling upon detection at the
 SHWS can be characterised by individually generating the same amount of
