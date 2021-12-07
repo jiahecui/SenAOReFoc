@@ -48,8 +48,6 @@ DM exhibits insufficient stroke for remote focusing, by ignoring the remote
 focusing unit, closed-loop AO correction functionalities will still be fully 
 functional without additional modifications to the software. 
 
-![Graphic user interface (GUI) of SenAOReFoc with modular units labelled in red boxes.\label{fig:gui}](media/image1.png)
-
 Closed-loop AO correction can be performed using both the zonal method,
 which updates DM control voltages in terms of the raw slope values; and
 the modal method, which updates DM control voltages in terms of
@@ -65,6 +63,8 @@ pre-determined axial range, step increment and step number, or by
 manually adjusting a toggle bar on the GUI for random access remote
 focusing. The former also incorporates options of whether or not to
 perform closed-loop AO correction at each remote focusing depth.
+
+![Graphic user interface (GUI) of SenAOReFoc with modular units labelled in red boxes.\label{fig:gui}](media/image1.png){ width=100% }
 
 # Statement of need
 
@@ -132,7 +132,7 @@ data_collect:
 (a) Dynamic range of the SHWS for Zernike modes 3∼20 (excl. tip/tilt).
 (b)-(e) Generated and detected RMS amplitudes of odd/even Zernike modes
 (b) 5, (c) 7, (d) 12, and (e) 20, in increments of 0.02 micrometers. 5 tests were
-performed for each measurement.\label{fig:example1}](media/image2.png)
+performed for each measurement.\label{fig:example1}](media/image2.png)}{ width=70% }
 
 **Example 2**: The degree of Zernike mode coupling upon detection at the
 SHWS can be characterised by individually generating the same amount of
@@ -151,7 +151,7 @@ data_collect:
 ```
 
 ![Heatmap of correlation coefficients between detected and
-generated mode values for 0.1 micrometers of Zernike modes 3-20 (excl. tip/tilt).\label{fig:example2}](media/image3.png)
+generated mode values for 0.1 micrometers of Zernike modes 3-20 (excl. tip/tilt).\label{fig:example2}](media/image3.png){ width=60% }
 
 **Example 3**: To ensure the system can correct for multiple Zernike
 modes with good stability and minimal mode coupling, different
