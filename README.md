@@ -1,22 +1,29 @@
-# Introduction
+# User guide for SenAOReFoc
 
-SenAOReFoc is a complete closed-loop sensorbased adaptive optics (AO)
+## Introduction
+
+SenAOReFoc is a closed-loop sensorbased adaptive optics (AO)
 and remote focusing control software that works with a deformable mirror
-(DM) and a Shack-Hartmann wavefront sensor (SHWS). When a large stroke
-DM is used, such as an Alpao-69 or Alpao-97, both the closed-loop AO
-correction and remote focusing functionalities can be exploited. If the
-DM exhibits insufficient stroke for remote focusing, the remote focusing
-unit can be ignored, leaving the closed-loop AO correction
-functionalities fully functional without additional modifications to the
-software. The graphic user interface (GUI) exhibits modular widget
-arrangements, and interactive commands are displayed in the message box
-for user guidance.
+(DM) and a Shack-Hartmann wavefront sensor (SHWS). It provides a 
+user-friendly graphic user interface (GUI) with modular widget arrangements
+and clear labelling to help the user navigate through different software 
+functionalities. Interactive messages are also displayed from the GUI for 
+user guidance.
 
-SenAOReFoc is developed under PySide2 with the GUI built using Qt
-Designer. Communication of events during processes are then handled
-using Qt's signals and slots mechanism. Common events between different
-threads, such as displaying an image or error message, reuse the same
-slots.
+SenAOReFoc consists of 5 main units, the SHWS initialisation and DM
+calibration unit, the Zernike aberration input unit, the AO control and
+data collection unit, the miscellaneous control unit, and the remote
+focusing unit. The software can be ran in either 'debug mode' to perform 
+functionality tests without connected hardware (DM and SHWS), or 
+'standard mode' on a well-aligned optical sectioning microscope (confocal, 
+multi-photon, etc.). Automated AO performance characterisations can be
+performed in 'standard mode' to assess the correction ability of the optical 
+system. If the adopted DM is designed with a large stroke, i.e., is 
+capable of large deformations, both the closed-loop AO correction and 
+remote focusing functionalities can be exploited. On the other hand, if the 
+DM exhibits insufficient stroke for remote focusing, by ignoring the remote 
+focusing unit, closed-loop AO correction functionalities will still be fully 
+functional without additional modifications to the software. 
 
 Closed-loop AO correction can be performed using both the zonal method,
 which updates DM control voltages in terms of the raw slope values; and
@@ -24,9 +31,9 @@ the modal method, which updates DM control voltages in terms of
 orthogonal Zernike polynomials. There are four sub-modes tagged to each
 of the two methods: 1) standard closed-loop AO correction; 2)
 closed-loop AO correction with consideration of obscured search blocks;
-3) closed-loop AO correction ignoring defocus; 4) closed-loop AO
-correction with consideration of obscured search blocks and ignoring
-defocus.
+3) closed-loop AO correction with partial correction excluding defocus; 
+and 4) closed-loop AO correction with both consideration of obscured 
+search blocks and partial correction excluding defocus.
 
 Remote focusing can be performed by scanning the focus axially with a
 pre-determined axial range, step increment and step number, or by
@@ -38,38 +45,7 @@ The software has been validated on a reflectance confocal microscope.
 However, it should also be fully compatible with fluorescence microscope
 systems designed in a closed-loop configuration.
 
-# Statement of need
-
-The performance of optical microscopes degrades significantly in the
-presence of optical aberrations that develop due to misalignment of the
-optical system and inhomogeneity in refractive index of the imaging
-sample. This results in compromised image resolution and contrast.
-Adaptive optics (AO) is a powerful technique that corrects for optical
-aberrations using reconfigurable adaptive devices, such as a deformable
-mirror (DM) or spatial light modulator (SLM), to restore the image
-quality [1].
-
-Remote focusing is another technique recently introduced for axial
-refocusing while avoiding slow movements of the sample stage and
-objective lens during real-time applications and simultaneously
-compensating for system aberrations introduced by beam divergence at
-different depths [2].
-
-Both AO and remote focusing are widely used in the microscopy community.
-However, despite software being openly available for AO modelling and
-analysis [3], as well as for general implementation of AO [4], there
-is not an existing open-source software that combines both AO and remote
-focusing within the single package. As a result, time and effort has to
-be spent reimplementing existing techniques for different systems.
-
-SenAOReFoc aims to fill this gap and has been designed for open
-development to work with different hardware devices, which would greatly
-benefit the microscopy community. Closed-loop sensorbased AO solutions,
-which enable fast AO correction, are provided with multiple sub-modes to
-address various practical requirements. Remote focusing can also be
-performed under different sub-modes for additional flexibility.
-
-# Scripts included in this folder and general descriptions
+## Scripts included in this folder and general descriptions
 
 -   app.py - Sets up GUI and event handlers, displays the GUI,
     instantiates devices such as DM and SHWS
@@ -101,13 +77,18 @@ performed under different sub-modes for additional flexibility.
 -   SH_acquisition.py - Performs SHWS image acquisition
 -   zernike.py - Generates Zernike polynomials and derivatives
 
-# Installation instructions
+## Installation instructions
 
 You will need the following open-source software installed to function
 and modify SenAOReFoc:
 
--   Python 3.6 +: <https://www.python.org/downloads/>
+-   Python 3.7: <https://www.python.org/downloads/>
 -   Git: <https://www.python.org/downloads/>
+    For macOS, run:
+    ``` bash
+    git --version
+    ```
+    and follow the instructions.
 -   A source-code editor (such as Visual Studio Code):
     <https://code.visualstudio.com/>
 
@@ -117,23 +98,34 @@ data stored in the HDF5 file:
 -   HDFView:
     <https://portal.hdfgroup.org/display/support/Download+HDFView>
 
-Once these are installed, in the command prompt clone the source-code
-from the Git repository:
+Once these are installed, create a local folder, navigate within that folder
+in the command prompt, and clone the source-code from the Git repository:
 
 ``` bash
 git clone https://github.com/jiahecui/SenAOReFoc.git
 ```
 
-Then set up a virtual environment (optional but recommended):
+Navigate within the 'SenAOReFoc' folder and set up a virtual environment 
+(optional but recommended):
 
+Windows:
 ```bash
 python -m venv venv
+```
+macOS:
+```bash
+python3 -m venv venv
 ```
 
 And activate the virtual environment:
 
+Windows:
 ``` bash
 venv\Scripts\activate
+```
+macOS:
+```bash
+source venv/bin/activate
 ```
 
 Then install all package dependencies:
@@ -141,6 +133,7 @@ Then install all package dependencies:
 ``` bash
 pip install -r requirements.txt
 ```
+(macOS may need to install the 'wheel' module before this step)
 
 These include:
 
@@ -152,6 +145,9 @@ These include:
 -   h5py==2.9.0
 -   pyyaml
 
+If using an older operating system, Pyside2==5.11.2 and h5py==2.6.0
+have also been validated to be workable with the current software.
+
 And install the project in editable mode:
 
 ``` bash
@@ -161,15 +157,25 @@ pip install -e .
 Finally, SenAOReFoc can be run in **standard mode** in the availability
 of hardware devices (DM and SHWS):
 
+Windows:
 ``` bash
 python sensorbasedAO/app.py
+```
+macOS:
+``` bash
+python3 sensorbasedAO/app.py
 ```
 
 As well as **debug mode** in the absence of hardware devices, which then
 sets up dummy devices for the purpose of testing software functionality:
 
+Windows:
 ``` bash
 python sensorbasedAO/app.py -d
+```
+macOS:
+``` bash
+python3 sensorbasedAO/app.py -d
 ```
 
 Detailed descriptions of how to perform functionality tests in **debug
@@ -183,7 +189,7 @@ command prompt run:
 deactivate
 ```
 
-# Getting started
+## Getting started
 
 After installing the software, please run SenAOReFoc in **debug mode** 
 and perform functionality tests according to the procedure given in the
@@ -256,7 +262,7 @@ parameters have been modified, the procedures below can be performed for
 basic closed-loop AO correction. Note that for a microscope using
 reflectance contrast, this should be performed while scanning over a
 small region on scattering samples to avoid specular reflections that
-lead to the double-pass effect [6], which causes errors to the
+lead to the double-pass effect [9], which causes errors to the
 aberration measurements. For fluorescence microscopes, a fluorescent
 bead can be used as the sample with a static beam.
 
@@ -332,7 +338,7 @@ AO:
   zern_gen: 1  # Flag for generating zernike modes on DM in AO_zernikes.py and AO_slopes.py, 0 - off, 1 - iterative generation
 ```
 
-# Functionality documentation
+## Functionality documentation
 
 SenAOReFoc consists of 5 main units, the SHWS initialisation and DM
 calibration unit, the Zernike aberration input unit, the AO control and
@@ -341,7 +347,7 @@ focusing unit. There are also 2 auxiliary units, a message box which
 informs the user of required inputs and the current task progress, and a
 software termination module.
 
-## SHWS initialisation and DM calibration unit
+### SHWS initialisation and DM calibration unit
 
 [Initialise SB] determines the search block (SB) geometry given user
 informed parameters of the lenslet pitch (the actual diameter of one
@@ -393,7 +399,7 @@ singular values. This is usually selected as the value after which a
 significant drop is seen. System modes below this value are removed
 during pseudo-inverse for acquisition of a stable Zernike CM.
 
-## Zernike aberration input unit
+### Zernike aberration input unit
 
 The Zernike aberration input unit is mainly used for thorough
 characterisation of the system AO performance by specifying certain
@@ -407,7 +413,7 @@ coefficients in the correct mode order. Irrelevant modes can be set as
 zero and only modes up to the maximum mode number controlled during AO
 correction (user-defined) can be generated.
 
-## AO control and data collection unit
+### AO control and data collection unit
 
 This is the core software unit responsible for closed-loop AO control
 and automated data collection. Both Zernike (modal) and direct slopes
@@ -424,7 +430,7 @@ simple characterisation of the system AO performance.
 
 [Zernike AO 2] is a modified version of [Zernike AO 1] that takes
 into account missing or ill-formed spots (obscured SBs) detected by the
-SHWS due to arbitrarily shaped pupils [7-9].
+SHWS due to arbitrarily shaped pupils [6-8].
 
 [Zernike AO 3] is a modified version of [Zernike AO 1] that
 suppresses the correction of Zernike defocus such that refocusing of the
@@ -454,7 +460,7 @@ initialisation. Example execution of automated AO performance
 characterisations on a real microscope system can be found in the
 `Example usage` section below.
 
-## Miscellaneous control unit
+### Miscellaneous control unit
 
 Independent image acquisition can be performed in 3 modes. [Live Acq]
 continuously acquires images and displays them on the GUI at the
@@ -468,7 +474,7 @@ exposure time spin box] controls the exposure time of the SHWS given in
 units of microseconds. [Maximum loop no. spin box] determines the
 maximum number of iterations before termination of the AO control loop.
 
-## Remote focusing unit
+### Remote focusing unit
 
 The remote focusing unit controls all parameters and procedures relevant
 to the calibration and execution of remote focusing using a DM.
@@ -545,74 +551,13 @@ Designer. The values are calculated as [depth (um) / step increment
 
 ![](media/image1.png?classes=caption&lightbox)
 
-# Example usage
+## Example usage
 
-Three examples are given for automated AO performance characterisations
-of a real reflectance confocal microscope described in [10, 11].
+Please refer to the paper with this software for examples of automated 
+AO performance characterisations of a real reflectance confocal 
+microscope.
 
-**Example 1**: The dynamic range of the SHWS for the first *N* Zernike
-modes can be characterised by generating and correcting for them in
-closed-loop using mode 0/1 of [Data Collection]. Parameters in
-`config.yaml` under 'AO' and 'data_collect' can be set as follows.
-
-```python
-AO:
-control_coeff_num: 20  # Number of zernike modes to control during AO correction
-
-data_collect:
-  data_collect_mode: 1  # Mode flag for Data Collection button, detailed function descriptions in app.py
-  loop_max_gen: 15  # Maximum number of loops during closed-loop generation of zernike modes in mode 0/1/2/3
-  incre_num: 15  # Number of zernike mode amplitudes to generate in mode 0/1
-  incre_amp: 0.02  # Increment amplitude between zernike modes in mode 0/1
-  run_num: 5  # Number of times to run mode 0/1/2/3
-```
-
-![](media/image2.png?classes=caption&lightbox){Figure 1. Characterisation results of system AO correction performance.
-(a) Dynamic range of the SHWS for Zernike modes 3∼20 (excl. tip/tilt).
-(b)-(e) Generated and detected RMS amplitudes of odd/even Zernike modes
-(b) 5, (c) 7, (d) 12, and (e) 20, in increments of 0.02 μm. 5 tests were
-performed for each measurement.}
-
-**Example 2**: The degree of Zernike mode coupling upon detection at the
-SHWS can be characterised by individually generating the same amount of
-each mode on the DM and constructing a heatmap of the detected Zernike
-coefficients using mode 0/1 of [Data Collection]. Parameters in
-`config.yaml` under 'data_collect' can be set as follows.
-
-```python
-data_collect:
-  data_collect_mode: 1  # Mode flag for Data Collection button, detailed function descriptions in app.py
-  loop_max_gen: 15  # Maximum number of loops during closed-loop generation of zernike modes in mode 0/1/2/3
-  incre_num: 1  # Number of zernike mode amplitudes to generate in mode 0/1
-  incre_amp: 0.1  # Increment amplitude between zernike modes in mode 0/1
-  run_num: 5  # Number of times to run mode 0/1/2/3
-```
-
-![](media/image3.png?classes=caption&lightbox"Figure 2. Heatmap of correlation coefficients between detected and
-generated mode values for 0.1 μm of Zernike modes 3∼20 (excl. tip/tilt).")
-
-**Example 3**: To ensure the system could correct for multiple Zernike
-modes with good stability and minimal mode coupling, different
-combinations of odd and even Zernike modes can be generated and
-corrected for in closed-loop using mode 2/3 of [Data Collection].
-Parameters in `config.yaml` under 'data_collect' can be set as follows.
-
-```python
-data_collect:
-  data_collect_mode: 3  # Mode flag for Data Collection button, detailed function descriptions in app.py
-  loop_max_gen: 15  # Maximum number of loops during closed-loop generation of zernike modes in mode 0/1/2/3
-  run_num: 5  # Number of times to run mode 0/1/2/3
-```
-
-And [Zernike array edit box] can be set to [0 0 0 0 **0.1** 0 **0.1**
-0 0 0 0 **0.1** 0 0 0 0 0 0 0 **0.1**].
-
-![](media/image4.png?classes=caption&lightbox"Figure 3. Detected amplitudes of generated odd and even Zernike mode
-combinations and Strehl ratio calculated using first 69 Zernike modes
-(excl. tip/tilt) at each iteration of closed-loop AO correction. 5 tests
-were performed for each measurement.")
-
-# Software functionality tests
+## Software functionality tests
 
 To perform functionality tests without hardware, leave all parameters in
 `config.yaml` as default, run the software in **debug mode**, and
@@ -646,11 +591,11 @@ perform the following tests in sequence:
 -   Adjust the remote focusing toggle bar: Message box: `Focus
     position: X.X um.`
 
-# Notes for development
+## Notes for development
 
 1.  The current software assumes using an electromagnetic DM, where the
     actuator displacement is linearly proportional to the applied
-    control voltage [12]. In this case, the device can be driven
+    control voltage [1]. In this case, the device can be driven
     linearly in both the negative and positive directions by applying a
     normalised control voltage of <img src="https://render.githubusercontent.com/render/math?math=\frac{V}{V_{\text{max}}}">, where
     <img src="https://render.githubusercontent.com/render/math?math=V_{\text{max}}"> is the maximum control voltage. However, if an
@@ -684,7 +629,7 @@ self.mirror.Reset()
 self.devices['mirror'].Reset()
 ```
 
-# Issues and support
+## Issues and support
 
 Should any issues or problems be found in the software, please use the issue
 tracker at: <https://github.com/jiahecui/SenAOReFoc/issues>
@@ -692,7 +637,7 @@ tracker at: <https://github.com/jiahecui/SenAOReFoc/issues>
 To make general inquiries about how to use the software, or how to modify the 
 software for integration into existing hardware, please email <jiahe.cui@eng.ox.ac.uk>
 
-# Notes for contribution
+## Notes for contribution
 
 Open development and optimisation of SenAOReFoc are more than welcome.
 

@@ -1,6 +1,6 @@
-from PySide2.QtWidgets import QApplication, QWidget, QGraphicsScene, QGraphicsView, QVBoxLayout
-from PySide2.QtGui import QPixmap, QTransform
-from PySide2.QtCore import QRectF, QPointF, Qt, Signal
+from PySide2.QtWidgets import QGraphicsScene, QGraphicsView
+from PySide2.QtGui import QPixmap
+from PySide2.QtCore import QPointF, Qt, Signal
 
 class ImageView(QGraphicsView):
     clicked = Signal(QPointF)
@@ -21,13 +21,6 @@ class ImageView(QGraphicsView):
 
         self.show()
 
-    def mousePressEvent(self, event):
-        self.clicked.emit(self.mapToScene(event.pos()))
-        super().mousePressEvent(event)
-
-    def mouseMoveEvent(self, event):
-        super().mouseMoveEvent(event)
-
     def setImage(self, image, reset=True):
         pixmap = QPixmap.fromImage(image)
 
@@ -46,25 +39,7 @@ class ImageView(QGraphicsView):
 
         self.zoom_factor = 1
 
-    def wheelEvent(self, event):
-        if event.angleDelta().y() > 0:
-            zoom = 1.1
-        else:
-            zoom = 0.9
-
-        self.zoom(zoom)
-
     def zoom(self, factor):
         self.zoom_factor = factor
         self.scale(self.zoom_factor,self.zoom_factor)
-
-class FloatingWidget(QWidget):
-    def __init__(self, child_widget):
-        super().__init__(None)
-        self.vbox = QVBoxLayout()
-        self.vbox.addWidget(child_widget)
-        self.setLayout(self.vbox)
-        self.setWindowFlags(Qt.CustomizeWindowHint |
-                            Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint)
-        self.show()
 
