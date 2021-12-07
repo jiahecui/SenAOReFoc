@@ -48,8 +48,7 @@ DM exhibits insufficient stroke for remote focusing, by ignoring the remote
 focusing unit, closed-loop AO correction functionalities will still be fully 
 functional without additional modifications to the software. 
 
-![Graphic user interface (GUI) of SenAOReFoc with modular units labelled in red boxes.
-\label{fig:GUI}](media/image1.png){ width=100% }
+![Graphic user interface (GUI) of SenAOReFoc with modular units labelled in red boxes.\label{fig:GUI}](media/image1.png)
 
 Closed-loop AO correction can be performed using both the zonal method,
 which updates DM control voltages in terms of the raw slope values; and
@@ -152,8 +151,7 @@ data_collect:
 ```
 
 ![Heatmap of correlation coefficients between detected and
-generated mode values for 0.1 micrometers of Zernike modes 3-20 (excl. tip/tilt).\label{fig:example2}]
-(media/image3.png){ width=60% }
+generated mode values for 0.1 micrometers of Zernike modes 3-20 (excl. tip/tilt).\label{fig:example2}](media/image3.png){ width=70% }
 
 **Example 3**: To ensure the system can correct for multiple Zernike
 modes with good stability and minimal mode coupling, different
