@@ -567,11 +567,11 @@ data_collect:
   run_num: 5  # Number of times to run mode 0/1/2/3
 ```
 
-!["Figure 1. Characterisation results of system AO correction performance.
+![Figure 1. Characterisation results of system AO correction performance.
 (a) Dynamic range of the SHWS for Zernike modes 3∼20 (excl. tip/tilt).
 (b)-(e) Generated and detected RMS amplitudes of odd/even Zernike modes
 (b) 5, (c) 7, (d) 12, and (e) 20, in increments of 0.02 μm. 5 tests were
-performed for each measurement."\label{fig:example}](media/image2.png?classes=caption&lightbox)
+performed for each measurement.\label{fig:example}](media/image2.png)
 
 **Example 2**: The degree of Zernike mode coupling upon detection at the
 SHWS can be characterised by individually generating the same amount of
