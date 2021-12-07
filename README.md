@@ -16,7 +16,11 @@ data collection unit, the miscellaneous control unit, and the remote
 focusing unit. The software can be ran in either 'debug mode' to perform 
 functionality tests without connected hardware (DM and SHWS), or 
 'standard mode' on a well-aligned optical sectioning microscope (confocal, 
-multi-photon, etc.). Automated AO performance characterisations can be
+multiphoton, etc.). User controllable system parameters can be freely accessed and modified
+in a separate configuration file that is loaded upon software initialisation, 
+and parameters that require continuous user input can be modified from the GUI. Parameters calculated when running 
+the software, as well as important result data, are grouped and saved in a separate
+HDF5 file that can be read with HDFView software. Automated AO performance characterisations can be
 performed in 'standard mode' to assess the correction ability of the optical 
 system. If the adopted DM is designed with a large stroke, i.e., is 
 capable of large deformations, both the closed-loop AO correction and 
@@ -85,6 +89,7 @@ and modify SenAOReFoc:
 -   Python 3.7: <https://www.python.org/downloads/>
 -   Git: <https://www.python.org/downloads/>
     For macOS, run:
+
     ``` bash
     git --version
     ```
@@ -133,7 +138,7 @@ Then install all package dependencies:
 ``` bash
 pip install -r requirements.txt
 ```
-(macOS may need to install the 'wheel' module before this step)
+(macOS may need prior installation of 'wheel' module)
 
 These include:
 
@@ -146,12 +151,24 @@ These include:
 -   pyyaml
 
 If using an older operating system, Pyside2==5.11.2 and h5py==2.6.0
-have also been validated to be workable with the current software.
+are also operational with the current software.
 
 And install the project in editable mode:
 
 ``` bash
 pip install -e .
+```
+
+The current working example imports hardware APIs for Windows operating system. If using
+macOS or Linux, please comment out all relevant lines in `mirror.py`, `sensor.py`, 
+and `image_acquisition.py` before proceeding, including:
+
+```python
+from alpao.Lib64 import asdk
+class MIRROR_ALPAO(asdk.DM)
+from ximea import xiapi
+class SENSOR_XIMEA(xiapi.Camera)
+img = xiapi.Image()
 ```
 
 Finally, SenAOReFoc can be run in **standard mode** in the availability
@@ -255,14 +272,14 @@ AO:
 ```
 
 Note that the `DM exercise` option may need to be set to 1 for
-electromagnetic mirrors that observe substantial thermal effects [5],
+electromagnetic mirrors that observe substantial thermal effects [1],
 which will start a process of sending random voltages within [-0.5,
 0.5] to all DM actuators after pressing [Initialise SB]. After above
 parameters have been modified, the procedures below can be performed for
 basic closed-loop AO correction. Note that for a microscope using
 reflectance contrast, this should be performed while scanning over a
 small region on scattering samples to avoid specular reflections that
-lead to the double-pass effect [9], which causes errors to the
+lead to the double-pass effect [2], which causes errors to the
 aberration measurements. For fluorescence microscopes, a fluorescent
 bead can be used as the sample with a static beam.
 
@@ -339,13 +356,6 @@ AO:
 ```
 
 ## Functionality documentation
-
-SenAOReFoc consists of 5 main units, the SHWS initialisation and DM
-calibration unit, the Zernike aberration input unit, the AO control and
-data collection unit, the miscellaneous control unit, and the remote
-focusing unit. There are also 2 auxiliary units, a message box which
-informs the user of required inputs and the current task progress, and a
-software termination module.
 
 ### SHWS initialisation and DM calibration unit
 
@@ -430,7 +440,7 @@ simple characterisation of the system AO performance.
 
 [Zernike AO 2] is a modified version of [Zernike AO 1] that takes
 into account missing or ill-formed spots (obscured SBs) detected by the
-SHWS due to arbitrarily shaped pupils [6-8].
+SHWS due to arbitrarily shaped pupils [3-5].
 
 [Zernike AO 3] is a modified version of [Zernike AO 1] that
 suppresses the correction of Zernike defocus such that refocusing of the
@@ -485,7 +495,7 @@ incremental steps along the optical axis and compensating for the
 displacement using closed-loop AO correction. This allows system
 aberration at each remote focusing depth to be corrected for as well.
 For details of the remote focusing calibration process, please refer to
-[10, 11]. The software performs this as a 2-step process that proceeds
+[6,7]. The software performs this as a 2-step process that proceeds
 along the negative direction before the positive. The direction of
 calibration should be determined within the configuration file prior to
 software initialisation. Other important parameters include the number
@@ -553,8 +563,8 @@ Designer. The values are calculated as [depth (um) / step increment
 
 ## Example usage
 
-Please refer to the paper with this software for examples of automated 
-AO performance characterisations of a real reflectance confocal 
+Please refer to the JOSS paper associated with this software @paper for examples 
+of automated AO performance characterisations on a real reflectance confocal 
 microscope.
 
 ## Software functionality tests
@@ -595,7 +605,7 @@ perform the following tests in sequence:
 
 1.  The current software assumes using an electromagnetic DM, where the
     actuator displacement is linearly proportional to the applied
-    control voltage [1]. In this case, the device can be driven
+    control voltage [8]. In this case, the device can be driven
     linearly in both the negative and positive directions by applying a
     normalised control voltage of <img src="https://render.githubusercontent.com/render/math?math=\frac{V}{V_{\text{max}}}">, where
     <img src="https://render.githubusercontent.com/render/math?math=V_{\text{max}}"> is the maximum control voltage. However, if an
@@ -639,53 +649,43 @@ software for integration into existing hardware, please email <jiahe.cui@eng.ox.
 
 ## Notes for contribution
 
-Open development and optimisation of SenAOReFoc are more than welcome.
+Open development and optimisation of SenAOReFoc are more than welcome. 
 
-# References
+## Citation
 
-1.  M. J. Booth, "Adaptive optical microscopy: the ongoing quest for a
-    perfect image," *Light Sci Appl* 3, e165 (2014).
-    <https://doi.org/10.1038/lsa.2014.46>
 
-2.  N. Ji, J. Freeman, and S. Smith, "Technologies for imaging neural
-    activity in large volumes," *Nat Neurosci* 19, 1154--1164 (2016).
-    <https://doi.org/10.1038/nn.4358>
 
-3.  M. J. Townson, O. J. D. Farley, G. Orban de Xivry, J. Osborn,
-    and A. P. Reeves, "AOtools: a Python package for adaptive optics
-    modelling and analysis," *Opt. Express* 27, 31316-31329 (2019).
-    <https://doi.org/10.1364/OE.27.031316>
+## Licence
 
-4.  N. Hall, J. Titlow, M. J. Booth, and I. M. Dobbie,
-    "Microscope-AOtools: a generalised adaptive optics implementation,"
-    *Opt. Express* 28, 28987-29003 (2020).
-    <https://doi.org/10.1364/OE.401117>
+This software is protected by GNU General Public License version 3 <https://opensource.org/licenses/GPL-3.0>.
 
-5.  U. Bitenc, "Software compensation method for achieving high
+## References
+
+1.  U. Bitenc, "Software compensation method for achieving high
     stability of Alpao deformable mirrors," *Opt. Express* 25, 4368-4381
     (2017). <https://doi.org/10.1364/OE.25.004368>
 
-6.  P. Artal, S. Marcos, R. Navarro, and D. R. Williams, "Odd
+2.  P. Artal, S. Marcos, R. Navarro, and D. R. Williams, "Odd
     aberrations and double-pass measurements of retinal image quality,"
     *J. Opt. Soc. Am. A* 12, 195-201 (1995).
     <https://doi.org/10.1364/JOSAA.12.000195>
 
-7.  B. Dong and M. J. Booth, "Wavefront control in adaptive microscopy
+3.  B. Dong and M. J. Booth, "Wavefront control in adaptive microscopy
     using Shack-Hartmann sensors with arbitrarily shaped pupils," *Opt.
     Express* 26, 1655-1669 (2018).
     <https://doi.org/10.1364/OE.26.001655>
 
-8.  J. Ye, W. Wang, Z. Gao, Z. Liu, S. Wang, P. Benítez, J. C. Miñano,
+4.  J. Ye, W. Wang, Z. Gao, Z. Liu, S. Wang, P. Benítez, J. C. Miñano,
     and Q. Yuan, "Modal wavefront estimation from its slopes by
     numerical orthogonal transformation method over general shaped
     aperture," *Opt. Express* 23, 26208-26220 (2015).
     <https://doi.org/10.1364/OE.23.026208>
 
-9.  J. Cui, B. Dong, and M. J. Booth, "Shack-Hartmann sensing with
+5.  J. Cui, B. Dong, and M. J. Booth, "Shack-Hartmann sensing with
     arbitrarily shaped pupil (1.0)," Zenodo (2020).
     <https://doi.org/10.5281/zenodo.3885508>
 
-10. J. Cui, R. Turcotte, K. Hampson, N. J. Emptage, and M. J. Booth,
+6.  J. Cui, R. Turcotte, K. Hampson, N. J. Emptage, and M. J. Booth,
     "Remote-Focussing for Volumetric Imaging in a Contactless and
     Label-Free Neurosurgical Microscope," in Biophotonics Congress
     2021, C. Boudoux, K. Maitland, C. Hendon, M. Wojtkowski, K.
@@ -696,12 +696,12 @@ Open development and optimisation of SenAOReFoc are more than welcome.
     of America, 2021), paper DTh2A.2 (2021).
     <https://www.osapublishing.org/abstract.cfm?uri=BODA-2021-DTh2A.2>
 
-11. J. Cui, R. Turcotte, N. J. Emptage, and M. J. Booth, "Extended range
+7.  J. Cui, R. Turcotte, N. J. Emptage, and M. J. Booth, "Extended range
     and aberration-free autofocusing via remote focusing and
     sequence-dependent learning," *Opt. Express* 29, 36660-36674 (2021).
     <https://doi.org/10.1364/OE.442025>
 
-12. U. Bitenc, N. A. Bharmal, T. J. Morris, and R. M. Myers, "Assessing
+8.  U. Bitenc, N. A. Bharmal, T. J. Morris, and R. M. Myers, "Assessing
     the stability of an ALPAO deformable mirror for feed-forward
     operation," *Opt. Express* 22, 12438-12451 (2014).
     <https://doi.org/10.1364/OE.22.012438>

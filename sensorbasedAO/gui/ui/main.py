@@ -669,7 +669,7 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QtWidgets.QApplication.translate("MainWindow", "SensorbasedAO", None, -1))
+        MainWindow.setWindowTitle(QtWidgets.QApplication.translate("MainWindow", "SenAOReFoc", None, -1))
         self.initialiseBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Initialise SB", None, -1))
         self.positionBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Position SB", None, -1))
         self.centroidBtn.setText(QtWidgets.QApplication.translate("MainWindow", "Calibrate-Sys", None, -1))

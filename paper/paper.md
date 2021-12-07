@@ -32,10 +32,14 @@ user guidance.
 SenAOReFoc consists of 5 main units, the SHWS initialisation and DM
 calibration unit, the Zernike aberration input unit, the AO control and
 data collection unit, the miscellaneous control unit, and the remote
-focusing unit. The software can be ran in either 'debug mode' to perform 
+focusing unit (\autoref{fig:GUI}). The software can be ran in either 'debug mode' to perform 
 functionality tests without connected hardware (DM and SHWS), or 
 'standard mode' on a well-aligned optical sectioning microscope (confocal, 
-multi-photon, etc.). Automated AO performance characterisations can be
+multiphoton, etc.). User controllable system parameters can be freely accessed and modified
+in a separate configuration file that is loaded upon software initialisation, 
+and parameters that require continuous user input can be modified from the GUI. Parameters calculated when running 
+the software, as well as important result data, are grouped and saved in a separate
+HDF5 file that can be read with HDFView software. Automated AO performance characterisations can be
 performed in 'standard mode' to assess the correction ability of the optical 
 system. If the adopted DM is designed with a large stroke, i.e., is 
 capable of large deformations, both the closed-loop AO correction and 
@@ -43,6 +47,9 @@ remote focusing functionalities can be exploited. On the other hand, if the
 DM exhibits insufficient stroke for remote focusing, by ignoring the remote 
 focusing unit, closed-loop AO correction functionalities will still be fully 
 functional without additional modifications to the software. 
+
+![Graphic user interface (GUI) of SenAOReFoc with modular units labelled in red boxes.
+\label{fig:GUI}](media/image1.png){ width=100% }
 
 Closed-loop AO correction can be performed using both the zonal method,
 which updates DM control voltages in terms of the raw slope values; and
@@ -77,7 +84,7 @@ avoid slow movements of the sample stage and objective lens during real-time
 applications [@Ji2016NatureNeuroscience]. By using a DM for remote 
 focusing, calibration can be performed through closed-loop AO correction to
 simultaneously correct for system aberrations introduced by beam divergence 
-at different focusing depths.
+at different focusing depths [@Zurauskas2017BiomedicalOpticsExpress].
 
 Both AO and remote focusing are widely used in the microscopy community.
 However, despite software being openly available for AO modelling and
@@ -90,27 +97,25 @@ for different hardware systems.
 SenAOReFoc aims to fill this gap and to make closed-loop sensorbased AO and 
 remote focusing more easily accessible to the microscopy community. It has been
 designed for open development and easy integration into existing adaptive optical
-microscopes with a simple and user-friendly architecture. User controllable system 
-parameters can be freely accessed and modified in a separate configuration file that is 
-loaded upon software initialisation, and parameters that require continuous 
-user input can be modified from the GUI. Parameters calculated when running 
-the software, as well as important result data, are grouped and saved in a separate
-HDF5 file that can be read with HDFView software. Finally, SenAOReFoc takes care of 
-some reported issues in the field, such as the thermal effects of electromagnetic DMs 
+microscopes with a simple and user-friendly architecture. It has also been tested
+on different operating systems (Windows / macOS / Linux) for sake of generality. 
+However, we note that SenAOReFoc is a control software, and the performance of the 
+closed-loop AO correction procedure is inevitably dependent on the state of the optical system.
+Finally, SenAOReFoc takes care of some reported issues in the field, such as the thermal effects of electromagnetic DMs 
 [@Bitenc2017OpticsExpress], and obscured search blocks in the case of severely distorted
-pupils [@Dong2018OpticsExpress, @Ye2015OpticsExpress, @cui_j_2020_3885508].
+pupils [@Dong2018OpticsExpress; @Ye2015OpticsExpress; @cui_j_2020_3885508].
 
 # Example usage
 
 Three examples are given for automated AO performance characterisations
-of the reflectance confocal microscope described in [@Cui2021Biophotonics, @Cui2021OpticsExpress].
+of the reflectance confocal microscope described in [@Cui2021Biophotonics; @Cui2021OpticsExpress].
 
 **Example 1**: The dynamic range of the SHWS for the first *N* Zernike modes can be 
 characterised by generating and correcting for them in closed-loop using mode 0/1 of 
 [Data Collection]. \autoref{fig:example1}(a) provides an example when characterising Zernike modes 
-3∼20 (excl. tip/tilt). \autoref{fig:example1}(b)-(e) provide examples of generated and detected RMS 
-amplitudes of selected odd/even Zernike modes in increments of 0.02 μm. Parameters 
-in `config.yaml` under 'AO' and 'data_collect' were set as follows.
+3-20 (excl. tip/tilt). \autoref{fig:example1}(b)-(e) provide examples of generated and detected RMS 
+amplitudes of selected odd/even Zernike modes in increments of 0.02 micrometers. Parameters 
+in `config.yaml` under `AO` and `data_collect` were set as follows.
 
 ```python
 AO:
@@ -127,15 +132,15 @@ data_collect:
 ![Characterisation results of system AO correction performance.
 (a) Dynamic range of the SHWS for Zernike modes 3∼20 (excl. tip/tilt).
 (b)-(e) Generated and detected RMS amplitudes of odd/even Zernike modes
-(b) 5, (c) 7, (d) 12, and (e) 20, in increments of 0.02 μm. 5 tests were
-performed for each measurement.\label{fig:example1}](media/image2.png){ width=60% }
+(b) 5, (c) 7, (d) 12, and (e) 20, in increments of 0.02 micrometers. 5 tests were
+performed for each measurement.\label{fig:example1}](media/image2.png){ width=70% }
 
 **Example 2**: The degree of Zernike mode coupling upon detection at the
 SHWS can be characterised by individually generating the same amount of
 each mode on the DM and constructing a heatmap of the detected Zernike
 coefficients using mode 0/1 of [Data Collection]. \autoref{fig:example2} provides an example heatmap of correlation coefficients 
-between detected and generated mode values for 0.1 μm of Zernike modes 3∼20 (excl. tip/tilt). Parameters in
-`config.yaml` under 'data_collect' were set as follows.
+between detected and generated mode values for 0.1 micrometers of Zernike modes 3-20 (excl. tip/tilt). Parameters in
+`config.yaml` under `data_collect` were set as follows.
 
 ```python
 data_collect:
@@ -147,7 +152,7 @@ data_collect:
 ```
 
 ![Heatmap of correlation coefficients between detected and
-generated mode values for 0.1 μm of Zernike modes 3∼20 (excl. tip/tilt).\label{fig:example2}]
+generated mode values for 0.1 micrometers of Zernike modes 3-20 (excl. tip/tilt).\label{fig:example2}]
 (media/image3.png){ width=60% }
 
 **Example 3**: To ensure the system can correct for multiple Zernike
@@ -155,7 +160,7 @@ modes with good stability and minimal mode coupling, different
 combinations of odd and even Zernike modes can be generated and
 corrected for in closed-loop using mode 2/3 of [Data Collection]. \autoref{fig:example3} provides an example of the detect amplitude
 and Strehl ratio after each closed-loop iteration for some odd and 
-even Zernike mode combinations. Parameters in `config.yaml` under 'data_collect' were set as follows.
+even Zernike mode combinations. Parameters in `config.yaml` under `data_collect` were set as follows.
 
 ```python
 data_collect:
@@ -164,12 +169,18 @@ data_collect:
   run_num: 5  # Number of times to run mode 0/1/2/3
 ```
 
-And the [Zernike array edit box] was set to [0 0 0 0 **0.1** 0 **0.1**
+And [Zernike array edit box] was set to [0 0 0 0 **0.1** 0 **0.1**
 0 0 0 0 **0.1** 0 0 0 0 0 0 0 **0.1**].
 
 ![Detected amplitudes of generated odd and even Zernike mode
 combinations and Strehl ratio calculated using first 69 Zernike modes
 (excl. tip/tilt) after each closed-loop iteration. 5 tests were performed for each measurement.
-\label{fig:example3}](media/image4.png){ width=60% }
+\label{fig:example3}](media/image4.png){ width=100% }
+
+# Acknowledgements
+
+We acknowledge Karen Hampson for discussions during the course of this project, and Chao He and Matthew Wincott
+for testing the software under different operating systems. This work was supported by the European Research
+Council under projects 695140 and 812998.
 
 # References
