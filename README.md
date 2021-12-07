@@ -563,8 +563,8 @@ Designer. The values are calculated as [depth (um) / step increment
 
 ## Example usage
 
-Please refer to the JOSS paper associated with this software @paper for examples 
-of automated AO performance characterisations on a real reflectance confocal 
+Please refer to the JOSS paper associated with this software <https://github.com/jiahecui/SenAOReFoc/tree/master/paper>
+for examples of automated AO performance characterisations on a real reflectance confocal 
 microscope.
 
 ## Software functionality tests
