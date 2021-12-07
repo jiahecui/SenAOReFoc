@@ -647,17 +647,9 @@ tracker at: <https://github.com/jiahecui/SenAOReFoc/issues>
 To make general inquiries about how to use the software, or how to modify the 
 software for integration into existing hardware, please email <jiahe.cui@eng.ox.ac.uk>
 
-## Notes for contribution
-
-Open development and optimisation of SenAOReFoc are more than welcome. 
-
-## Citation
-
-
-
 ## Licence
 
-This software is protected by GNU General Public License version 3 <https://opensource.org/licenses/GPL-3.0>.
+GNU General Public License version 3 <https://opensource.org/licenses/GPL-3.0>.
 
 ## References
 

@@ -107,7 +107,7 @@ pupils [@Dong2018OpticsExpress; @Ye2015OpticsExpress; @cui_j_2020_3885508].
 # Example usage
 
 Three examples are given for automated AO performance characterisations
-of the reflectance confocal microscope described in [@Cui2021OpticsExpress].
+of the reflectance confocal microscope described in [@Cui2021Biophotonics; @Cui2021OpticsExpress].
 
 **Example 1**: The dynamic range of the SHWS for the first *N* Zernike modes can be 
 characterised by generating and correcting for them in closed-loop using mode 0/1 of 
@@ -132,7 +132,7 @@ data_collect:
 (a) Dynamic range of the SHWS for Zernike modes 3∼20 (excl. tip/tilt).
 (b)-(e) Generated and detected RMS amplitudes of odd/even Zernike modes
 (b) 5, (c) 7, (d) 12, and (e) 20, in increments of 0.02 micrometers. 5 tests were
-performed for each measurement.\label{fig:example1}](media/image2.png){ width=70% }
+performed for each measurement.\label{fig:example1}](media/image2.png){ width=60% }
 
 **Example 2**: The degree of Zernike mode coupling upon detection at the
 SHWS can be characterised by individually generating the same amount of
@@ -175,10 +175,16 @@ combinations and Strehl ratio calculated using first 69 Zernike modes
 (excl. tip/tilt) after each closed-loop iteration. 5 tests were performed for each measurement.
 \label{fig:example3}](media/image4.png)
 
+# How to cite
+
+If you're using any modified version of this software for your work, please cite this paper. If you're
+performing remote focusing using the calibration procedure set out in this software, please also cite
+either [@Cui2021Biophotonics] or [Cui2021OpticsExpress].
+
 # Acknowledgements
 
-We acknowledge Karen Hampson for discussions during the course of this project, and Chao He and Matthew Wincott
-for testing the software under different operating systems. This work was supported by the European Research
-Council under projects 695140 and 812998.
+We thank Karen Hampson for fruitful discussions during the course of this project, and Chao He and Matthew Wincott
+for testing the software using different operating systems. This work was supported by European Research
+Council projects 695140 and 812998.
 
 # References
