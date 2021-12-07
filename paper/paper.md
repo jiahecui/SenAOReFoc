@@ -107,7 +107,7 @@ pupils [@Dong2018OpticsExpress; @Ye2015OpticsExpress; @cui_j_2020_3885508].
 # Example usage
 
 Three examples are given for automated AO performance characterisations
-of the reflectance confocal microscope described in [@Cui2021; @Cui2021OpticsExpress].
+of the reflectance confocal microscope described in [@Cui2021OpticsExpress].
 
 **Example 1**: The dynamic range of the SHWS for the first *N* Zernike modes can be 
 characterised by generating and correcting for them in closed-loop using mode 0/1 of 
