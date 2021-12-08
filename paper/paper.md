@@ -106,9 +106,9 @@ pupils [@Dong2018OpticsExpress; @Ye2015OpticsExpress; @Cui2020Zenodo].
 
 # Example usage
 
-Four examples are given for the usage of this software. The first three examples are of automated AO performance characterisations
-of the reflectance confocal microscope described in [@Cui2021Biophotonics; @Cui2021OpticsExpress]. And the last example is of 
-remote focusing results for volumetric imaging in frozen mouse skull reported in [@Cui2021Biophotonics] using the same microscope.
+Four examples are given for the usage of this software, the first three for automated AO performance characterisations
+of the reflectance confocal microscope described in [@Cui2021Biophotonics; @Cui2021OpticsExpress]; and the last for 
+remote focusing in frozen mouse skull as reported in [@Cui2021Biophotonics] on the same microscope.
 
 **Example 1**: The dynamic range of the SHWS for the first *N* Zernike modes can be 
 characterised by generating and correcting for them in closed-loop using mode 0/1 of 
