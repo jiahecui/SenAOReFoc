@@ -106,8 +106,9 @@ pupils [@Dong2018OpticsExpress; @Ye2015OpticsExpress; @Cui2020Zenodo].
 
 # Example usage
 
-Three examples are given for automated AO performance characterisations
-of the reflectance confocal microscope described in [@Cui2021Biophotonics; @Cui2021OpticsExpress].
+Four examples are given for the usage of this software. The first three examples are of automated AO performance characterisations
+of the reflectance confocal microscope described in [@Cui2021Biophotonics; @Cui2021OpticsExpress]. And the last example is of 
+remote focusing results for volumetric imaging in frozen mouse skull reported in [@Cui2021Biophotonics] using the same microscope.
 
 **Example 1**: The dynamic range of the SHWS for the first *N* Zernike modes can be 
 characterised by generating and correcting for them in closed-loop using mode 0/1 of 
@@ -175,6 +176,23 @@ combinations and Strehl ratio calculated using first 69 Zernike modes
 (excl. tip/tilt) after each closed-loop iteration. 5 tests were performed for each measurement.
 \label{fig:example3}](media/image4.png)
 
+**Example 4**: Voltages that control DM actuators to deform the membrane for fine 
+axial remote focusing was calibrated according to the procedure explained on
+Github @RFcalib, and reported in [@Cui2021Biophotonics] and [@Cui2021OpticsExpress]. [Calibrate] 
+was pressed for both directions of the optical axis and a piece of white card was displaced by 
+10 micrometers each time before pressing `y` on the keyboard to proceed with the closed-loop
+AO correction. Interpolation of the DM control voltages at each calibration step was then performed 
+to obtain those for 0.1 micrometer increments. The software's remote focusing capability was 
+demonstrated in frozen mouse skull in [@Cui2021Biophotonics] to show no noticeable difference in
+resolution and size of field of view as compared to standard translation of the sample stage. 
+Results are also shown in \autoref{fig:example4}.
+
+![Remote focusing results within frozen mouse skull. (a) Stack images acquired with 10 micrometer
+axial steps over a 90 micrometer depth range. Top rows: results obtained by scanning sequentially 
+through multiple depths using precalibrated DM control voltages. Bottom rows: comparison results 
+obtained by axially translating the sample stage only. (b) Colour-coded maximum intensity projection
+of 90 frames with 1 micrometer intervals. Scale bar: 100 micrometers.\label{fig:example4}](media/image5.png)
+
 # How to cite
 
 If you're using any modified version of this software for your work, please cite this paper. If you're
@@ -183,7 +201,7 @@ either [@Cui2021Biophotonics] or [@Cui2021OpticsExpress].
 
 # Acknowledgements
 
-We thank Karen Hampson for fruitful discussions during the course of this project, and Chao He and Matthew Wincott
+We thank Karen Hampson for fruitful discussions during the course of this project, and Chao He
 for testing the software using different operating systems. This work was supported by European Research
 Council projects 695140 and 812998.
 
