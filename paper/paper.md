@@ -177,10 +177,10 @@ combinations and Strehl ratio calculated using first 69 Zernike modes
 \label{fig:example3}](media/image4.png)
 
 **Example 4**: Voltages that control DM actuators to deform the membrane for fine 
-axial remote focusing was calibrated according to the procedure explained on
-Github @RFcalib, and reported in [@Cui2021Biophotonics] and [@Cui2021OpticsExpress]. [Calibrate] 
-was pressed for both directions of the optical axis and a piece of white card was displaced by 
-10 micrometers each time before pressing `y` on the keyboard to proceed with the closed-loop
+axial remote focusing was calibrated according to the procedure explained in the GitHub repository 
+<https://github.com/jiahecui/SenAOReFoc>, and reported in [@Cui2021Biophotonics] and [@Cui2021OpticsExpress]. 
+[Calibrate] was pressed for both directions of the optical axis and a piece of white card was displaced by 
+10 micrometers each time before pressing 'y' on the keyboard to proceed with closed-loop
 AO correction. Interpolation of the DM control voltages at each calibration step was then performed 
 to obtain those for 0.1 micrometer increments. The software's remote focusing capability was 
 demonstrated in frozen mouse skull in [@Cui2021Biophotonics] to show no noticeable difference in
