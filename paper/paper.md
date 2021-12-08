@@ -102,7 +102,7 @@ However, we note that SenAOReFoc is a control software, and the performance of t
 closed-loop AO correction procedure is inevitably dependent on the state of the optical system.
 Finally, SenAOReFoc takes care of some reported issues in the field, such as the thermal effects of electromagnetic DMs 
 [@Bitenc2017OpticsExpress], and obscured search blocks in the case of severely distorted
-pupils [@Dong2018OpticsExpress; @Ye2015OpticsExpress].
+pupils [@Dong2018OpticsExpress; @Ye2015OpticsExpress; @cui_j_2020_3885508].
 
 # Example usage
 
