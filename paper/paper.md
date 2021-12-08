@@ -179,7 +179,7 @@ combinations and Strehl ratio calculated using first 69 Zernike modes
 
 If you're using any modified version of this software for your work, please cite this paper. If you're
 performing remote focusing using the calibration procedure set out in this software, please also cite
-either [@Cui2021Biophotonics] or [Cui2021OpticsExpress].
+either [@Cui2021Biophotonics] or [@Cui2021OpticsExpress].
 
 # Acknowledgements
 
