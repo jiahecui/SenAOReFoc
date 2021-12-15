@@ -85,12 +85,19 @@ focusing, calibration can be performed through closed-loop AO correction to
 simultaneously correct for system aberrations introduced by beam divergence 
 at different focusing depths [@Zurauskas2017BiomedicalOpticsExpress].
 
-Both AO and remote focusing are widely used in the microscopy community.
-However, despite software being openly available for AO modelling and
-analysis [@Townson2019OpticsExpress], as well as for general implementation 
-of AO [@Hall2020OpticsExpress], there is not an existing open-source software 
-that combines both AO and remote focusing within the single package. 
-As a result, time and effort has to be spent reimplementing existing techniques 
+Sensorbased AO, which uses a dedicated sensor to measure the wavefront 
+[@Platt2001JournalofRefractiveSurgery], was first introduced in the field of astronomy [@Beckers1993]. 
+Since then, it has also been widely adopted in vision science [@Porter2006; 
+@Godara2010Optometryandvisionscience] and microscopy [@Booth2007PhilosophicalTransactions; 
+@Ji2017NatureMethods]. A range of software serving for different astronomical 
+purposes have been introduced over time, including those for simulation of AO
+systems [@Carbillet2005MonthlyNoticesoftheRoyalAstronomicalSociety; @Conan2014], control with
+atmospheric tomography [@Ahmadia2005], and fast control using GPU hardware 
+[@Guyon2018]. In the microscopy community, software is also openly available for AO modelling and
+analysis [@Townson2019OpticsExpress], as well as general AO control [@Hall2020OpticsExpress]. 
+However, there is not yet an existing open-source software that serves the purpose of
+performing both AO and remote focusing within the single package, despite the techniques being 
+widely adopted. As a result, time and effort has to be spent reimplementing existing techniques 
 for different hardware systems. 
 
 SenAOReFoc aims to fill this gap and to make closed-loop sensorbased AO and 
