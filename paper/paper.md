@@ -96,11 +96,11 @@ atmospheric tomography [@Ahmadia2005], and fast control using GPU hardware
 [@Guyon2018]. In the microscopy community, software is also openly available for AO modelling and
 analysis [@Townson2019OpticsExpress], as well as general AO control [@Hall2020OpticsExpress]. 
 However, there is not yet an existing open-source software that serves the purpose of
-performing both AO and remote focusing within the single package, despite the techniques being 
-widely adopted. As a result, time and effort has to be spent reimplementing existing techniques 
+performing both AO and remote focusing within the single package, despite that the techniques 
+have been widely adopted. As a result, time and effort has to be spent reimplementing existing techniques 
 for different hardware systems. 
 
-SenAOReFoc aims to fill this gap and to make closed-loop sensorbased AO and 
+SenAOReFoc aims to fill this gap and to make closed-loop sensorbased AO [@Fernandez2001OpticsLetters] and 
 remote focusing more easily accessible to the microscopy community. It has been
 designed for open development and easy integration into existing adaptive optical
 microscopes with a simple and user-friendly architecture. The functionality of the software has also been tested
