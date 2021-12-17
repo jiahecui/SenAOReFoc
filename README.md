@@ -563,7 +563,7 @@ Designer. The values are calculated as [depth (um) / step increment
 
 ## Example usage
 
-Please refer to the JOSS paper associated with this software <https://github.com/jiahecui/SenAOReFoc/tree/master/paper>
+Please refer to the metapaper associated with this software on arXiv 
 for examples of automated AO performance characterisations on a real reflectance confocal 
 microscope.
 
@@ -646,6 +646,13 @@ tracker at: <https://github.com/jiahecui/SenAOReFoc/issues>
 
 To make general inquiries about how to use the software, or how to modify the 
 software for integration into existing hardware, please email <jiahe.cui@eng.ox.ac.uk>
+
+## How to cite
+
+If you're using any modified version of this software for your work, please cite the metapaper
+associated with this software on arXiv for now. If you're performing remote focusing using the 
+calibration procedure set out in this software, please also cite either [@Cui2021Biophotonics]
+or [@Cui2021OpticsExpress].
 
 ## Licence
 
