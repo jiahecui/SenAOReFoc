@@ -171,6 +171,8 @@ class SENSOR_XIMEA(xiapi.Camera)
 img = xiapi.Image()
 ```
 
+Or find the corresponding package in <https://www.ximea.com/support/wiki/apis/XIMEA_Linux_Software_Package>.
+
 Finally, SenAOReFoc can be run in **standard mode** in the availability
 of hardware devices (DM and SHWS):
 
@@ -205,6 +207,40 @@ command prompt run:
 ``` bash
 deactivate
 ```
+
+## Software functionality tests
+
+To perform functionality tests without hardware, leave all parameters in
+`config.yaml` as default, run the software in **debug mode**, and
+perform the following tests in sequence:
+
+-   [Initialise SB]: A search block region should appear in the
+    ImageViewer with 14 search blocks across the diameter. Message box:
+    `Search block geometry initialised. Number of search blocks within
+    the pupil is: 148.`
+
+-   [Position SB]: A white dot should appear at the centre of all the
+    search blocks. Message box: `Need to calibrate DM? [y/n]` -\>
+    Click on the command prompt and press `y` on the keyboard. Message
+    box: `Reposition search blocks using keyboard. Press arrow keys to
+    centre S-H spots in search blocks. Press Enter to finish.` -\>
+    Press `↑`, `↓`, `←`, `→` keys on the keyboard to reposition
+    search blocks and press `Enter` to confirm. Message box: `Search
+    block position confirmed.`
+
+-   [Calibrate-S]: Message box: `Dummy DM actuator coordinates
+    loaded.`
+
+-   [S-Z Conv]: Message box: `Exiting slope - Zernike conversion
+    process.`
+
+-   [Calibrate-Z]: Message box: `Exiting Zernike control matrix
+    calibration process.`
+
+-   [Reset DM]: Message box: `DM reset success.`
+
+-   Adjust the remote focusing toggle bar: Message box: `Focus
+    position: X.X um.`
 
 ## Getting started
 
@@ -566,40 +602,6 @@ Designer. The values are calculated as [depth (um) / step increment
 Please refer to the metapaper associated with this software on arXiv 
 for examples of automated AO performance characterisations on a real reflectance confocal 
 microscope.
-
-## Software functionality tests
-
-To perform functionality tests without hardware, leave all parameters in
-`config.yaml` as default, run the software in **debug mode**, and
-perform the following tests in sequence:
-
--   [Initialise SB]: A search block region should appear in the
-    ImageViewer with 14 search blocks across the diameter. Message box:
-    `Search block geometry initialised. Number of search blocks within
-    the pupil is: 148.`
-
--   [Position SB]: A white dot should appear at the centre of all the
-    search blocks. Message box: `Need to calibrate DM? [y/n]` -\>
-    Click on the command prompt and press `y` on the keyboard. Message
-    box: `Reposition search blocks using keyboard. Press arrow keys to
-    centre S-H spots in search blocks. Press Enter to finish.` -\>
-    Press `↑`, `↓`, `←`, `→` keys on the keyboard to reposition
-    search blocks and press `Enter` to confirm. Message box: `Search
-    block position confirmed.`
-
--   [Calibrate-S]: Message box: `Dummy DM actuator coordinates
-    loaded.`
-
--   [S-Z Conv]: Message box: `Exiting slope - Zernike conversion
-    process.`
-
--   [Calibrate-Z]: Message box: `Exiting Zernike control matrix
-    calibration process.`
-
--   [Reset DM]: Message box: `DM reset success.`
-
--   Adjust the remote focusing toggle bar: Message box: `Focus
-    position: X.X um.`
 
 ## Notes for development
 
