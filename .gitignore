@@ -11,9 +11,6 @@
 # virtualenv
 venv/
 
-# paper
-paper/
-
 # pyinstaller
 build/
 *.pyos
