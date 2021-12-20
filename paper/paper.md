@@ -8,8 +8,14 @@ tags:
   - DM
   - SHWS
 authors:
-  - name: Jiahe Cui
+  - name: Jiahe Cui^[jiahe.cui@eng.ox.ac.uk]
     orcid: 0000-0003-2122-5754
+    affiliation: "1"
+  - name: Karen M. Hampson
+    affiliation: "1"
+  - name: Matthew Wincott
+    affiliation: "1"
+  - Martin J. Booth
     affiliation: "1"
 affiliations:
   - name: Department of Engineering Science, University of Oxford, Parks Road, Oxford, OX1 3PJ, UK
@@ -137,7 +143,7 @@ data_collect:
 ```
 
 ![Characterisation results of system AO correction performance.
-(a) Dynamic range of the SHWS for Zernike modes 3-20 (excl. tip/tilt).
+(a) Dynamic range of the SHWS for Zernike modes 3∼20 (excl. tip/tilt).
 (b)-(e) Generated and detected RMS amplitudes of odd/even Zernike modes
 (b) 5, (c) 7, (d) 12, and (e) 20, in increments of 0.02 micrometers. 5 tests were
 performed for each measurement.\label{fig:example1}](media/image2.png){ width=60% }
