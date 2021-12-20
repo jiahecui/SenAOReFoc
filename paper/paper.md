@@ -8,7 +8,7 @@ tags:
   - DM
   - SHWS
 authors:
-  - name: Jiahe Cui^[jiahe.cui@eng.ox.ac.uk]
+  - name: Jiahe Cui^[jiahe.cui\@eng.ox.ac.uk]
     orcid: 0000-0003-2122-5754
     affiliation: 1
   - name: Karen M. Hampson
