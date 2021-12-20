@@ -214,8 +214,7 @@ either [@Cui2021Biophotonics] or [@Cui2021OpticsExpress].
 
 # Acknowledgements
 
-We thank Karen Hampson for fruitful discussions during the course of this project, and Chao He and Matthew Wincott
-for testing the software functionality using different operating systems. This work was supported by European Research
-Council projects 695140 and 812998.
+We thank Chao He for testing the software functionality using different operating systems. 
+This work was supported by European Research Council projects 695140 and 812998.
 
 # References
