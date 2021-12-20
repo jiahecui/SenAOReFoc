@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='SenAOReFoc',
-      version='0.1',
+      version='v1.0.0',
       description='Sensorbased AO and remote focusing control software',
       author='Jiahe Cui',
       author_email='jiahe.cui@eng.ox.ac.uk',
