@@ -10,13 +10,13 @@ tags:
 authors:
   - name: Jiahe Cui^[jiahe.cui@eng.ox.ac.uk]
     orcid: 0000-0003-2122-5754
-    affiliation: "1"
+    affiliation: 1
   - name: Karen M. Hampson
-    affiliation: "1"
+    affiliation: 1
   - name: Matthew Wincott
-    affiliation: "1"
-  - Martin J. Booth
-    affiliation: "1"
+    affiliation: 1
+  - name: Martin J. Booth
+    affiliation: 1
 affiliations:
   - name: Department of Engineering Science, University of Oxford, Parks Road, Oxford, OX1 3PJ, UK
     index: 1
