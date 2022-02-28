@@ -245,6 +245,30 @@ perform the following tests in sequence:
 -   Adjust the remote focusing toggle bar: Message box: `Focus
     position: X.X um.`
 
+To measure the code coverage of the above functionality test without hardware,
+install `coverage.py` by running in the command prompt:
+
+``` bash
+pip install coverage
+```
+
+Run the software in **debug mode** in the command prompt by
+
+``` bash
+coverage run --source= sensorbasedAO\app.py -d
+```
+
+Perform the above functionality test, quit the software, then run in the command prompt again
+
+``` bash
+coverage report -m sensorbasedAO\app.py
+```
+
+And one should get a report that looks like the following with around 50% code coverage. This would
+be higher with more buttons tested and would be different when executing different functions in reality.
+
+![](media/image2.png?classes=caption&lightbox)
+
 ## Getting started
 
 After installing the software, please run SenAOReFoc in **debug mode** 
