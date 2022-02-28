@@ -171,7 +171,10 @@ class SENSOR_XIMEA(xiapi.Camera)
 img = xiapi.Image()
 ```
 
-Or find the corresponding package in <https://www.ximea.com/support/wiki/apis/XIMEA_Linux_Software_Package>.
+To proceed with Ximea cameras using macOS or Linux, the corresponding xiapi python binding
+is required, which can be installed using the ximea SDK installer found in 
+
+<https://www.ximea.com/support/wiki/apis/XIMEA_Linux_Software_Package>.
 
 Finally, SenAOReFoc can be run in **standard mode** in the availability
 of hardware devices (DM and SHWS):
@@ -653,8 +656,8 @@ software for integration into existing hardware, please email <jiahe.cui@eng.ox.
 
 If you're using any modified version of this software for your work, please cite the metapaper
 associated with this software on arXiv for now. If you're performing remote focusing using the 
-calibration procedure set out in this software, please also cite either [@Cui2021Biophotonics]
-or [@Cui2021OpticsExpress].
+calibration procedure set out in this software, please also cite either [6] 
+<https://doi.org/10.1364/boda.2021.dth2a.2> or [7] <https://doi.org/10.1364/OE.442025>.
 
 ## Licence
 
@@ -695,7 +698,7 @@ GNU General Public License version 3 <https://opensource.org/licenses/GPL-3.0>.
     Gibbs, S. Vinogradov, M. Niedre, K. Samkoe, A. Devor, D. Peterka, P.
     Blinder, and E. Buckley, eds., OSA Technical Digest (Optical Society
     of America, 2021), paper DTh2A.2 (2021).
-    <https://www.osapublishing.org/abstract.cfm?uri=BODA-2021-DTh2A.2>
+    <https://doi.org/10.1364/boda.2021.dth2a.2>
 
 7.  J. Cui, R. Turcotte, N. J. Emptage, and M. J. Booth, "Extended range
     and aberration-free autofocusing via remote focusing and
