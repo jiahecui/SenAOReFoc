@@ -245,14 +245,14 @@ perform the following tests in sequence:
 -   Adjust the remote focusing toggle bar: Message box: `Focus
     position: X.X um.`
 
-To measure the code coverage of the above functionality test without hardware,
-install `coverage.py` by running in the command prompt:
+The code coverage and effectiveness of the above functionality test can be measured
+by installing `coverage.py` through the command prompt.
 
 ``` bash
 pip install coverage
 ```
 
-Run the software in **debug mode** in the command prompt by
+Then, run the software in **debug mode** by
 
 ``` bash
 coverage run --source= sensorbasedAO\app.py -d
