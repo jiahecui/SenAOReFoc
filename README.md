@@ -267,7 +267,7 @@ coverage report -m sensorbasedAO\app.py
 And one should get a report that looks like the following with around 50% code coverage. This would
 be higher with more buttons tested and would be different when executing different functions in reality.
 
-![](media/image2.png?classes=caption&lightbox)
+![](media/image2.PNG?classes=caption&lightbox)
 
 ## Getting started
 
