@@ -13,10 +13,19 @@ class Acquisition(QObject):
     """
     Acquires SH images in different modes
     """
+    # Signal class for starting an event
     start = Signal()
+
+    # Signal class for exiting image acquisition event
     done = Signal()
+
+    # Signal class for raising an error
     error = Signal(object)
+    
+    # Signal class for emitting a message in the message box
     message = Signal(object)
+
+    # Signal class for displaying a SH spot image
     image = Signal(object)
 
     def __init__(self, sensor):

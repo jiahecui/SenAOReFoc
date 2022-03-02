@@ -16,12 +16,25 @@ class Calibration(QObject):
     """
     Calibrates deformable mirror and retrieves influence function + control matrix
     """
+    # Signal class for starting an event
     start = Signal()
+
+    # Signal class for writing DM parameters into HDF5 file
     write = Signal()
+
+    # Signal class for exiting DM slope calibration event
     done = Signal()
+
+    # Signal class for raising an error
     error = Signal(object)
+
+    # Signal class for displaying a SH spot image
     image = Signal(object)
+
+    # Signal class for emitting a message in the message box
     message = Signal(object)
+
+    # Signal class for updating DM control parameters
     info = Signal(object)
 
     def __init__(self, sensor, mirror, settings, debug = False):

@@ -14,13 +14,28 @@ class Positioning(QObject):
     """
     Positions search blocks either through keyboard argument or import from HDF5 file
     """
+    # Signal class for starting an event
     start = Signal()
+
+    # Signal class for writing search block position information into HDF5 file
     write = Signal()
+
+    # Signal class for exiting search block positioning event
     done = Signal()
+
+    # Signal class for raising an error
     error = Signal(object)
+
+    # Signal class for displaying search block geometry
     layer = Signal(object)
+
+    # Signal class for emitting a message in the message box
     message = Signal(object)
+
+    # Signal class for updating search block position information
     SB_info = Signal(object)
+
+    # Signal class for updating DM parameters information
     mirror_info = Signal(object)
     
     def __init__(self, device, settings, debug = False):

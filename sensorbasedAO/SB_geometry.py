@@ -12,11 +12,22 @@ class Setup_SB(QObject):
     """
     Sets up reference search block geometry
     """
+    # Signal class for starting an event
     start = Signal()
+
+    # Signal class for exiting search block geometry initialisation event
     done = Signal()
+
+    # Signal class for raising an error
     error = Signal(object)
+
+    # Signal class for displaying search block geometry
     layer = Signal(object)
+
+    # Signal class for emitting a message in the message box
     message = Signal(object)
+
+    # Signal class for updating search block geometry information
     info = Signal(object)
 
     def __init__(self, mirror):

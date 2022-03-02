@@ -18,12 +18,25 @@ class Data_Collection(QObject):
     """
     Performs different data collection functions
     """
+    # Signal class for starting an event
     start = Signal()
+
+    # Signal class for writing collected AO data into HDF5 file
     write = Signal()
+
+    # Signal class for exiting data collection event
     done = Signal()
+
+    # Signal class for raising an error
     error = Signal(object)
+
+    # Signal class for displaying a SH spot image
     image = Signal(object)
+
+    # Signal class for emitting a message in the message box
     message = Signal(object)
+
+    # Signal class for updating collected AO data
     info = Signal(object)
 
     def __init__(self, sensor, mirror, settings, debug = False):

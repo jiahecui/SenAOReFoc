@@ -17,13 +17,28 @@ class AO_Slopes(QObject):
     """
     Runs closed-loop AO using calibrated slope control matrix
     """
+    # Signal class for starting an event
     start = Signal()
+
+    # Signal class for writing slope AO information into HDF5 file
     write = Signal()
+
+    # Signal class for exiting slope AO event
     done = Signal(object)
+
+    # Signal class for exiting remote focusing event
     done2 = Signal(object)
+
+    # Signal class for raising an error
     error = Signal(object)
+
+    # Signal class for displaying a SH spot image
     image = Signal(object)
+
+    # Signal class for emitting a message in the message box
     message = Signal(object)
+
+    # Signal class for updating slope AO information
     info = Signal(object)
 
     def __init__(self, sensor, mirror, settings, debug = False):

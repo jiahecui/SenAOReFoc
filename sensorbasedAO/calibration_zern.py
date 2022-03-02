@@ -10,11 +10,22 @@ class Calibration_Zern(QObject):
     """
     Retrieves control matrix via zernikes using slopes acquired during calibration via slopes
     """
+    # Signal class for starting an event
     start = Signal()
+
+    # Signal class for writing DM parameters into HDF5 file
     write = Signal()
+
+    # Signal class for exiting DM Zernike calibration event
     done = Signal()
+
+    # Signal class for emitting a message in the message box
     message = Signal(object)
+
+    # Signal class for raising an error
     error = Signal(object)
+
+    # Signal class for updating DM control parameters
     info = Signal(object)
 
     def __init__(self, settings, debug = False):
