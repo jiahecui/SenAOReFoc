@@ -171,7 +171,7 @@ class SENSOR_XIMEA(xiapi.Camera)
 img = xiapi.Image()
 ```
 
-To proceed with Ximea cameras using Linux, the corresponding xiapi python binding
+To proceed with Ximea cameras using Linux, the corresponding xiapi Python binding
 is required, which can be installed using the ximea SDK installer found in 
 
 <https://www.ximea.com/support/wiki/apis/XIMEA_Linux_Software_Package>.
