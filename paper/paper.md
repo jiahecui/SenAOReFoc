@@ -112,7 +112,7 @@ designed for open development and easy integration into existing adaptive optica
 microscopes with a simple and user-friendly architecture. The functionality of the software has also been tested
 on different operating systems (Windows/Linux/macOS) for sake of generality. The software fully operates in 
 Windows under both 'debug mode' and 'standard mode' for hardware control. For Linux and macOS, functionality tests
-in 'debug mode' passes for both systems without loading hardware packages. Python-bindings for Ximea cameras
+in 'debug mode' passes for both systems when hardware packages are not imported. Python-bindings for Ximea cameras
 and Python 3.8-binding for Alpao DMs are compatible with Linux systems, and other Python-bindings for Alpao DMs
 should also be compatible following their release. However, we note that SenAOReFoc is a control software, and the 
 performance of the closed-loop AO correction in practice is inevitably dependent on the state of the optical system.
