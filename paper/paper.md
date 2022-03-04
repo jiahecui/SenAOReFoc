@@ -110,9 +110,12 @@ SenAOReFoc aims to fill this gap and to make closed-loop sensorbased AO [@Fernan
 remote focusing more easily accessible to the microscopy community. It has been
 designed for open development and easy integration into existing adaptive optical
 microscopes with a simple and user-friendly architecture. The functionality of the software has also been tested
-on different operating systems (Windows/macOS/Linux) for sake of generality. 
-However, we note that SenAOReFoc is a control software, and the performance of the 
-closed-loop AO correction in practice is inevitably dependent on the state of the optical system.
+on different operating systems (Windows/Linux/macOS) for sake of generality. The software fully operates in 
+Windows under both 'debug mode' and 'standard mode' for hardware control. For Linux and macOS, functionality tests
+in 'debug mode' passes for both systems without loading hardware packages. Python-bindings for Ximea cameras
+and Python 3.8-binding for Alpao DMs are compatible with Linux systems, and other Python-bindings for Alpao DMs
+should also be compatible following their release. However, we note that SenAOReFoc is a control software, and the 
+performance of the closed-loop AO correction in practice is inevitably dependent on the state of the optical system.
 Finally, SenAOReFoc takes care of some reported issues in the field, such as the thermal effects of electromagnetic DMs 
 [@Bitenc2017OpticsExpress], and obscured search blocks in the case of severely distorted
 pupils [@Dong2018OpticsExpress; @Ye2015OpticsExpress; @Cui2020Zenodo]. In the former case, an option is provided to exercise

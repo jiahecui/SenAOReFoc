@@ -86,7 +86,7 @@ systems designed in a closed-loop configuration.
 You will need the following open-source software installed to function
 and modify SenAOReFoc:
 
--   Python 3.7: <https://www.python.org/downloads/>
+-   Python 3.7+: <https://www.python.org/downloads/>
 -   Git: <https://www.python.org/downloads/>
     For macOS, run:
 
@@ -171,10 +171,17 @@ class SENSOR_XIMEA(xiapi.Camera)
 img = xiapi.Image()
 ```
 
-To proceed with Ximea cameras using macOS or Linux, the corresponding xiapi python binding
+To proceed with Ximea cameras using Linux, the corresponding xiapi python binding
 is required, which can be installed using the ximea SDK installer found in 
 
 <https://www.ximea.com/support/wiki/apis/XIMEA_Linux_Software_Package>.
+
+To proceed with Alpao DMs using Linux, Python 3.8 binding is currently required, 
+the SDK installer of which can be found in
+
+<http://alpao.com/Download/AlpaoSDK>
+
+And packages for other Python versions will be soon be supported following their release.
 
 Finally, SenAOReFoc can be run in **standard mode** in the availability
 of hardware devices (DM and SHWS):
