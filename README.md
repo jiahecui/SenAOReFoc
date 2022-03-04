@@ -88,7 +88,7 @@ and modify SenAOReFoc:
 
 -   Python 3.7+: <https://www.python.org/downloads/>
 -   Git: <https://www.python.org/downloads/>
-    For macOS, run:
+    For Linux/macOS, run:
 
     ``` bash
     git --version
@@ -117,7 +117,7 @@ Windows:
 ```bash
 python -m venv venv
 ```
-macOS:
+Linux/macOS:
 ```bash
 python3 -m venv venv
 ```
@@ -128,7 +128,7 @@ Windows:
 ``` bash
 venv\Scripts\activate
 ```
-macOS:
+Linux/macOS:
 ```bash
 source venv/bin/activate
 ```
