@@ -149,7 +149,7 @@ data_collect:
 ```
 
 ![Characterisation results of system AO correction performance.
-(a) Dynamic range of the SHWS for Zernike modes 3∼20 (excl. tip/tilt).
+(a) Dynamic range of the SHWS for Zernike modes 3-20 (excl. tip/tilt).
 (b)-(e) Generated and detected RMS amplitudes of odd/even Zernike modes
 (b) 5, (c) 7, (d) 12, and (e) 20, in increments of 0.02 micrometers. 5 tests were
 performed for each measurement.\label{fig:example1}](media/image2.png){ width=60% }
