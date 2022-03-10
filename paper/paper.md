@@ -27,18 +27,18 @@ bibliography: paper.bib
 
 # Summary
 
-SenAOReFoc is a closed-loop sensorbased adaptive optics (AO)
-and remote focusing control software that works with a deformable mirror
+SenAOReFoc is a closed-loop sensor-based adaptive optics (AO)
+and remote-focusing control software that works with a deformable mirror
 (DM) and a Shack-Hartmann wavefront sensor (SHWS). It provides a 
 user-friendly graphic user interface (GUI) with modular widget arrangements
 and clear labelling to help the user navigate through different software 
 functionalities. Interactive messages are also displayed from the GUI for 
 user guidance.
 
-SenAOReFoc consists of 5 main units, the SHWS initialisation and DM
+SenAOReFoc consists of five main units: the SHWS initialisation and DM
 calibration unit, the Zernike aberration input unit, the AO control and
 data collection unit, the miscellaneous control unit, and the remote
-focusing unit, as shown in \autoref{fig:gui}. The software can be ran in either 'debug mode' to perform 
+focusing unit, as shown in \autoref{fig:gui}. The software can be run in either 'debug mode' to perform 
 functionality tests without connected hardware (DM and SHWS), or 
 'standard mode' on a well-aligned optical sectioning microscope (confocal, 
 multiphoton, etc.). User controllable system parameters can be freely accessed and modified
@@ -91,7 +91,7 @@ focusing, calibration can be performed through closed-loop AO correction to
 simultaneously correct for system aberrations introduced by beam divergence 
 at different focusing depths [@Zurauskas2017BiomedicalOpticsExpress].
 
-Sensorbased AO, which uses a dedicated sensor to measure the wavefront 
+Sensor-based AO, which uses a dedicated sensor to measure the wavefront 
 [@Platt2001JournalofRefractiveSurgery], was first introduced in the field of astronomy [@Beckers1993]. 
 Since then, it has also been widely adopted in vision science [@Porter2006; 
 @Godara2010Optometryandvisionscience] and microscopy [@Booth2007PhilosophicalTransactions; 
@@ -106,7 +106,7 @@ performing both AO and remote focusing within the single package, despite that t
 have been widely adopted. As a result, time and effort has to be spent reimplementing existing techniques 
 for different hardware systems. 
 
-SenAOReFoc aims to fill this gap and to make closed-loop sensorbased AO [@Fernandez2001OpticsLetters] and 
+SenAOReFoc aims to fill this gap and to make closed-loop sensor-based AO [@Fernandez2001OpticsLetters] and 
 remote focusing more easily accessible to the microscopy community. It has been
 designed for open development and easy integration into existing adaptive optical
 microscopes with a simple and user-friendly architecture. The functionality of the software has also been tested
@@ -151,7 +151,7 @@ data_collect:
 ![Characterisation results of system AO correction performance.
 (a) Dynamic range of the SHWS for Zernike modes 3-20 (excl. tip/tilt).
 (b)-(e) Generated and detected RMS amplitudes of odd/even Zernike modes
-(b) 5, (c) 7, (d) 12, and (e) 20, in increments of 0.02 micrometers. 5 tests were
+(b) 5, (c) 7, (d) 12, and (e) 20, in increments of 0.02 micrometers. Five tests were
 performed for each measurement.\label{fig:example1}](media/image2.png){ width=60% }
 
 **Example 2**: The degree of Zernike mode coupling upon detection at the
@@ -176,7 +176,8 @@ generated mode values for 0.1 micrometers of Zernike modes 3-20 (excl. tip/tilt)
 **Example 3**: To ensure the system can correct for multiple Zernike
 modes with good stability and minimal mode coupling, different
 combinations of odd and even Zernike modes can be generated and
-corrected for in closed-loop using mode 2/3 of [Data Collection]. \autoref{fig:example3} provides an example of the detect amplitude
+corrected for in closed-loop using mode 2/3 of [Data Collection]. 
+\autoref{fig:example3} provides an example of the detect amplitude
 and Strehl ratio after each closed-loop iteration for some odd and 
 even Zernike mode combinations. Parameters in `config.yaml` under `data_collect` were set as follows.
 
@@ -196,13 +197,13 @@ combinations and Strehl ratio calculated using first 69 Zernike modes
 \label{fig:example3}](media/image4.png)
 
 **Example 4**: Voltages that control DM actuators to deform the membrane for fine 
-axial remote focusing was calibrated according to the procedure explained in the GitHub repository 
-<https://github.com/jiahecui/SenAOReFoc>, and reported in [@Cui2021Biophotonics] and [@Cui2021OpticsExpress]. 
+axial remote focusing was calibrated according to the procedure explained in the 
+[GitHub repository](https://github.com/jiahecui/SenAOReFoc), and reported by @Cui2021Biophotonics and @Cui2021OpticsExpress. 
 [Calibrate] was pressed for both directions of the optical axis and a piece of white card was displaced by 
 10 micrometers each time before pressing 'y' on the keyboard to proceed with closed-loop
 AO correction. Interpolation of the DM control voltages at each calibration step was then performed 
 to obtain those for 0.1 micrometer increments. The software's remote focusing capability was 
-demonstrated in frozen mouse skull in [@Cui2021Biophotonics] to show no noticeable difference in
+demonstrated in frozen mouse skull in @Cui2021Biophotonics to show no noticeable difference in
 resolution and size of field of view as compared to standard translation of the sample stage. 
 Results are also shown in \autoref{fig:example4}.
 
