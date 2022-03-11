@@ -1,5 +1,7 @@
 # User guide for SenAOReFoc
 
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.04075/status.svg)](https://doi.org/10.21105/joss.04075)
+
 ## Introduction
 
 SenAOReFoc is a closed-loop sensorbased adaptive optics (AO)
