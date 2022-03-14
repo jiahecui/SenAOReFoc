@@ -687,8 +687,8 @@ software for integration into existing hardware, please email <jiahe.cui@eng.ox.
 
 ## How to cite
 
-If you're using any modified version of this software for your work, please cite the metapaper
-associated with this software on arXiv for now. If you're performing remote focusing using the 
+If you're using any modified version of this software for your work, please cite the JOSS paper
+associated with this software by clicking the link at the top of this README file. If you're performing remote focusing using the 
 calibration procedure set out in this software, please also cite either [6] 
 <https://doi.org/10.1364/boda.2021.dth2a.2> or [7] <https://doi.org/10.1364/OE.442025>.
 
